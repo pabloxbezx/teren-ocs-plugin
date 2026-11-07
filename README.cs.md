@@ -21,6 +21,13 @@ Potřeba je Open CAD Studio **2026.44** nebo novější.
   pluginů. `nainstalovat.bat` bez přiloženého `teren_plugin.dll` udělá
   totéž.
 
+## Ukázkový výkres
+
+`ukazka/teren-sample.dwg` – malé zaměření v lese s povrchem stávajícího
+terénu: body se styly (stromy, sloupy, šachty…), spojnice, obrys,
+vrstevnice a popisy. Otevřete ho s nainstalovaným Terénem a v Prospektoru
+si prohlédněte body, skupiny, povrch a styly.
+
 ## Verze 1.0.0
 
 - Pro Open CAD Studio **2026.44** (rozhraní pro pluginy 14). Plugin už

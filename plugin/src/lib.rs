@@ -833,6 +833,12 @@ impl BuiltinPlugin for TerenPlugin {
                 }
             }
         }
+        if ["TER_IMPORT", "TER_PRIPRAVIT", "TER_BOD", "TER_NOVY", "TER_SB_", "TER_PROSPEKTOR"].iter().any(|p| c.starts_with(p)) {
+            let mut v = vykres::PresHost(host);
+            if let Ok(doc) = v.dokument() {
+                cogo::presun_nosice(&mut v, &doc);
+            }
+        }
         let r = self.proved_prikaz(host, cmd);
         host.end_undo_group();
         r

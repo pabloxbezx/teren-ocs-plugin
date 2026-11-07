@@ -47,6 +47,13 @@ Czech, English) and takes effect after a restart. Translations live in
 `preklady/en.txt` (one line per text: Czech, tab, English) – other languages
 can be added the same way.
 
+## Sample drawing
+
+`ukazka/teren-sample.dwg` – a small forest survey with an existing-ground
+surface: survey points with styles (trees, poles, manholes…), breaklines,
+outline, contours and labels. Open it with the Terén plugin installed and
+use the Prospector to explore the points, groups, surface and styles.
+
 ## Repository layout
 
 - `src/` – the `teren` library: point import, TIN, breaklines, contours,

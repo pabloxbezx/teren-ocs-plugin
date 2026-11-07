@@ -405,14 +405,23 @@ pub fn zajisti_bloky_znacek(v: &mut dyn Vykres, doc: &CadDocument) -> Result<(),
         let jm = blok_vestavene(zn);
         if !ma_blok(&jm) {
             let h = v.pridej(tvary_znacky(zn, 1.0, (0.0, 0.0, 0.0), Some(())))?;
-            v.tabulka(ocs_plugin_api::host::TableOperation::BlockCreate {
+            let vysledek = v.tabulka(ocs_plugin_api::host::TableOperation::BlockCreate {
                 name: jm.clone(),
-                entities: h,
+                entities: h.clone(),
                 base_point: [0.0, 0.0, 0.0],
                 erase_originals: true,
                 description: Some(trf!("Značka bodu „{}“ (plugin Terén)", zn.nazev())),
-            })
-            .map_err(|e| trf!("blok značky {} nejde vytvořit: {}", jm, e))?;
+            });
+            if let Err(e) = vysledek {
+                // tvary značky nesmí zůstat ve výkrese v počátku souřadnic
+                for x in h {
+                    v.odeber(x);
+                }
+                // blok mezitím vytvořil někdo jiný (souběh) – v pořádku
+                if !v.dokument().is_ok_and(|d| d.block_records.iter().any(|b| b.name.eq_ignore_ascii_case(&jm))) {
+                    return Err(trf!("blok značky {} nejde vytvořit: {}", jm, e));
+                }
+            }
         }
         velikosti.insert(jm, 2.0);
     }
@@ -1020,4 +1029,38 @@ pub fn skupina_zamereni() -> SkupinaBodu {
 pub fn dalsi_cislo(doc: &CadDocument) -> u64 {
     let b = body(doc);
     skupiny::dalsi_cislo(b.iter().map(|b| b.bod.cislo.as_str()))
+}
+
+/// Pomocné body Terénu (definice stylů a skupin) uložené v počátku 0,0 –
+/// vznikly v prázdném výkresu – přesune k bodům zaměření, aby „Zoom –
+/// vše“ neukazoval i počátek souřadnic. Vrací, zda něco přesunul.
+pub fn presun_nosice(v: &mut dyn Vykres, doc: &CadDocument) -> bool {
+    let nosice: Vec<EntityType> = doc
+        .model_space_entities()
+        .filter(|e| {
+            let l = &e.common().layer;
+            l.eq_ignore_ascii_case(H_SKUPINY) || l.eq_ignore_ascii_case(crate::styly::H_STYLY)
+        })
+        .filter(|e| matches!(e, EntityType::Point(p) if p.location.x == 0.0 && p.location.y == 0.0))
+        .cloned()
+        .collect();
+    if nosice.is_empty() {
+        return false;
+    }
+    let b = body(doc);
+    if b.is_empty() {
+        return false;
+    }
+    let n = b.len() as f64;
+    let (x, y) = (b.iter().map(|b| b.bod.x).sum::<f64>() / n, b.iter().map(|b| b.bod.y).sum::<f64>() / n);
+    v.zpet(tr("Terén"));
+    let mut zmena = false;
+    for mut e in nosice {
+        if let EntityType::Point(p) = &mut e {
+            p.location.x = x;
+            p.location.y = y;
+        }
+        zmena |= v.uprav(e);
+    }
+    zmena
 }

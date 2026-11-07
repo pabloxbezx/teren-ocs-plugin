@@ -735,6 +735,9 @@ impl Pracovnik {
     /// Po přesunu, smazání nebo kopírování bodů srovná jejich značky a popisy.
     fn hlidej_body(&mut self, tab: u64, k: &mut PresKanal) {
         let Ok(doc) = k.dokument() else { return };
+        if cogo::presun_nosice(k, &doc) {
+            k.konec_kroku();
+        }
         let m = nastaveni::meritko(&doc);
         let n = cogo::nesoulad(&doc, m);
         if n.je_prazdny() || n.navic.len() + n.chybi.len() > 2000 {
