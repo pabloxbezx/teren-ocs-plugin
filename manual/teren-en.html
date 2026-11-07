@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Terén – manual</title>
+<link rel="stylesheet" href="styl.css"></head><body>
+<section class="titul">
+  <img src="img/logo.svg" class="logo" alt="">
+  <h1>Terén</h1>
+  <p class="podtitul">Open CAD Studio plugin: survey points, TIN surfaces, breaklines, contours</p>
+  <p class="verze">Short manual · version __VERZE__</p>
+  <img src="img/povrch.png" class="titulni">
+</section>
+
+<h2>1. What Terén does</h2>
+<p>Terén builds a digital terrain model from survey points directly in an Open CAD Studio drawing:</p>
+<ul>
+<li><b>Points</b> – import from text files (PNEZD, PENZD, PYXZD, NEZ, ENZ…, the format is detected automatically), markers and labels by styles, point groups, manual points, survey check.</li>
+<li><b>Surfaces</b> – triangulated network (TIN) from point groups, breaklines, boundaries and holes, points from drawing objects, manual triangle edits, automatic recalculation.</li>
+<li><b>Display</b> – contours with labels, triangles, outline, slope arrows; 3D viewer.</li>
+<li><b>Export</b> – surface to LandXML or DXF (3D faces), group points to a text file.</li>
+</ul>
+<p>Everything is stored in the drawing (DWG/DXF) – the drawing can be passed on and edited without the plugin; the plugin then reads the surface again.</p>
+
+<h2>2. Installation</h2>
+<p><b>Plugin Manager:</b> in Open CAD Studio open the Plugin Manager, find <i>Terén</i> and click Install. After a restart the <b>Terén</b> tab appears.</p>
+<p><b>Manually (Windows):</b> download <code>Teren-windows.zip</code> from the GitHub release, extract it and run <code>nainstalovat.bat</code>. The plugin is copied to <code>%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren</code>.</p>
+<p>Open CAD Studio 2026.44 or newer is required. The interface language (Czech / English) is set in Prospector › Settings.</p>
+
+<h2>3. Interface</h2>
+<img src="img/pas-en.png" class="siroky">
+<p class="popisek">The Terén ribbon tab</p>
+<table class="mrizka">
+<tr><th>Group</th><th>Contents</th></tr>
+<tr><td>Prospector</td><td>Prospector window, Prepare drawing (layers, markers, template), Help</td></tr>
+<tr><td>Points</td><td>Import points, New point (manual, on surface), Point style for selected points</td></tr>
+<tr><td>Surface</td><td>New surface (existing ground, design from 3D lines, from clicked points, wizard), Surface style, Find in Prospector, Surface export</td></tr>
+<tr><td>Definition</td><td>Breakline through points, Add breakline, Boundary, Hole</td></tr>
+<tr><td>Edits</td><td>Swap / add / delete edge, delete triangle, add / remove point</td></tr>
+<tr><td>Analysis</td><td>Elevation at point</td></tr>
+</table>
+<p>The <b>Prospector</b> is a separate window with three modes:</p>
+<ul>
+<li><b>Selection</b> – what is selected in the drawing (point, surface) and what you can do with it: edit elevation and number, style, groups, recalculation.</li>
+<li><b>Drawing</b> – a tree of everything the plugin has in the drawing: points (table), point groups, surfaces, styles, survey check, settings. Right-click opens a menu of actions.</li>
+<li><b>3D</b> – surface viewer.</li>
+</ul>
+<img src="img/prospektor-en.png" class="stred">
+<p class="popisek">Prospector – Drawing mode, point table</p>
+<p>Help with workflows and a glossary is in the Prospector (<b>F1</b>); the <span class="otaznik">?</span> next to a term shows an explanation.</p>
+
+<h2>4. Ground from a survey – step by step</h2>
+<ol class="kroky">
+<li><b>Import points.</b> Terén › Import points, choose the file. The preview shows the first lines, the detected format and the first points; check the columns and click <i>Import</i>. S-JTSK points are drawn in negative drawing coordinates (positive Y, X in labels).</li>
+<li><b>New surface.</b> New surface › <i>Existing ground (from points)</i>. It takes the <i>Survey</i> group without STR codes (trees). The wizard (New surface › Wizard) lets you choose groups, max. edge length, style and contour interval.</li>
+<li><b>Breaklines.</b> <i>Breakline through points</i> – click survey points (slope edge, toe, top, ditch centreline); Enter = finish. Existing 3D polylines are added with <i>Add breakline</i>.</li>
+<li><b>Boundary.</b> Draw a closed polyline around the area, select it and click <i>Boundary</i>. <i>Hole</i> leaves out the inside of a polyline.</li>
+<li><b>Check and edit.</b> The <i>Triangles</i> style or the 3D tab shows the network. Swap or delete unsuitable edges with the Edits tools; each edit is stored with the surface and reapplied on recalculation.</li>
+<li><b>Contours.</b> Right-click the surface in the Prospector › Style (e.g. <i>Contours with labels</i>) and Contour interval (0.1 / 0.5 m …).</li>
+</ol>
+<img src="img/import-en.png" class="stred">
+<p class="popisek">Import preview</p>
+<img src="img/povrch2.png" class="siroky">
+<p class="popisek">Surface with contours</p>
+<p>A surface with <b>automatic recalculation</b> recalculates itself when points, breaklines or boundaries change. Otherwise the Prospector marks it <span class="var">⚠ out of date</span> and you just click Recalculate. Each Terén action (import, recalculation, redraw) is undone in one <b>Undo</b> step (Ctrl+Z).</p>
+
+<h2>5. Points</h2>
+<h3>Point styles</h3>
+<p>A style sets the marker (cross, circle, tree, manhole…) and the label (number, elevation, code). A manually set style applies, otherwise the style by code (the <i>for codes</i> field, e.g. STR → tree), otherwise the group's style, otherwise <i>Standard</i>. Sizes are in mm on paper and follow the drawing scale (annotation scale in the status bar, or Settings › Scale).</p>
+<p><b>Custom marker:</b> in the style editor choose <i>custom – drawing block</i> and select a block. The block's base point = point position, the block is scaled to the marker size; set the colour inside the block to ByBlock.</p>
+<p>A point, its marker and labels stay together – clicking any part selects the whole point. Overlapping labels are moved aside with a leader line (can be turned off in Settings).</p>
+<h3>Manual points and editing elevation</h3>
+<p><i>New point › Manual point</i>: click in the drawing or enter x,y; a window asks for the elevation (suggested from the surface or the previous point) and the code. <i>Point on surface</i> takes the elevation of the active surface. Change the elevation, number and description of an existing point in the Prospector (Selection or the point table).</p>
+<h3>Point groups</h3>
+<p>A group selects points by rules (code, numbers, import file), with exclusions and manually added / removed points. The preview shows in colour which points belong. A surface is built from groups – a change of a group recalculates the surface or marks it out of date.</p>
+<h3>Survey check</h3>
+<p>Prospector › Survey check finds points whose elevation differs markedly from their surroundings (typo, point on a car). Suspicious points are circled on the TER_KONTROLA layer; one click leaves them out of the surface.</p>
+
+<h2>6. Surfaces</h2>
+<p>A surface is built from point groups, drawing objects (points, blocks, lines, 3D faces – e.g. a surveyor's drawing), breaklines, boundaries and holes, and manual edits. All are listed in the Prospector at the surface › <i>What the surface is built from</i>; each item can be disabled, shown or removed.</p>
+<p>The <b>active surface</b> (top row of the Prospector, double-click in the tree) is used by the Edits tools, Elevation at point and Point on surface.</p>
+<p>The <b>surface style</b> sets what is drawn: triangles, contours (minor / major, colours, labels), outline, slope arrows. Edit styles in the Prospector under Styles; a built-in style can always be restored to its original settings.</p>
+<p>In the drawing a surface is a block on its own layers; Settings › <i>Surface cannot be selected by clicking</i> lets clicks pass through to the points below.</p>
+
+<h2>7. 3D viewer</h2>
+<img src="img/3d-en.png" class="vpravo">
+<p>Colours by elevation, slope or a single colour, vertical exaggeration ×1 to ×10, contours, outline, breaklines, points and triangle edges – pick the colour of each element with the swatch next to it. Controls as in SolidWorks: the middle button orbits around the point under the cursor, Ctrl + middle pans, the wheel zooms, F shows the whole surface. Save image writes a PNG to the drawing folder.</p>
+
+<h2>8. Export</h2>
+<ul>
+<li><b>Surface export</b> (ribbon or right-click a surface): <b>LandXML 1.2</b> – exactly the same triangles, survey points and outline, readable by most design programs; <b>DXF</b> – each triangle as a 3D face.</li>
+<li><b>Point export</b> of a group to a text file (PNEZD, PYXZD…, delimiter, UTF-8 or Windows-1250 encoding).</li>
+</ul>
+
+<h2>9. Settings and drawing template</h2>
+<p>Prospector › Settings: language (Czech / English, takes effect after Open CAD Studio is restarted), scale, label offset, import preview, excluded codes for a new surface, breakline snap, survey check threshold.</p>
+<p><b>Drawing template:</b> <i>Save this drawing as the template</i> stores the styles and scale in the user profile; <i>Prepare drawing</i> (ribbon) then sets up layers, point markers, scale and styles in a new drawing with one click.</p>
+
+<h2>10. Tips and troubleshooting</h2>
+<table class="mrizka">
+<tr><th>Problem</th><th>Solution</th></tr>
+<tr><td>No points appeared after import</td><td>Check the format and column order in the preview (S-JTSK: positive Y and X in the PYXZD format).</td></tr>
+<tr><td>Long triangles across the edge of the surface</td><td>Set the Max. edge length or add a boundary.</td></tr>
+<tr><td>Triangles cross a slope edge</td><td>Add a breakline (Breakline through points).</td></tr>
+<tr><td>Trees are in the ground</td><td>Code STR is in the surface's <i>Exclude codes</i>; add other codes that do not belong to the ground.</td></tr>
+<tr><td>The surface shows ⚠ out of date</td><td>Click Recalculate, or turn on automatic recalculation.</td></tr>
+<tr><td>Labels are too large / small</td><td>Change the scale (status bar or Settings) – labels are redrawn.</td></tr>
+</table>
+<p class="paticka">Terén · Ing. Pavel Janouš · GPL-3.0 licence · source code and issue reports: GitHub</p>
+</body></html>

@@ -1,0 +1,28 @@
+@page { size: A4; margin: 16mm 17mm 18mm 17mm; }
+body { font-family: "DejaVu Sans", "Segoe UI", Arial, sans-serif; font-size: 9.6pt; line-height: 1.45; color: #1d2329; }
+h1 { font-size: 34pt; margin: 0; color: #2c5f8f; letter-spacing: 0.5px; }
+h2 { font-size: 14pt; color: #2c5f8f; border-bottom: 1.5px solid #2c5f8f; padding-bottom: 2px; margin: 18px 0 8px; page-break-after: avoid; }
+h3 { font-size: 10.8pt; margin: 12px 0 4px; color: #1d2329; page-break-after: avoid; }
+p { margin: 4px 0 7px; }
+ul, ol { margin: 4px 0 8px; padding-left: 20px; }
+li { margin: 2px 0; }
+code { font-family: "DejaVu Sans Mono", Consolas, monospace; font-size: 8.6pt; background: #eef1f4; padding: 0 3px; border-radius: 2px; }
+.titul { height: 245mm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
+.titul .logo { width: 30mm; margin-bottom: 6mm; }
+.podtitul { font-size: 13pt; color: #444; margin: 4mm 0 2mm; }
+.verze { color: #777; margin-bottom: 10mm; }
+.titulni { width: 100%; border-radius: 4px; border: 1px solid #ccd3da; }
+img.siroky { width: 100%; border: 1px solid #ccd3da; border-radius: 3px; margin-top: 4px; }
+img.pul { width: 49%; border: 1px solid #ccd3da; border-radius: 3px; margin-top: 4px; vertical-align: top; }
+img.pul + img.pul { margin-left: 1.5%; }
+.popisek { font-size: 8.3pt; color: #667; margin-top: 1px; }
+table.mrizka { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 9pt; page-break-inside: avoid; }
+table.mrizka th, table.mrizka td { border: 1px solid #cfd6dd; padding: 3px 6px; text-align: left; vertical-align: top; }
+table.mrizka th { background: #eaf0f6; }
+ol.kroky li { margin-bottom: 4px; }
+.otaznik { display: inline-block; width: 12px; height: 12px; border: 1px solid #888; border-radius: 50%; font-size: 8pt; line-height: 12px; text-align: center; }
+.var { color: #c07a10; }
+.paticka { margin-top: 18px; color: #888; font-size: 8pt; border-top: 1px solid #ddd; padding-top: 4px; }
+img.vpravo { float: right; width: 42%; margin: 2px 0 8px 12px; border: 1px solid #ccd3da; border-radius: 3px; }
+img.stred { display: block; width: 78%; margin: 4px auto 0; border: 1px solid #ccd3da; border-radius: 3px; }
+h2 { clear: both; }

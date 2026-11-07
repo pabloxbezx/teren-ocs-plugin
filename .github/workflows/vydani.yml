@@ -1,0 +1,76 @@
+# Build on every push to main (artifacts for testing); on a v* tag it also
+# creates the release.
+# Release: builds the plugin for Windows, Linux and macOS and attaches it,
+# together with plugin.toml, to the GitHub release (Open CAD Studio's
+# Plugin Manager installs from these assets).
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            lib: teren_plugin.dll
+            asset: cz.fluvio.teren-windows-x86_64.dll
+          - os: ubuntu-22.04
+            lib: libteren_plugin.so
+            asset: cz.fluvio.teren-linux-x86_64.so
+          - os: macos-14
+            lib: libteren_plugin.dylib
+            asset: cz.fluvio.teren-macos-aarch64.dylib
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Linux libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev libxkbcommon-dev
+      - name: Tests
+        run: cargo test --release -p teren --lib
+      - name: Build
+        run: cargo build --release --locked -p teren_plugin
+      - name: Rename
+        shell: bash
+        run: cp "target/release/${{ matrix.lib }}" "${{ matrix.asset }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Windows zip (plugin + installer)
+        run: |
+          mkdir -p zip/Teren
+          cp dist/cz.fluvio.teren-windows-x86_64.dll zip/Teren/teren_plugin.dll
+          cp plugin/plugin.toml nainstalovat.bat nainstalovat.ps1 zip/Teren/
+          cp manual/*.pdf zip/Teren/ 2>/dev/null || true
+          (cd zip && zip -r ../Teren-windows.zip Teren)
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*
+            plugin/plugin.toml
+            Teren-windows.zip
+            manual/*.pdf
+          fail_on_unmatched_files: false

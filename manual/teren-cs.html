@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><title>Terén – manuál</title>
+<link rel="stylesheet" href="styl.css"></head><body>
+<section class="titul">
+  <img src="img/logo.svg" class="logo" alt="">
+  <h1>Terén</h1>
+  <p class="podtitul">Plugin pro Open CAD Studio: body zaměření, povrchy TIN, spojnice, vrstevnice</p>
+  <p class="verze">Stručný manuál · verze __VERZE__</p>
+  <img src="img/povrch.png" class="titulni">
+</section>
+
+<h2>1. Co Terén umí</h2>
+<p>Terén vytvoří z bodů zaměření digitální model terénu přímo ve výkrese Open CAD Studia:</p>
+<ul>
+<li><b>Body</b> – import z textových souborů (PNEZD, PENZD, PYXZD, NEZ, ENZ…, formát se rozpozná sám), značky a popisy podle stylů, skupiny bodů, ruční body, kontrola zaměření.</li>
+<li><b>Povrchy</b> – trojúhelníková síť (TIN) ze skupin bodů, spojnice (lomové hrany), hranice a díry, body z objektů výkresu, ruční úpravy trojúhelníků, automatický přepočet.</li>
+<li><b>Zobrazení</b> – vrstevnice s popisy, trojúhelníky, obrys, šipky spádu; prohlížeč 3D.</li>
+<li><b>Export</b> – povrch do LandXML nebo DXF (3D plochy), body skupiny do textového souboru.</li>
+</ul>
+<p>Vše se ukládá do výkresu (DWG/DXF) – výkres jde předat a dál upravovat i bez pluginu, plugin pak povrch načte znovu.</p>
+
+<h2>2. Instalace</h2>
+<p><b>Správce pluginů:</b> v Open CAD Studiu otevřete Správce pluginů, vyhledejte <i>Terén</i> a klikněte Instalovat. Po restartu se objeví záložka <b>Terén</b>.</p>
+<p><b>Ručně (Windows):</b> stáhněte <code>Teren-windows.zip</code> z vydání na GitHubu, zip rozbalte a spusťte <code>nainstalovat.bat</code>. Plugin se zkopíruje do <code>%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren</code>.</p>
+<p>Potřeba je Open CAD Studio 2026.44 nebo novější.</p>
+
+<h2>3. Rozhraní</h2>
+<img src="img/pas.png" class="siroky">
+<p class="popisek">Záložka Terén na pásu karet</p>
+<table class="mrizka">
+<tr><th>Skupina</th><th>Co obsahuje</th></tr>
+<tr><td>Prospektor</td><td>okno Prospektoru, Připravit výkres (hladiny, značky, šablona), Nápověda</td></tr>
+<tr><td>Body</td><td>Import bodů, Nový bod (ruční, na povrchu), Styl bodu pro vybrané body</td></tr>
+<tr><td>Povrch</td><td>Nový povrch (stávající terén, návrh z 3D čar, z naklikaných bodů, průvodce), Styl povrchu, Najít v Prospektoru, Export povrchu</td></tr>
+<tr><td>Definice</td><td>Spojnice přes body, Přidat spojnici, Hranice, Díra</td></tr>
+<tr><td>Úpravy</td><td>Otočit / přidat / smazat hranu, smazat trojúhelník, přidat / odebrat bod</td></tr>
+<tr><td>Analýza</td><td>Výška v bodě</td></tr>
+</table>
+<p><b>Prospektor</b> je samostatné okno se třemi režimy:</p>
+<ul>
+<li><b>Výběr</b> – co je vybrané ve výkrese (bod, povrch) a co s tím jde dělat: úprava výšky a čísla bodu, styl, skupiny, přepočet povrchu.</li>
+<li><b>Výkres</b> – strom všeho, co plugin ve výkrese má: body (tabulka), skupiny bodů, povrchy, styly, kontrola zaměření, nastavení. Pravé tlačítko otevře nabídku akcí.</li>
+<li><b>3D</b> – prohlížeč povrchů.</li>
+</ul>
+<img src="img/prospektor.png" class="stred">
+<p class="popisek">Prospektor – režim Výkres, tabulka bodů</p>
+<p>Nápověda s postupy a slovníčkem pojmů je v Prospektoru (klávesa <b>F1</b>); otazník <span class="otaznik">?</span> vedle pojmu ukáže vysvětlivku.</p>
+
+<h2>4. Terén ze zaměření – krok za krokem</h2>
+<ol class="kroky">
+<li><b>Import bodů.</b> Terén › Import bodů, vyberte soubor. Náhled ukáže první řádky, rozpoznaný formát a první body; zkontrolujte sloupce a klikněte <i>Importovat</i>. Body S-JTSK se kreslí v záporných souřadnicích výkresu (Y, X kladné v popisech).</li>
+<li><b>Nový povrch.</b> Nový povrch › <i>Stávající terén (z bodů)</i>. Vezme skupinu <i>Zaměření</i> bez kódů STR (stromy). Průvodce (Nový povrch › Průvodce) nechá vybrat skupiny, max. délku hrany, styl a krok vrstevnic.</li>
+<li><b>Spojnice.</b> <i>Spojnice přes body</i> – klikejte na body zaměření (hrana svahu, pata, koruna, osa příkopu); Enter = konec. Hotové 3D křivky přidáte tlačítkem <i>Přidat spojnici</i>.</li>
+<li><b>Hranice.</b> Nakreslete uzavřenou křivku kolem území, vyberte ji a klikněte <i>Hranice</i>. <i>Díra</i> vynechá vnitřek křivky.</li>
+<li><b>Kontrola a úpravy.</b> Styl <i>Trojúhelníky</i> nebo záložka 3D ukáže síť. Nástroji skupiny Úpravy otočte nebo smažte nevhodné hrany; každá úprava se uloží k povrchu a při přepočtu se použije znovu.</li>
+<li><b>Vrstevnice.</b> Pravým tlačítkem na povrch v Prospektoru › Styl (např. <i>Vrstevnice s popisem</i>) a Vrstevnice po (0,1 / 0,5 m …).</li>
+</ol>
+<img src="img/import.png" class="stred">
+<p class="popisek">Náhled importu</p>
+<img src="img/povrch2.png" class="siroky">
+<p class="popisek">Povrch s vrstevnicemi</p>
+<p>Povrch s <b>automatickým přepočtem</b> se přepočítá sám, když se změní body, spojnice nebo hranice. Jinak se v Prospektoru označí <span class="var">⚠ zastaralý</span> a stačí kliknout Přepočítat. Každá akce Terénu (import, přepočet, překreslení) jde vrátit jedním krokem <b>Zpět</b> (Ctrl+Z).</p>
+
+<h2>5. Body</h2>
+<h3>Styly bodů</h3>
+<p>Styl určuje značku (křížek, kolečko, strom, šachta…) a popis (číslo, výška, kód). Platí ručně nastavený styl, jinak styl podle kódu (pole <i>pro kódy</i>, např. STR → strom), jinak styl skupiny, jinak <i>Standard</i>. Velikosti jsou v mm na papíře a řídí se měřítkem výkresu (měřítko poznámek ve stavovém řádku, nebo Nastavení › Měřítko).</p>
+<p><b>Vlastní značka:</b> v editoru stylu zvolte <i>vlastní – blok výkresu</i> a vyberte blok. Základní bod bloku = poloha bodu, blok se zvětší na velikost značky, barvu v bloku nastavte „podle bloku“.</p>
+<p>Bod, značka a popisy drží pohromadě – klik na kteroukoli část vybere celý bod. Překrývající se popisy se odsunou s vodicí čarou (vypnete v Nastavení).</p>
+<h3>Ruční body a úprava výšky</h3>
+<p><i>Nový bod › Ruční bod</i>: klikněte do výkresu nebo zadejte x,y; otevře se okno s výškou (návrh z povrchu nebo z předchozího bodu) a kódem. <i>Bod na povrchu</i> vezme výšku z aktivního povrchu. Výšku, číslo a popis existujícího bodu změníte v Prospektoru (Výběr nebo tabulka bodů).</p>
+<h3>Skupiny bodů</h3>
+<p>Skupina vybírá body podle pravidel (kód, čísla, soubor importu), s výjimkami a ručně přidanými / odebranými body. Náhled barevně ukazuje, které body do skupiny patří. Povrch se skládá ze skupin – změna skupiny povrch přepočítá nebo označí jako zastaralý.</p>
+<h3>Kontrola zaměření</h3>
+<p>Prospektor › Kontrola zaměření najde body, jejichž výška výrazně vybočuje z okolí (překlep, bod na autě). Podezřelé body označí kroužkem na hladině TER_KONTROLA; jedním kliknutím je vynecháte z povrchu.</p>
+
+<h2>6. Povrchy</h2>
+<p>Povrch tvoří: skupiny bodů, objekty výkresu (body, bloky, čáry, 3D plochy – např. výkres od geodeta), spojnice, hranice a díry a ruční úpravy. Vše je v Prospektoru u povrchu › <i>Z čeho se povrch počítá</i>; každou položku jde vypnout, ukázat nebo odebrat.</p>
+<p><b>Aktivní povrch</b> (horní řádek Prospektoru, dvojklik ve stromu) používají nástroje Úpravy, Výška v bodě a Bod na povrchu.</p>
+<p><b>Styl povrchu</b> určuje, co se kreslí: trojúhelníky, vrstevnice (vedlejší / hlavní, barvy, popisy), obrys, šipky spádu. Styly upravíte v Prospektoru pod Styly; vestavěný styl jde kdykoli vrátit k původnímu nastavení.</p>
+<p>Povrch je ve výkrese blok na vlastních hladinách; v Nastavení lze zapnout <i>Povrch nejde vybrat kliknutím</i>, aby klik prošel na body pod ním.</p>
+
+<h2>7. Prohlížeč 3D</h2>
+<img src="img/3d.png" class="vpravo">
+<p>Barvy podle výšky, sklonu nebo jednobarevně, převýšení ×1 až ×10, vrstevnice, obrys, spojnice, body a hrany trojúhelníků – barvu každého prvku zvolíte čtverečkem vedle něj. Ovládání jako v SolidWorksu: prostřední tlačítko otáčí kolem místa pod kurzorem, Ctrl + prostřední posouvá, kolečko zoomuje, F ukáže celý povrch. Uložit obrázek uloží PNG do složky výkresu.</p>
+
+<h2>8. Export</h2>
+<ul>
+<li><b>Export povrchu</b> (pás karet nebo pravým tlačítkem na povrch): <b>LandXML 1.2</b> – přesně tytéž trojúhelníky, body zaměření a obrys, načte ho většina projekčních programů; <b>DXF</b> – každý trojúhelník jako 3D plocha.</li>
+<li><b>Export bodů</b> skupiny do textového souboru (PNEZD, PYXZD…, oddělovač, kódování UTF-8 nebo Windows-1250).</li>
+</ul>
+
+<h2>9. Nastavení a šablona výkresu</h2>
+<p>Prospektor › Nastavení: jazyk (čeština / angličtina, projeví se po restartu Open CAD Studia), měřítko, odsazení popisů, náhled importu, vyloučené kódy nového povrchu, přichycení spojnic, práh kontroly zaměření.</p>
+<p><b>Šablona výkresu:</b> <i>Uložit tento výkres jako šablonu</i> uloží styly a měřítko do profilu uživatele; <i>Připravit výkres</i> (pás karet) pak v novém výkrese jedním kliknutím připraví hladiny, značky bodů, měřítko a styly.</p>
+
+<h2>10. Tipy a řešení problémů</h2>
+<table class="mrizka">
+<tr><th>Problém</th><th>Řešení</th></tr>
+<tr><td>Body se po importu neobjevily</td><td>Zkontrolujte v náhledu formát a pořadí sloupců (S-JTSK: Y a X kladné ve formátu PYXZD).</td></tr>
+<tr><td>Povrch má dlouhé trojúhelníky přes okraj</td><td>Nastavte Max. délku hrany nebo přidejte hranici.</td></tr>
+<tr><td>Trojúhelníky kříží hranu svahu</td><td>Přidejte spojnici (Spojnice přes body).</td></tr>
+<tr><td>Stromy jsou v terénu</td><td>Kód STR je v <i>Vyloučit kódy</i> povrchu; doplňte další kódy, které do terénu nepatří.</td></tr>
+<tr><td>Povrch ukazuje ⚠ zastaralý</td><td>Klikněte Přepočítat, nebo zapněte automatický přepočet.</td></tr>
+<tr><td>Popisy jsou příliš velké / malé</td><td>Změňte měřítko (stavový řádek nebo Nastavení) – popisy se překreslí.</td></tr>
+</table>
+<p class="paticka">Terén · Ing. Pavel Janouš · licence GPL-3.0 · zdrojový kód a hlášení chyb: GitHub</p>
+</body></html>

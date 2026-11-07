@@ -1,0 +1,1007 @@
+# Terén – anglické texty. Řádek: český text<TAB>anglický text; \n = nový řádek.
+Značka bodu „{}“ (plugin Terén)	Point marker "{}" (Terén plugin)
+blok značky {} nejde vytvořit: {}	marker block {} cannot be created: {}
+Body	Points
+Skryté body (styl Nezobrazovat)	Hidden points (style Do not display)
+Definice skupin bodů (plugin Terén) – nemazat	Point group definitions (Terén plugin) – do not delete
+skupinu Všechny body nelze měnit	the All points group cannot be changed
+skupinu se nepodařilo uložit	the group could not be saved
+skupina už ve výkrese není	the group is no longer in the drawing
+skupinu se nepodařilo smazat	the group could not be deleted
+Zaměření	Survey
+všechny body kromě ručně vytvořených	all points except manually created ones
+Import {}	Import {}
+body ze souboru {}	points from file {}
+nelze číst soubor {}: {}	cannot read file {}: {}
+Terén: nelze číst soubor {}: {}	Terén: cannot read file {}: {}
+{}, oddělovač {} (zvoleno ručně)	{}, delimiter {} (chosen manually)
+Terén: {}	Terén: {}
+Terén: v souboru se nepodařilo najít body v žádném podporovaném formátu.	Terén: no points in a supported format were found in the file.
+  podporované formáty: PNEZD, PENZD, PYXZD, NEZ, ENZ, YXZ; oddělovač mezera, čárka, středník, tabulátor	  supported formats: PNEZD, PENZD, PYXZD, NEZ, ENZ, YXZ; delimiter space, comma, semicolon, tab
+{}, oddělovač {}{} (rozpoznáno automaticky)	{}, delimiter {}{} (detected automatically)
+, hlavička {} ř.	, header {} lines
+Terén: v souboru nebyl nalezen žádný bod ({}).	Terén: no point was found in the file ({}).
+ · 1 řádek přeskočen ({})	 · 1 line skipped ({})
+ · {} řádků přeskočeno (první: {})	 · {} lines skipped (first: {})
+Terén: import {} bodů ze souboru {} – {}{}	Terén: import of {} points from file {} – {}{}
+  pozor: {} bodů leží mimo území ČR v S-JTSK	  warning: {} points lie outside the Czech Republic in S-JTSK
+  pozor: {} bodů má nesmyslnou výšku (mimo −50 až 1700 m)	  warning: {} points have an implausible elevation (outside −50 to 1700 m)
+  opakující se čísla bodů ({}): {}	  repeated point numbers ({}): {}
+  pozor: {} bodů už ve výkrese je na stejném místě (import dvakrát?)	  warning: {} points are already in the drawing at the same place (imported twice?)
+Importovat {} bodů{}? Enter = ano, Esc = zrušit (pohnutím myší se zobrazí náhled):	Import {} points{}? Enter = yes, Esc = cancel (move the mouse to see a preview):
+Spojnice povrchu „{}“ – klikněte na první bod	Breakline of surface "{}" – click the first point
+Další bod (znovu poslední bod = zpět, Enter = konec)	Next point (last point again = undo, Enter = finish)
+V okolí {} m není bod zaměření	No survey point within {} m
+Zpět – bod {} odebrán	Undo – point {} removed
+Bod {} výška {:.3}	Point {} elevation {:.3}
+Otočit hranu – klikněte na hranu	Swap edge – click an edge
+Smazat trojúhelník – klikněte do trojúhelníku	Delete triangle – click inside a triangle
+Přidat bod – klikněte nebo zadejte x,y,z	Add point – click or enter x,y,z
+Odebrat bod – klikněte na vrchol	Remove point – click a vertex
+Přidat hranu – klikněte na druhý vrchol	Add edge – click the second vertex
+Přidat hranu – klikněte na první vrchol	Add edge – click the first vertex
+Smazat hranu – klikněte na hranu	Delete edge – click an edge
+{} (každý klik se hned projeví, Enter = konec):	{} (each click applies immediately, Enter = finish):
+Hranu nejde otočit – {}	The edge cannot be swapped – {}
+Tady není hrana povrchu „{}“ – klikněte blíž k čáře trojúhelníku (hrany ukáže styl Trojúhelníky)	No edge of surface "{}" here – click closer to a triangle line (the Triangles style shows the edges)
+Tady není trojúhelník povrchu „{}“ – klikněte dovnitř trojúhelníku	No triangle of surface "{}" here – click inside a triangle
+Bod je mimo povrch – výšku z povrchu vzít nejde, zadejte x,y,z	The point is outside the surface – its elevation cannot be taken from the surface, enter x,y,z
+Tady není bod povrchu „{}“ – klikněte blíž k vrcholu trojúhelníku	No point of surface "{}" here – click closer to a triangle vertex
+První vrchol vybrán – klikněte na druhý	First vertex selected – click the second one
+To je tentýž vrchol – klikněte na jiný	That is the same vertex – click another one
+Výška v bodě – klikněte do povrchu (Enter = konec):	Elevation at point – click on the surface (Enter = finish):
+{} | další bod (Enter = konec):	{} | next point (Enter = finish):
+Výška {:.3}	Elevation {:.3}
+Mimo povrch	Outside the surface
+Aktivní povrch je „{}“ (Enter = konec):	The active surface is "{}" (Enter = finish):
+{} | klikněte na povrch:	{} | click a surface:
+Vyberte povrch – klikněte na jeho čáru nebo trojúhelník:	Select a surface – click one of its lines or triangles:
+Objekt nepatří k žádnému povrchu	The object does not belong to any surface
+z místa kliknutí	from the clicked location
+jako předchozí bod	same as the previous point
+Y {:.2}   X {:.2}   (návrh výšky {})	Y {:.2}   X {:.2}   (suggested elevation {})
+Výška Z [m]	Elevation Z [m]
+Kód / popis	Code / description
+Vložit bod	Insert point
+Zrušit	Cancel
+Bod {} výška {:.3} ({})	Point {} elevation {:.3} ({})
+zadaná	entered
+předvolená	preset
+Neznám výšku – zadejte x,y,z nebo předvolte výšku v Prospektoru (Body)	Elevation unknown – enter x,y,z or preset the elevation in the Prospector (Points)
+Esc = zrušit	Esc = cancel
+{}Bod {} – napište výšku a Enter ({}):	{}Point {} – type the elevation and press Enter ({}):
+Bod {} – klikněte nebo zadejte x,y,z	Point {} – click or enter x,y,z
+Bod {} na povrchu „{}“ – klikněte	Point {} on surface "{}" – click
+Povrch „{}“: bod {} – klikněte nebo zadejte x,y,z (znovu poslední = zpět, nejméně 3 body)	Surface "{}": point {} – click or enter x,y,z (last one again = undo, at least 3 points)
+Povrch „{}“: bod {} (znovu poslední = zpět, Enter = vytvořit povrch z {} bodů)	Surface "{}": point {} (last one again = undo, Enter = create the surface from {} points)
+Výšku napište číslem	Enter the elevation as a number
+Bod nevložen	Point not inserted
+Terén	Terén
+Připravit výkres	Prepare drawing
+Nápověda	Help
+Import bodů	Import points
+Body (TXT, CSV, XYZ)	Points (TXT, CSV, XYZ)
+Nový bod	New point
+Ruční bod (klik nebo x,y,z)	Manual point (click or x,y,z)
+Styl bodu	Point style
+Podle skupiny / kódu	By group / code
+Standard (číslo a výška)	Standard (number and elevation)
+Křížek s výškou	Cross with elevation
+Křížek, číslo a výška vedle sebe	Cross, number and elevation side by side
+Jen značka	Marker only
+Strom listnatý	Deciduous tree
+Strom jehličnatý	Conifer
+Keř	Shrub
+Šachta	Manhole
+Vpusť	Gully
+Šoupě	Valve
+Další styly… (Prospektor)	More styles… (Prospector)
+Povrch	Surface
+Nový povrch	New surface
+Stávající terén (z bodů)	Existing ground (from points)
+Návrh (z vybraných 3D čar)	Design (from selected 3D lines)
+Z naklikaných bodů	From clicked points
+Další povrch z bodů	Another surface from points
+Průvodce… (Prospektor)	Wizard… (Prospector)
+Styl povrchu	Surface style
+Vrstevnice s popisem	Contours with labels
+Vrstevnice	Contours
+Trojúhelníky + vrstevnice	Triangles + contours
+Trojúhelníky	Triangles
+Spád (šipky)	Slope (arrows)
+Najít v Prospektoru	Find in Prospector
+Export povrchu	Surface export
+Spojnice přes body	Breakline through points
+Přidat spojnici	Add breakline
+Díra	Hole
+Úpravy	Edits
+Otočit hranu	Swap edge
+Přidat hranu	Add edge
+Smazat hranu	Delete edge
+Smazat trojúhelník	Delete triangle
+Přidat bod	Add point
+Odebrat bod	Remove point
+Analýza	Analysis
+Výška v bodě	Elevation at point
+Terén: ve výkrese nejsou body zaměření. Nejdřív importujte body (Import bodů).	Terén: there are no survey points in the drawing. Import points first (Import points).
+Terén: návrhový povrch vzniká z 3D čar (hrany, paty a koruny svahů, osy). Vyberte je ve výkrese a zvolte Nový povrch → Návrh znovu.	Terén: a design surface is made from 3D lines (edges, toes and tops of slopes, centrelines). Select them in the drawing and choose New surface → Design again.
+Terén: úpravy povrchu „{}“ – každý klik se hned projeví ve výkrese, Enter = konec.	Terén: editing surface "{}" – each click applies immediately in the drawing, Enter = finish.
+Terén: {} ({}; nápověda: tlačítko Nápověda)	Terén: {} ({}; help: the Help button)
+díry	holes
+Vyberte ve výkrese 3D křivky (hrany, paty a koruny svahů) a klikněte znovu na Přidat spojnici. Spojnici přes body zaměření naklikáte nástrojem Spojnice přes body.	Select 3D polylines in the drawing (edges, toes and tops of slopes) and click Add breakline again. To draw a breakline through survey points use the Breakline through points tool.
+Nakreslete nebo vyberte uzavřenou křivku kolem území a klikněte znovu na Hranice.	Draw or select a closed polyline around the area and click Boundary again.
+Vyberte uzavřenou křivku kolem místa, které má v povrchu chybět, a klikněte znovu na Díra.	Select a closed polyline around the place that should be missing from the surface and click Hole again.
+Terén: pro {} povrchu „{}“ nejsou vybrané žádné čáry. {}	Terén: no lines are selected for the {} of surface "{}". {}
+Přiřadit čáry k povrchu	Assign lines to surface
+  {} vybraných objektů nejsou vhodné čáry – vynechány	  {} selected objects are not suitable lines – skipped
+  {} čar přidáno jako {} povrchu „{}“	  {} lines added as {} of surface "{}"
+Přepočítat povrch	Recalculate surface
+Terén: vyberte spojnice, hranice nebo díry, které mají přestat patřit k povrchu, a klikněte znovu.	Terén: select the breaklines, boundaries or holes that should no longer belong to the surface and click again.
+Terén: ve výběru není žádná čára patřící k povrchu.	Terén: the selection contains no line belonging to a surface.
+  {} čar odebráno z definice povrchů	  {} lines removed from surface definitions
+Terén: ve výkrese není žádný povrch.	Terén: there is no surface in the drawing.
+Terén: aktivní povrch je „{}“.	Terén: the active surface is "{}".
+{}: chybí parametr {}	{}: missing parameter {}
+neplatný handle {}	invalid handle {}
+SKUPINA: chybí id=…	SKUPINA: missing id=…
+neznámá akce {}	unknown action {}
+Terén: vyberte ve výkrese bod, čáru nebo trojúhelník povrchu a klikněte znovu – Prospektor na něj skočí.	Terén: select a point, line or surface triangle in the drawing and click again – the Prospector will jump to it.
+Terén: {} – zobrazeno v Prospektoru.	Terén: {} – shown in the Prospector.
+Terén: vybrané objekty nepatří k žádnému bodu ani povrchu.	Terén: the selected objects belong to no point or surface.
+Terén: nejdřív vyberte body ve výkrese (stačí kliknout na značku nebo popis) a pak zvolte styl.	Terén: first select points in the drawing (clicking a marker or label is enough), then choose a style.
+Terén: bod na povrchu potřebuje aktivní povrch – vytvořte ho nebo vyberte.	Terén: a point on surface needs an active surface – create or select one.
+Body {}	Points {}
+naklikané body povrchu {}	clicked points of surface {}
+předvolená výška {}	preset elevation {}
+výšku zadejte jako x,y,z (další body převezmou předchozí)	enter the elevation as x,y,z (next points take the previous one)
+výška ze zadání x,y,z, jinak z aktivního povrchu	elevation from x,y,z input, otherwise from the active surface
+, kód {}	, code {}
+nové body	new points
+body pro povrch „{}“	points for surface "{}"
+Terén: {} od čísla {}{}{} (nastavení v Prospektoru → Body).	Terén: {} from number {}{}{} (settings in the Prospector → Points).
+Terén: formát bodů {} (oddělovač podle nabídky Oddělovač)	Terén: point format {} (delimiter from the Delimiter menu)
+Terén: formát bodů se rozpozná automaticky	Terén: the point format is detected automatically
+čárka	comma
+středník	semicolon
+tabulátor	tab
+Terén: oddělovač {} (platí pro ručně zvolený formát)	Terén: delimiter {} (applies to a manually chosen format)
+Terén: pro import klikněte na tlačítko Import bodů na záložce Terén.	Terén: to import, click the Import points button on the Terén tab.
+Terén: náhled importu je v okně Prospektoru – zkontrolujte formát a klikněte Importovat.	Terén: the import preview is in the Prospector window – check the format and click Import.
+Terén: TER_IMPORT_F <formát> <oddělovač> <hlavička> <cesta>	Terén: TER_IMPORT_F <format> <delimiter> <header> <path>
+Stávající terén	Existing ground
+Návrh	Design
+Terén: Prospektor se otevírá ve vlastním okně.	Terén: the Prospector opens in its own window.
+Terén: export povrchu „{}“ (LandXML nebo DXF) je v Prospektoru u povrchu – Export povrchu.	Terén: the export of surface "{}" (LandXML or DXF) is in the Prospector at the surface – Surface export.
+Terén: průvodce novým povrchem je v okně Prospektoru.	Terén: the new surface wizard is in the Prospector window.
+Terén: nápověda je v okně Prospektoru (v něm také klávesa F1).	Terén: help is in the Prospector window (also the F1 key there).
+  značek {}, grafika přiřazená bodům {}	  markers {}, graphics assigned to points {}
+Smazat povrch	Delete surface
+Terén: povrch „{}“ smazán (spojnice, hranice a body zůstaly).	Terén: surface "{}" deleted (breaklines, boundaries and points remain).
+Zrušit úpravy povrchu	Undo surface edits
+Terén: ve výkrese nejsou body zaměření, na které by šlo klikat.	Terén: there are no survey points in the drawing to click on.
+Terén: spojnice povrchu „{}“ – klikejte na body (výška z bodu), Enter = hotovo{}.	Terén: breakline of surface "{}" – click points (elevation from the point), Enter = done{}.
+, pak Přepočítat	, then Recalculate
+Terén: výška v povrchu „{}“ – klikejte, Enter = konec.	Terén: elevation on surface "{}" – click, Enter = finish.
+Terén – Prospektor	Terén – Prospector
+Hranice a díry	Boundaries and holes
+Spojnice – lomové hrany	Breaklines
+Objekty výkresu	Drawing objects
+Ruční úpravy trojúhelníků	Manual triangle edits
+Skupiny bodů	Point groups
+bez omezení	no limit
+Výběr	Selection
+Výkres	Drawing
+Nápověda (F1)	Help (F1)
+📍 Body ({})	📍 Points ({})
+📍 Body ({} nalezeno)	📍 Points ({} found)
+Zkontrolovat zaměření	Check the survey
+Překreslit popisy bodů	Redraw point labels
+{} skrytých	{} hidden
+📂 Skupiny bodů ({})	📂 Point groups ({})
+Nová skupina	New group
+Nový povrch – průvodce…	New surface – wizard…
+Nový povrch ze zaměření	New surface from the survey
+Návrh z vybraných 3D čar	Design from selected 3D lines
+nejdřív vyberte ve výkrese 3D čáry (hrany, paty a koruny svahů)	first select 3D lines in the drawing (edges, toes and tops of slopes)
+Přepočítat všechny	Recalculate all
+žádný povrch	no surface
+načítám…	loading…
+Styly bodů ({})	Point styles ({})
+Kopírovat jako nový	Copy as new
+Vrátit původní nastavení	Restore original settings
+Smazat styl	Delete style
+Styly povrchů ({})	Surface styles ({})
+⚠ Kontrola zaměření ({})	⚠ Survey check ({})
+✔ Kontrola zaměření	✔ Survey check
+⚙ Nastavení	⚙ Settings
+zastaralý – zdroje se od přepočtu změnily	out of date – the sources changed since the last recalculation
+aktuální	up to date
+skrytý	hidden
+automatický přepočet	automatic recalculation
+upozornění z přepočtu	warnings from the recalculation
+Z čeho se povrch počítá	What the surface is built from
+⚠ Upozornění ({})	⚠ Warnings ({})
+Nastavení	Settings
+Výkres a měřítko	Drawing and scale
+Měřítko	Scale
+velikost značek a popisů; měřítko poznámek ve stavovém řádku (jiné než 1:1) má přednost	size of markers and labels; the annotation scale in the status bar (other than 1:1) takes precedence
+překrývající se popisy bodů odsunout (s vodicí čarou)	move overlapping point labels aside (with a leader line)
+popisy bodů blízko u sebe se posunou, aby se nepřekrývaly; projeví se po překreslení bodů	point labels close to each other are moved so they do not overlap; takes effect after the points are redrawn
+Značky a popisy bodů	Point markers and labels
+Překreslit body	Redraw points
+znovu vykreslí značky a popisy všech bodů	redraws the markers and labels of all points
+Import a nové body	Import and new points
+před importem ukázat náhled souboru (formát, sloupce, první body)	show a file preview before import (format, columns, first points)
+Šablona výkresu	Drawing template
+Připravit výkres ze šablony	Prepare the drawing from the template
+hladiny Terénu, značka bodu podle stylu, měřítko a styly ze šablony – jedním kliknutím	Terén layers, point marker by style, scale and styles from the template – in one click
+Uložit tento výkres jako šablonu	Save this drawing as the template
+styly bodů a povrchů a měřítko	point and surface styles and the scale
+šablona je uložená v profilu uživatele (měřítko 1:{}); totéž je na pásu karet: Připravit výkres	the template is saved in the user profile (scale 1:{}); the same is on the ribbon: Prepare drawing
+šablona je uložená v profilu uživatele	the template is saved in the user profile
+šablona zatím není uložená – bez ní se připraví jen hladiny a značky bodů	no template is saved yet – without it only layers and point markers are prepared
+Nový povrch bez kódů	New surface without codes
+např. STR	e.g. STR
+body s těmito kódy se do nového povrchu neberou (stromy, sloupy…); u hotového povrchu se mění v jeho nastavení	points with these codes are not taken into a new surface (trees, poles…); for an existing surface change it in its settings
+Přichycení spojnic na bod	Breakline snap to point
+vrchol spojnice blíž k bodu zaměření než tato vzdálenost převezme výšku bodu	a breakline vertex closer to a survey point than this distance takes the point's elevation
+Výběr kliknutím	Selection by click
+Kontrola zaměření	Survey check
+Práh odchylky	Deviation threshold
+bod, jehož výška se od okolí liší víc, se označí jako podezřelý	a point whose elevation differs from its surroundings by more is marked as suspicious
+sledovat výběr ve výkrese	follow the selection in the drawing
+otevírat v režimu Výběr	open in Selection mode
+Obnovit výchozí nastavení	Restore default settings
+Nastavení platí pro všechny výkresy (uloženo v profilu uživatele).	The settings apply to all drawings (saved in the user profile).
+Nový povrch ze skupiny	New surface from the group
+Vybrat body ve výkrese	Select points in the drawing
+Smazat skupinu	Delete group
+body ve výkrese zůstanou	the points stay in the drawing
+Nastavit jako aktivní	Set as active
+Přepočítat	Recalculate
+Automaticky přepočítávat	Recalculate automatically
+Prohlédnout ve 3D	View in 3D
+Styl	Style
+Vrstevnice po	Contour interval
+vlastní…	custom…
+krok vrstevnic určuje styl povrchu	the contour interval is set by the surface style
+Přejmenovat…	Rename…
+Export povrchu…	Surface export…
+1 bod	1 point
+{} bodů	{} points
+Ukázat ve výkrese	Show in the drawing
+podle skupiny / kódu	by group / code
+Nová skupina z těchto bodů	New group from these points
+Vynechat z aktivního povrchu	Exclude from the active surface
+Smazat bod	Delete point
+Smazat body	Delete points
+Povrch už ve výkrese není.	The surface is no longer in the drawing.
+Soubor	File
+měřítko poznámek nastavené vpravo dole ve stavovém řádku; při 1:1 platí měřítko z pásu karet Terén	the annotation scale set at the bottom right of the status bar; at 1:1 the scale from the Terén ribbon applies
+smaže značky a popisy bodů a vytvoří je znovu podle stylů a měřítka	deletes the point markers and labels and creates them again by styles and scale
+Ukázat postup „Jak na to“	Show the "How to" steps
+Najít výběr z výkresu	Find the drawing selection
+Vyberte ve výkrese bod, čáru nebo trojúhelník povrchu – Prospektor na něj skočí	Select a point, line or surface triangle in the drawing – the Prospector jumps to it
+sledovat výběr	follow selection
+Prospektor sám ukáže bod nebo povrch, na který kliknete ve výkrese	the Prospector shows the point or surface you click in the drawing
+Nové body	New points
+Import bodů – formát	Point import – format
+Skupina	Group
+všechny body	all points
+Kód	Code
+další ⏷	more ⏷
+zrušit filtr	clear filter
+Vybráno {} z {}	Selected {} of {}
+Vybrat vše	Select all
+Zrušit výběr	Clear selection
+Převzít výběr z výkresu	Take the selection from the drawing
+Číslo	Number
+Výška	Elevation
+Uložit bod	Save point
+Ukázat	Show
+Přečíslovat od	Renumber from
+Přečíslovat	Renumber
+v pořadí tabulky	in table order
+Smazat ({})	Delete ({})
+Styl vybraných	Style of selected
+Použít	Apply
+Nová skupina z vybraných	New group from selected
+Přidat	Add
+ručně	manually
+kód	code
+skupina	group
+Skupina bodů	Point group
+Skupina vybírá body podle kódu, čísla (rozsahu) nebo souboru importu. Povrch se skládá ze skupin, takže změna skupiny povrch označí jako zastaralý (s automatickým přepočtem se přepočítá sám).	A group selects points by code, number (range) or import file. A surface is built from groups, so a change of a group marks the surface as out of date (with automatic recalculation it recalculates itself).
++ Nová skupina	+ New group
+Bodů	Points
+Kritéria	Criteria
+Používá	Used by
+Skupina už ve výkrese není.	The group is no longer in the drawing.
+– používá {}	– used by {}
+Vestavěná skupina se všemi body výkresu – nedá se měnit ani smazat.	Built-in group with all points of the drawing – it cannot be changed or deleted.
+Vybrat body skupiny ve výkrese	Select the group's points in the drawing
+Povrch {}	Surface {}
+Vytvořit povrch	Create surface
+Body skupiny	Group points
+Jméno	Name
+Styl bodů	Point style
+výchozí (podle kódu, jinak Standard)	default (by code, otherwise Standard)
+body, které splňují aspoň jedno pravidlo	points matching at least one rule
+body, které splňují všechna pravidla	points matching all rules
+všechny body výkresu	all points of the drawing
+mají kód	have code
+mají číslo	have number
+např. 1-50, 101, 205-210	e.g. 1-50, 101, 205-210
++ soubor	+ file
+žádné importované body	no imported points
+Zatím žádné pravidlo – skupina je prázdná (kromě ručně přidaných bodů).	No rule yet – the group is empty (except manually added points).
+Skupina obsahuje každý bod výkresu – uplatní se jen vyloučení a ruční úpravy.	The group contains every point of the drawing – only exclusions and manual changes apply.
+VŽDY VYLOUČIT BODY, KTERÉ	ALWAYS EXCLUDE POINTS THAT
+např. 33, 40-45	e.g. 33, 40-45
+jsou vytvořené ručně	were created manually
+RUČNĚ	MANUALLY
+přidané body	added points
+odebrané body	removed points
++ číslo	+ number
++ z výběru ve výkrese	+ from the drawing selection
+vyberte body ve výkrese a klikněte	select points in the drawing and click
+ve výkrese nejsou vybrané žádné body	no points are selected in the drawing
+Ručně přidané a odebrané body mají přednost před pravidly.	Manually added and removed points take precedence over the rules.
+Uložit skupinu	Save group
+Vrátit změny	Revert changes
+po uložení {} bodů (dnes {})	after saving {} points (now {})
+{} bodů ve skupině z {}	{} points in the group out of {}
+ (kód {})	 (code {})
+přidané ručně	added manually
+vyloučené pravidlem{}	excluded by a rule{}
+odebrané ručně	removed manually
+nesplňují pravidla	do not match the rules
+kód {}	code {}
+číslo v seznamu	number in the list
+soubor {}	file {}
+patří – splňuje: {}	belongs – matches: {}
+patří – přidaný ručně	belongs – added manually
+nepatří – odebraný ručně	does not belong – removed manually
+nepatří – vyloučený pravidlem	does not belong – excluded by a rule
+nepatří – nesplňuje pravidla zahrnutí	does not belong – does not match the inclusion rules
+Klik na bod v náhledu ukáže, proč ve skupině je / není.	Clicking a point in the preview shows why it is / is not in the group.
+Export bodů skupiny	Export the group's points
+Formát	Format
+PYXZD – S-JTSK kladné	PYXZD – S-JTSK positive
+Oddělovač	Delimiter
+kódování pro starší programy; jinak UTF-8	encoding for older programs; otherwise UTF-8
+Výměnný formát povrchů – přesně tytéž trojúhelníky, body zaměření a obrys. Načte ho většina projekčních programů.	Surface exchange format – exactly the same triangles, survey points and outline. Most design programs can read it.
+Každý trojúhelník jako 3D plocha (3DFACE) – otevře ho každý CAD; povrch se z ploch dá znovu sestavit.	Each triangle as a 3D face (3DFACE) – any CAD opens it; the surface can be rebuilt from the faces.
+Povrch je zastaralý – export se spočítá z aktuálních bodů a spojnic (jako po přepočtu).	The surface is out of date – the export is computed from the current points and breaklines (as after a recalculation).
++ Nový povrch – průvodce…	+ New surface – wizard…
+Trojúhelníků	Triangles
+zastaralý	out of date
+Hromadně pro vybrané ({})	For all selected ({})
+Styl…	Style…
+Vrstevnice…	Contours…
+Ručně přepočítávat	Recalculate manually
+Přejmenovat	Rename
+▶ aktivní povrch	▶ active surface
+žádná skupina bodů	no point group
+{} ze skupin {} (vyloučeno podle kódu {})	{} from groups {} (excluded by code {})
+, {} z objektů výkresu	, {} from drawing objects
+vedlejší vrstevnice	minor contours
+hlavní vrstevnice (násobek vedlejších)	major contours (multiple of minor)
+Vyloučit kódy	Exclude codes
+např. STR, ZK	e.g. STR, ZK
+Spojnice přidáte tlačítkem Spojnice přes body (klikáním) nebo Přidat spojnici (vybrané 3D čáry).	Add breaklines with the Breakline through points button (by clicking) or Add breakline (selected 3D lines).
+Hranici a díru přidáte tak, že vyberete uzavřenou křivku a kliknete na Hranice / Díra.	Add a boundary or hole by selecting a closed polyline and clicking Boundary / Hole.
+Spojnice (lomová hrana)	Breakline
+Hranice / díra	Boundary / hole
+žádné	none
+{} {} – {} vrcholů, {:.1} m	{} {} – {} vertices, {:.1} m
+vypnutá položka zůstane ve výkrese, ale povrch ji nepoužije	a disabled item stays in the drawing but the surface does not use it
+Body z objektů výkresu (např. výkres od geodeta s body jako bloky). Objekty zůstanou na svých hladinách; když se změní, povrch se přepočítá.	Points from drawing objects (e.g. a surveyor's drawing with points as blocks). The objects stay on their layers; when they change, the surface is recalculated.
+Přidat objekty výkresu	Add drawing objects
+Zachovat hrany z objektů	Keep edges from the objects
+čáry a hrany 3D ploch se použijí jako spojnice	lines and 3D face edges are used as breaklines
+Přidat objekty vybrané ve výkrese	Add objects selected in the drawing
+žádné objekty	no objects
+{} – {} objektů, {} bodů	{} – {} objects, {} points
+Ukázat vše	Show all
+ – {} bodů	 – {} points
+… a dalších {}	… and {} more
+Body povrchu = sjednocení zapnutých skupin, bez vyloučených kódů povrchu.	Surface points = union of the enabled groups, without the surface's excluded codes.
+Povrch nebere žádné body (jen spojnice a objekty výkresu).	The surface takes no points (only breaklines and drawing objects).
+{} ({} bodů)	{} ({} points)
+Otevřít	Open
+Přidat skupinu	Add group
+bodů splňujících toto pravidlo	points matching this rule
+{} – upozornění	{} – warnings
+Skupina bodů {} ve výkrese chybí – odeberte ji z definice	Point group {} is missing in the drawing – remove it from the definition
+Podrobnosti z přepočtu jsou k dispozici po přepočtu v tomto spuštění.	Details are available after a recalculation in this session.
+Spojnice se kříží – úsek nevložen	Breaklines cross – segment not inserted
+Úprava bez účinku: {}	Edit without effect: {}
+{} vrcholů spojnic leží na bodě s jinou výškou – použita výška bodu	{} breakline vertices lie on a point with a different elevation – the point's elevation was used
+Úpravy přidáte tlačítky ve skupině Úpravy na záložce Terén.	Add edits with the buttons in the Edits group on the Terén tab.
+Ruční úprava	Manual edit
+Smazat	Delete
+Smazat všechny úpravy	Delete all edits
+Hledá body zaměření, jejichž výška výrazně vybočuje z okolí (překlep, bod na autě, v jámě…). Podezřelé body se ve výkrese označí kroužkem na hladině TER_KONTROLA.	Looks for survey points whose elevation differs markedly from their surroundings (typo, point on a car, in a pit…). Suspicious points are marked in the drawing with a circle on the TER_KONTROLA layer.
+Smazat značky kontroly	Delete check marks
+kroužky a odchylky na hladině TER_KONTROLA	circles and deviations on the TER_KONTROLA layer
+Kontrola zatím neproběhla.	The check has not run yet.
+Žádný podezřelý bod.	No suspicious point.
+Podezřelé body: {}	Suspicious points: {}
+Odebrat z aktivního povrchu	Remove from the active surface
+bod {} · výška {:.2} · odchylka {:+.2} m – klik ukáže ve výkrese	point {} · elevation {:.2} · deviation {:+.2} m – click to show in the drawing
+Styl bodu určuje značku a popis bodu, styl povrchu vrstevnice, barvy, popisy a šipky spádu. Velikosti jsou v mm na papíře a mění se s měřítkem výkresu. Vestavěné styly jde upravit (úprava se uloží do výkresu) a kdykoli vrátit k původnímu nastavení.	A point style sets the point's marker and label, a surface style the contours, colours, labels and slope arrows. Sizes are in mm on paper and change with the drawing scale. Built-in styles can be edited (the change is saved in the drawing) and restored to the original settings at any time.
++ Nový styl bodů	+ New point style
+Nový styl bodů	New point style
++ Nový styl povrchu	+ New surface style
+Nový styl povrchu	New surface style
+Šablona stylů	Style template
+Styly výkresu jde uložit do šablony ve vašem profilu a načíst do jiného výkresu.	The drawing's styles can be saved to a template in your profile and loaded into another drawing.
+Uložit styly do šablony	Save styles to the template
+Načíst styly ze šablony	Load styles from the template
+Styly bodů	Point styles
+{} · používá se {}	{} · used {}
+ · upravený	 · modified
+ · vlastní	 · custom
+nepoužito	unused
+Styly povrchů	Surface styles
+používá {}	used by {}
+Styl už ve výkrese není.	The style is no longer in the drawing.
+Styl bodů – {}	Point style – {}
+Značka	Marker
+vlastní – blok výkresu	custom – drawing block
+Ve výkrese zatím není žádný blok. Vložte svůj blok značky (příkaz INSERT) nebo ho vytvořte (BLOCK) a vyberte ho tady.	There is no block in the drawing yet. Insert your marker block (INSERT command) or create it (BLOCK) and select it here.
+Základní bod bloku = poloha bodu. Blok se zvětší tak, aby jeho větší rozměr odpovídal velikosti značky; barva podle stylu (v bloku nastavte barvu „podle bloku“).	The block's base point = the point position. The block is scaled so its larger dimension matches the marker size; colour by style (set the colour to "ByBlock" inside the block).
+výška písma	text height
+výška bodu	point elevation
+ des. míst	 decimals
+desetinná čárka	decimal comma
+zobrazit popis (kód) bodu	show the point description (code)
+Použití	Use
+pro kódy	for codes
+např. STR, KER	e.g. STR, KER
+Body s těmito kódy dostanou styl automaticky (přednost má jen styl nastavený přímo bodu).	Points with these codes get the style automatically (only a style set directly on the point takes precedence).
+nezobrazovat body (skrýt značku i popis)	do not display points (hide marker and label)
+Uložit styl	Save style
+Výchozí styl – platí pro body, jejichž skupina styl nemá.	Default style – applies to points whose group has no style.
+Styl zatím nic nepoužívá – přiřaďte ho skupině, kódům (pole „pro kódy“) nebo vybraným bodům.	Nothing uses the style yet – assign it to a group, codes (the "for codes" field) or selected points.
+Používá: {}{}	Used by: {}{}
+{}{} bodů přímo	{}{} points directly
+Styl povrchu – {}	Surface style – {}
+vedlejší	minor
+hlavní	major
+rozestup popisů	label spacing
+desetinná místa	decimal places
+Šipky spádu	Slope arrows
+délka	length
+povrchy s tímto stylem se překreslí	surfaces with this style are redrawn
+Styl zatím nepoužívá žádný povrch – vyberte ho u povrchu v poli Styl.	No surface uses the style yet – choose it at a surface in the Style field.
+Používá: {}	Used by: {}
+Další číslo: {}	Next number: {}
+Předvolená výška	Preset elevation
+Body se vytvářejí tlačítkem Nový bod (ruční / na povrchu) a Nový povrch > Z naklikaných bodů. Výška: zadané x,y,z, jinak předvolená, jinak z aktivního povrchu.	Points are created with the New point button (manual / on surface) and New surface > From clicked points. Elevation: entered x,y,z, otherwise preset, otherwise from the active surface.
+Automaticky (rozpozná se)	Automatic (detected)
+PYXZD (S-JTSK kladné)	PYXZD (S-JTSK positive)
+Platí pro tlačítko Import bodů. Automaticky se formát i oddělovač rozpoznají ze souboru.	Applies to the Import points button. With Automatic the format and delimiter are detected from the file.
+Povrch nejde vybrat kliknutím	Surface cannot be selected by clicking
+Klik do výkresu projde přes povrch na body a popisy pod ním. Povrch pak vyberete v Prospektoru (aktivní povrch, strom) a nejde omylem posunout ani smazat.	A click in the drawing passes through the surface to the points and labels under it. You then select the surface in the Prospector (active surface, tree) and it cannot be moved or deleted by mistake.
+ve výkrese zatím není povrch – vytvořte ho tlačítkem Nový povrch (záložka Terén) nebo v Prospektoru pravým tlačítkem na Povrchy	there is no surface in the drawing yet – create one with the New surface button (Terén tab) or in the Prospector by right-clicking Surfaces
+Body (POINT)	Points (POINT)
+Bloky (výška z vložení)	Blocks (elevation from insertion)
+Čáry a křivky (vrcholy)	Lines and polylines (vertices)
+čáry	lines
+povrch nemá žádné trojúhelníky – zkontrolujte hranici (neořízla vše?), díry a skupiny bodů v Prospektoru	the surface has no triangles – check the boundary (did it clip everything?), holes and point groups in the Prospector
+Skryté povrchy (styl Nezobrazovat)	Hidden surfaces (style Do not display)
+Povrch {} (plugin Terén)	Surface {} (Terén plugin)
+blok povrchu nejde vytvořit: {}	the surface block cannot be created: {}
+Terén: starý blok povrchu nejde odstranit: {}	Terén: the old surface block cannot be removed: {}
+nepodařilo se uložit definici povrchu	the surface definition could not be saved
+{} křížení spojnic	{} breakline crossings
+{} úprav bez účinku	{} edits without effect
+Terén: „{}“ – {} trojúhelníků, výška {:.2}–{:.2}	Terén: "{}" – {} triangles, elevation {:.2}–{:.2}
+⚠ Terén: „{}“ – {} → Prospektor	⚠ Terén: "{}" – {} → Prospector
+Úprava povrchu	Surface edit
+Popisy bodů	Point labels
+Terén: popisy bodů: {}	Terén: point labels: {}
+Automatický přepočet povrchu	Automatic surface recalculation
+Terén: automatický přepočet „{}“: {}	Terén: automatic recalculation of "{}": {}
+Výkres není dostupný: {}	The drawing is not available: {}
+nový výkres	new drawing
+Spusťte nejdřív libovolný příkaz Terén ve výkrese.	First run any Terén command in the drawing.
+povrch už ve výkrese není	the surface is no longer in the drawing
+„{}“ přepočítán ({} trojúhelníků)	"{}" recalculated ({} triangles)
+Aktivní povrch: „{}“	Active surface: "{}"
+jméno nesmí být prázdné	the name must not be empty
+Nastavení povrchu	Surface settings
+nastavení se nepodařilo uložit	the settings could not be saved
+„{}“ uložen	"{}" saved
+Povrch „{}“ smazán	Surface "{}" deleted
+čára už ve výkrese není	the line is no longer in the drawing
+čáru se nepodařilo upravit	the line could not be modified
+Zapnout položku povrchu	Enable surface item
+Vypnout položku povrchu	Disable surface item
+úprava neexistuje	the edit does not exist
+Smazat úpravu povrchu	Delete surface edit
+Skupiny bodů povrchu	Surface point groups
+nejdřív ve výkrese vyberte {} pro povrch „{}“	first select {} for surface "{}" in the drawing
+přidáno {} ({})	added {} ({})
+, {} už v povrchu bylo	, {} were already in the surface
+, {} vybraných objektů je jiného typu	, {} selected objects are of another type
+, {} objektů patří k povrchu jinak (spojnice…)	, {} objects belong to the surface otherwise (breaklines…)
+Objekty výkresu: {}	Drawing objects: {}
+Přidat objekty do povrchu	Add objects to surface
+Objekty výkresu: {}. {}	Drawing objects: {}. {}
+Odebrat bod z povrchu	Remove point from surface
+bod už ve výkrese není	the point is no longer in the drawing
+Upravit bod	Edit point
+Smazáno bodů: {}	Points deleted: {}
+Přečíslovat body	Renumber points
+Přečíslováno bodů: {} (od {}, krok {})	Points renumbered: {} (from {}, step {})
+ – pozor, {} jiných bodů má stejné číslo	 – warning, {} other points have the same number
+Obnovit popisy bodů	Refresh point labels
+Popisy {} bodů vytvořeny znovu	Labels of {} points created again
+Ve výkrese není nic vybráno	Nothing is selected in the drawing
+Vybrané objekty nepatří k žádnému bodu ani povrchu	The selected objects belong to no point or surface
+Styl {} nastaven {} bodům	Style {} set for {} points
+jméno stylu nesmí být prázdné	the style name must not be empty
+Styl „{}“ uložen, překresleno {} bodů	Style "{}" saved, {} points redrawn
+krok vrstevnic musí být kladný a hlavní krok aspoň jako vedlejší	the contour interval must be positive and the major interval at least the minor one
+Styl „{}“ uložen	Style "{}" saved
+styl používá povrch „{}“	the style is used by surface "{}"
+styl používá skupina „{}“	the style is used by group "{}"
+styl mají nastavený některé body	some points have the style set
+styl ve výkrese není uložený	the style is not saved in the drawing
+Styl vrácen k původnímu nastavení	Style restored to the original settings
+Styl smazán	Style deleted
+Šablona uložena ({} stylů): {}	Template saved ({} styles): {}
+Načíst šablonu stylů	Load style template
+Ze šablony načteno {} stylů, přepočteno povrchů: {}	{} styles loaded from the template, surfaces recalculated: {}
+import se nepovedl (podrobnosti v příkazovém řádku)	the import failed (details in the command line)
+Importováno {} bodů ze souboru {}	{} points imported from file {}
+Měřítko 1:{}	Scale 1:{}
+hladiny Terénu	Terén layers
+značka bodu podle stylu (PDMODE 1)	point marker by style (PDMODE 1)
+měřítko 1:{}	scale 1:{}
+{} stylů ze šablony	{} styles from the template
+Terén: výkres připraven – {}	Terén: drawing prepared – {}
+Výkres připraven: {}	Drawing prepared: {}
+Popisy bodů jsou v pořádku (bodů {})	Point labels are fine (points {})
+Nesoulad: grafika navíc {}, body bez grafiky {}	Mismatch: extra graphics {}, points without graphics {}
+Odstraněno {} objektů grafiky, dokresleno {} bodů	Removed {} graphic objects, drew {} points
+Prohlížeč: {} trojúhelníků	Viewer: {} triangles
+Povrchy ({}) nejdou vybrat kliknutím – klik projde na body pod nimi	Surfaces ({}) cannot be selected by clicking – a click passes to the points under them
+Povrchy ({}) jdou znovu vybrat kliknutím	Surfaces ({}) can be selected by clicking again
+Smazáno {} značek kontroly	Deleted {} check marks
+jméno skupiny nesmí být prázdné	the group name must not be empty
+Skupina „{}“ uložena	Group "{}" saved
+Nová skupina bodů	New point group
+Skupina „{}“ vytvořena ({} bodů)	Group "{}" created ({} points)
+skupinu používá povrch {} – nejdřív ji z povrchu odeberte	the group is used by surface {} – remove it from the surface first
+Smazat skupinu bodů	Delete point group
+Skupina smazána (body zůstaly)	Group deleted (points remain)
+povrch „{}“ nemá žádné trojúhelníky – nejdřív ho přepočítejte	surface "{}" has no triangles – recalculate it first
+soubor {} nejde zapsat: {}	file {} cannot be written: {}
+Terén: „{}“ – {} trojúhelníků uloženo do {} ({})	Terén: "{}" – {} triangles saved to {} ({})
+Uloženo {} trojúhelníků do {}	Saved {} triangles to {}
+skupina neobsahuje žádné body	the group contains no points
+Terén: export {} bodů skupiny „{}“ do {} ({})	Terén: export of {} points of group "{}" to {} ({})
+Exportováno {} bodů do {}	Exported {} points to {}
+Skupina „{}“: {} {} bodů	Group "{}": {} {} points
+přidáno	added
+odebráno	removed
+ ({} bodů bez čísla nejde přidat)	 ({} points without a number cannot be added)
+Měřítko výkresu	Drawing scale
+měřítko 1:{} – překresleno {} bodů{}	scale 1:{} – {} points redrawn{}
+, přepočteno povrchů: {}	, surfaces recalculated: {}
+Položka definice povrchu „{}“	Definition item of surface "{}"
+Povrch „{}“	Surface "{}"
+Vybráno bodů: {}	Points selected: {}
+{} (chybí)	{} (missing)
+Kontrola zaměření: žádný podezřelý bod (práh {} m)	Survey check: no suspicious point (threshold {} m)
+Kontrola zaměření: {} podezřelých bodů – označeny na hladině {}	Survey check: {} suspicious points – marked on layer {}
+Terén: import bodů	Terén: point import
+Terén: přepočet povrchu	Terén: surface recalculation
+Terén: smazání povrchu	Terén: surface deletion
+Terén: vlastnosti povrchu	Terén: surface properties
+Terén: úprava bodu	Terén: point edit
+Terén: smazání bodů	Terén: point deletion
+Terén: přečíslování bodů	Terén: point renumbering
+Terén: obnovení popisů	Terén: label refresh
+Terén: styl bodu	Terén: point style
+Terén: styl povrchu	Terén: surface style
+Terén: šablona výkresu	Terén: drawing template
+Terén: měřítko	Terén: scale
+Terén: příprava výkresu	Terén: drawing preparation
+Terén: nový povrch	Terén: new surface
+Terén: srovnání bodů	Terén: point sync
+jen bod	point only
+křížek +	cross +
+křížek ×	cross ×
+kolečko	circle
+kolečko s křížkem	circle with cross
+čtverec	square
+trojúhelník	triangle
+strom listnatý	deciduous tree
+strom jehličnatý	conifer
+keř	shrub
+šachta	manhole
+vpusť	gully
+šoupě	valve
+číslo nad výškou	number above elevation
+číslo a výška vedle sebe	number and elevation side by side
+jen výška	elevation only
+jen číslo	number only
+Standard (číslo, výška, popis)	Standard (number, elevation, description)
+hlavní vrstevnice	major contours
+všechny vrstevnice	all contours
+Styly bodů a povrchů (plugin Terén) – nemazat	Point and surface styles (Terén plugin) – do not delete
+styl se nepodařilo uložit	the style could not be saved
+nelze určit složku nastavení	the settings folder cannot be determined
+šablonu nejde zapsat: {}	the template cannot be written: {}
+šablona stylů zatím není uložená ({})	no style template is saved yet ({})
+vloženo {} z {} objektů	inserted {} of {} objects
+objekt se nepodařilo vložit	the object could not be inserted
+Vložte cestu k souboru bodů nebo soubor přetáhněte do tohoto okna.	Enter the path to a point file or drag the file into this window.
+podle nastavení (formát zvolený ručně)	from the settings (format chosen manually)
+rozpoznáno automaticky{}	detected automatically{}
+ – body neleží v S-JTSK pro ČR, ověřte pořadí sloupců	 – the points do not lie in S-JTSK for the Czech Republic, check the column order
+formát se nepodařilo rozpoznat – zvolte ho ručně	the format could not be detected – choose it manually
+Import bodů – {}	Point import – {}
+Načíst	Load
+Přeskočit řádků	Skip lines
+hlavička souboru	file header
+Neplatný formát.	Invalid format.
+PRVNÍ BODY	FIRST POINTS
+· {} řádků se nepodařilo přečíst	· unreadable lines: {}
+· {} mimo ČR (S-JTSK)	· {} outside the Czech Republic (S-JTSK)
+· {} s nesmyslnou výškou	· {} with an implausible elevation
+· {} opakovaných čísel	· {} repeated numbers
+Náhled ukazovat i příště	Show the preview next time too
+Importovat {} bodů	Import {} points
+Stejné vysvětlivky se ukážou po najetí na „?“ vedle pojmu v Prospektoru.	The same explanations appear when you hover over the "?" next to a term in the Prospector.
+není kam uložit	there is nowhere to save
+další povrchy poloprůhledně	other surfaces semi-transparent
+⟳ Načíst znovu	⟳ Reload
+po změně povrchu ve výkrese	after a surface change in the drawing
+PŘEVÝŠENÍ	VERTICAL EXAGGERATION
+podle výšky	by elevation
+jednobarevně, stínovaně	single colour, shaded
+hrany trojúhelníků	triangle edges
+vrstevnice	contours
+spojnice (lomové hrany)	breaklines
+výchozí barvy	default colours
+od východu	from the east
+od západu	from the west
+Uložit obrázek…	Save image…
+PNG do složky výkresu	PNG to the drawing folder
+Ovládání jako v SolidWorksu:\nProstřední tl. – otáčení kolem místa pod kurzorem\nCtrl + prostřední / pravé – posun\nShift + prostřední – zoom\nKolečko – zoom ke kurzoru\nLevé tl. – také otáčení\nDvojklik prostředním / F – celý povrch\nDvojklik – vycentrovat místo\nCtrl + dvojklik – ukázat ve výkrese\nŠipky – otáčení po 15°, Shift 90°\nCtrl + šipky – posun, Z / Shift+Z – zoom	Controls as in SolidWorks:\nMiddle button – orbit around the point under the cursor\nCtrl + middle / right – pan\nShift + middle – zoom\nWheel – zoom to cursor\nLeft button – also orbit\nMiddle double-click / F – whole surface\nDouble-click – centre the point\nCtrl + double-click – show in the drawing\nArrows – rotate by 15°, Shift 90°\nCtrl + arrows – pan, Z / Shift+Z – zoom
+Ve výkrese není žádný povrch.	There is no surface in the drawing.
+Načítám povrch…	Loading surface…
+Uloženo: {}	Saved: {}
+Obrázek se nepodařilo uložit: {}	The image could not be saved: {}
+Výška [m n. m.]	Elevation [m a.s.l.]
+{} · {} trojúhelníků · {} bodů · převýšení ×{} · {:.2} – {:.2} m n. m.	{} · {} triangles · {} points · exaggeration ×{} · {:.2} – {:.2} m a.s.l.
+Stávající terén {}	Existing ground {}
+Jméno povrchu	Surface name
+Přepočítat sám, když se změní body, spojnice nebo hranice	Recalculate automatically when points, breaklines or boundaries change
+Povrch vznikne ze skupin bodů (další krok). Spojnice, hranice a ruční úpravy přidáte po vytvoření – průvodce ukáže jak.	The surface is made from point groups (next step). Breaklines, boundaries and manual edits are added after creation – the wizard shows how.
+Ze kterých skupin bodů	From which point groups
+Max. délka hrany	Max. edge length
+Max. délka hrany zabrání dlouhým trojúhelníkům přes místa bez bodů (okraje, zátoky).	The max. edge length prevents long triangles across areas without points (edges, bays).
+Spojnice (lomové hrany)	Breaklines
+Po vytvoření je přidáte na záložce Terén: Spojnice přes body (klikáním na body zaměření) nebo Přidat spojnici (vybrané 3D křivky).	After creation add them on the Terén tab: Breakline through points (clicking survey points) or Add breakline (selected 3D polylines).
+Bez hranice povrch sahá k nejvzdálenějším bodům. Ořízněte ho uzavřenou křivkou: vyberte ji a klikněte Hranice (Díra vynechá vnitřek).	Without a boundary the surface reaches the outermost points. Clip it with a closed polyline: select it and click Boundary (Hole leaves out the inside).
+Obojí najdete i v Prospektoru u povrchu › Z čeho se povrch počítá.	Both are also in the Prospector at the surface › What the surface is built from.
+Styl i krok jde kdykoli změnit pravým tlačítkem na povrch v Prospektoru.	The style and interval can be changed any time by right-clicking the surface in the Prospector.
+NÁHLED	PREVIEW
+bodů	points
+asi {} trojúhelníků	about {} triangles
+potřeba aspoň 3 body	at least 3 points needed
+vynecháno {} × {}	left out {} × {}
+Zpět	Back
+Další	Next
+zadejte jméno a vyberte skupiny s aspoň 3 body	enter a name and choose groups with at least 3 points
+podle kódu / skupiny	by code / group
+Aktivní povrch:	Active surface:
+Aktivní povrch	Active surface
+žádný	none
+⚠ zastaralý	⚠ out of date
+zdroje se od přepočtu změnily	the sources changed since the recalculation
+Nic není vybráno	Nothing is selected
+Vybráno {} objektů, které nepatří k bodům ani povrchům.	{} objects selected that belong to no points or surfaces.
+Klikněte ve výkrese na bod (značku nebo popis) nebo na povrch – tady se ukážou jeho vlastnosti a styl.	Click a point (marker or label) or a surface in the drawing – its properties and style appear here.
+Otevřít strom výkresu	Open the drawing tree
+bez původu	no origin
+1 vybraný bod · {}	1 selected point · {}
+Uložit změny	Save changes
+Vrátit	Revert
+otevře editor stylu	opens the style editor
+Styl je nastavený přímo tomuto bodu.	The style is set directly on this point.
+Styl je podle kódu {} – nastaveno ve stylu „{}“ (pole pro kódy).	The style comes from code {} – set in style "{}" (for codes field).
+Styl je podle skupiny „{}“.	The style comes from group "{}".
+Bod nemá styl z kódu ani ze skupiny – platí výchozí Standard.	The point has no style from a code or group – the default Standard applies.
+skupina {}	group {}
+Přednost má styl nastavený ručně, pak podle kódu, pak podle skupiny.	A style set manually takes precedence, then by code, then by group.
+Zrušit ruční styl	Clear the manual style
+bod převezme styl podle kódu nebo skupiny	the point takes the style by code or group
+Patří do skupin	Belongs to groups
+otevřít skupinu	open group
+použit	used
+vyloučen (kód {})	excluded (code {})
+není v jeho skupinách	not in its groups
+Nová skupina z bodu	New group from the point
+Otevřít v tabulce	Open in the table
+Vybráno {} bodů	{} points selected
+podle kódu	by code
+výchozí	default
+různé ({} stylů)	various ({} styles)
+Hromadně	Batch
+přečíslování, přidání do skupiny…	renumbering, adding to a group…
+{} trojúhelníků	{} triangles
+▶ aktivní povrch · {}	▶ active surface · {}
+⚠ Zastaralý – zdroje se od posledního přepočtu změnily	⚠ Out of date – the sources changed since the last recalculation
+⟳ Přepočítat	⟳ Recalculate
+Prohlédnout 3D	View 3D
+Nastavit aktivní	Set active
+Zobrazení	Display
+Z čeho se povrch počítá ({})	What the surface is built from ({})
+Skupina {}	Group {}
+chybí ve výkrese	missing in the drawing
+{} (vyloučeno podle kódu {})	{} (excluded by code {})
+Vybráno {} povrchů	{} surfaces selected
+Styl všem	Style for all
+⟳ Přepočítat vybrané	⟳ Recalculate selected
+Tlačítko Import bodů na záložce Terén; formát se rozpozná sám.	The Import points button on the Terén tab; the format is detected automatically.
+{} bodů · {}	{} points · {}
+Stávající terén ze skupiny Zaměření (bez kódů STR).	Existing ground from the Survey group (without STR codes).
+Vyberte křivky ve výkrese a přidejte je jako hranici nebo spojnice (záložka Terén, skupina Definice).	Select polylines in the drawing and add them as a boundary or breaklines (Terén tab, Definition group).
+Úpravy trojúhelníků	Triangle edits
+Otočit, přidat nebo smazat hranu – projeví se hned po kliknutí.	Swap, add or delete an edge – applies right after the click.
+Symboly podle kódů (např. STR = strom), vrstevnice a popisy.	Symbols by codes (e.g. STR = tree), contours and labels.
+Vytvořit stávající terén	Create existing ground
+Nástroje jsou na pásu karet: Terén › Úpravy	The tools are on the ribbon: Terén › Edits
+Už neukazovat	Do not show again
+ – body neleží v S-JTSK pro ČR, formát ověřte	 – the points do not lie in S-JTSK for the Czech Republic, check the format
+ – pozor, číslo už má jiný bod	 – warning, another point already has this number
+z povrchu	from the surface
+Prospektor	Prospector
+Bod na povrchu	Point on surface
+Sloup	Pole
+Hydrant	Hydrant
+Nezobrazovat	Do not display
+Obrys	Outline
+Definice	Definition
+Hranice	Boundary
+Odebrat z povrchu	Remove from surface
+typ objektu P, B, C nebo F	object type P, B, C or F
+body na povrchu	points on surface
+Interval vrstevnic	Contour interval
+Max. hrana	Max. edge
+hledat body, skupiny, povrchy	search points, groups, surfaces
+Obnovit	Refresh
+Importovat body ze souboru…	Import points from a file…
+body se stylem Nezobrazovat	points with the Do not display style
+🎨 Styly	🎨 Styles
+Upravit styl	Edit style
+styl Nezobrazovat	style Do not display
+Povrchy	Surfaces
+ukazovat postup „Jak na to“	show the "How to" steps
+Upravit skupinu	Edit group
+Exportovat body…	Export points…
+LandXML nebo DXF s 3D plochami	LandXML or DXF with 3D faces
+Do skupiny	To group
+Ze skupiny odebrat	Remove from group
+Sloupce ⏷	Columns ⏷
+Popis	Description
+podle skupiny	by group
+nebo do skupiny	or to group
+Odebrat	Remove
+jsou ze souboru	are from file
++ pravidlo	+ rule
+(ne z importu)	(not from an import)
+podle pravidel	by rules
+PYXZ – bez popisu	PYXZ – no description
+PNEZ – bez popisu	PNEZ – no description
+Exportovat	Export
+DXF – 3D plochy	DXF – 3D faces
+Stav	Status
+⟳ auto	⟳ auto
+Statistika	Statistics
+Plocha	Area
+✏ Upravit styl	✏ Edit style
+Spojnice	Breaklines
+Objekt	Object
+Typ objektu	Object type
+, s hranami	, with edges
+odstranit pravidlo	remove rule
+Odchylka	Deviation
+podle hladiny	ByLayer
+Styly	Styles
+upravit styl	edit style
+Popisy	Labels
+Symboly	Symbols
+barva textu	text colour
+podle povrchu	by surface
+Popis vrstevnic	Contour labels
+barva popisu	label colour
+Automaticky	Automatic
+podle sklonu	by slope
+Izometrie	Isometric
+Shora	Top
+od jihu	from the south
+od severu	from the north
+Sklon [°]	Slope [°]
+✏ Upravit	✏ Edit
+V povrchu	In surface
+Ve stromu	In the tree
+Hranice a spojnice	Boundaries and breaklines
+3D plochy	3D faces
+Odebrat objekt z povrchu	Remove object from surface
+zadejte cestu k souboru	enter the file path
+DXF s 3D plochami	DXF with 3D faces
+bez popisu	no label
+ do skupiny „{}“	 to group "{}"
+✔ {} (celkem {})	✔ {} (total {})
+Nelze: {}	Not possible: {}
+{} · {}, Enter = konec:	{} · {}, Enter = finish:
+Bod {}	Point {}
+Enter = {:.2} {}	Enter = {:.2} {}
+ (Enter = konec)	 (Enter = finish)
+Plocha {}	Face {}
+🗺 Povrchy ({})	🗺 Surfaces ({})
+{} (kopie)	{} (copy)
+{} upoz.	{} warn.
+{} (podle stylu)	{} (by style)
+Bod	Point
+skupiny {}	groups {}
+SOUBOR	FILE
+POVRCHY	SURFACES
+BARVY	COLOURS
+ZOBRAZIT	SHOW
+POHLED	VIEW
+Odkud: {}	Source: {}
+Statistika  ·  {:.2} – {:.2} m n. m.	Statistics  ·  {:.2} – {:.2} m a.s.l.
+vyberte…	choose…
+Jak na to	How to
+Chyba: {}	Error: {}
+Chyba	Error
+Bod {} upraven	Point {} modified
+neznámé písmeno '{}' ve formátu '{}'	unknown letter '{}' in format '{}'
+formát '{}' neobsahuje výšku Z	format '{}' has no elevation Z
+málo sloupců ({} místo alespoň {})	too few columns ({} instead of at least {})
+neplatná hodnota {} '{}'	invalid value {} '{}'
+přidání bodu	point addition
+odebrání bodu	point removal
+otočení hrany	edge swap
+smazání trojúhelníku	triangle deletion
+přidání hrany	edge addition
+smazání hrany	edge deletion
+povrch nemá žádné body – jeho skupiny bodů jsou prázdné nebo vypnuté; přidejte skupinu v Prospektoru (Z čeho se povrch počítá › Skupiny bodů)	the surface has no points – its point groups are empty or disabled; add a group in the Prospector (What the surface is built from › Point groups)
+pro povrch jsou potřeba aspoň 3 body, ve skupinách je {} – přidejte body nebo další skupinu	a surface needs at least 3 points, the groups contain {} – add points or another group
+body leží na jedné přímce, trojúhelníky z nich nevzniknou – přidejte body mimo tuto přímku	the points lie on one straight line, no triangles can be made – add points off this line
+drží ji spojnice (lomová hrana); spojnici můžete v Prospektoru vypnout	it is held by a breakline; you can disable the breakline in the Prospector
+leží na okraji povrchu, není ji s čím prohodit	it lies on the surface edge, there is nothing to swap it with
+trojúhelníky kolem ní netvoří vypuklý čtyřúhelník – zkuste nejdřív otočit sousední hranu	the triangles around it do not form a convex quadrilateral – try swapping a neighbouring edge first
+Všechny body	All points
+kódy {}	codes {}
+čísla {}	numbers {}
+žádné kritérium	no criterion
+ – bez kódů {}	 – without codes {}
+ – bez čísel {}	 – without numbers {}
+ – bez ručně vytvořených	 – without manually created
+ + ručně {}	 + manually {}
+ − ručně {}	 − manually {}
+interval vrstevnic musí být kladný	the contour interval must be positive
+řádek {}: {} ({})	line {}: {} ({})
+mezera	space
+Povrch, se kterým pracují nástroje Úpravy, Výška v bodě a Bod na povrchu. Nastavíte ho v horním řádku Prospektoru nebo dvojklikem na povrch ve stromu.	The surface used by the Edits, Elevation at point and Point on surface tools. Set it in the top row of the Prospector or by double-clicking a surface in the tree.
+Pravidla, podle kterých se vyberou body (kód, čísla, soubor importu). Povrch se skládá ze skupin – změna skupiny povrch označí jako zastaralý.	Rules that select points (code, numbers, import file). A surface is built from groups – a change of a group marks the surface as out of date.
+3D křivka, kterou trojúhelníky nesmí překřížit – hrana svahu, pata a koruna, osa příkopu. Její vrcholy jsou vždy součástí povrchu.	A 3D polyline the triangles must not cross – slope edge, toe and top, ditch centreline. Its vertices are always part of the surface.
+Uzavřená křivka: povrch se ořízne na hranici, uvnitř díry se vynechá.	A closed polyline: the surface is clipped at the boundary and left out inside a hole.
+Otočená, přidaná či smazaná hrana, smazaný trojúhelník, přidaný nebo odebraný bod. Ukládá se k povrchu, při přepočtu se použije znovu a jde vypnout.	A swapped, added or deleted edge, a deleted triangle, an added or removed point. It is stored with the surface, reapplied on recalculation and can be disabled.
+Zastaralý povrch	Out-of-date surface
+Body, skupiny nebo spojnice se od posledního přepočtu změnily. Přepočítejte ho, nebo zapněte automatický přepočet.	Points, groups or breaklines changed since the last recalculation. Recalculate it or turn on automatic recalculation.
+Jak se bod kreslí: značka (křížek, symbol stromu…) a popisy (číslo, výška, kód). Platí ručně nastavený styl, jinak podle kódu, jinak podle skupiny, jinak Standard.	How a point is drawn: marker (cross, tree symbol…) and labels (number, elevation, code). A manually set style applies, otherwise by code, otherwise by group, otherwise Standard.
+Co se z povrchu kreslí: trojúhelníky, vrstevnice, popisy vrstevnic, obrys, šipky spádu – a v jakých barvách.	What is drawn from the surface: triangles, contours, contour labels, outline, slope arrows – and in which colours.
+Kód bodu	Point code
+První slovo popisu bodu ze zaměření (T, HR, STR…). Podle kódu se volí styl a skupina; kód STR (stromy) se do terénu standardně nebere.	The first word of the point description from the survey (T, HR, STR…). The code selects the style and group; code STR (trees) is not taken into the ground by default.
+Postupy	Workflows
+Terén ze zaměření	Ground from a survey
+1. Importujte body: Terén › Body › Import bodů. Formát i oddělovač se rozpoznají samy, body se objeví v Prospektoru pod Body.	1. Import points: Terén › Points › Import points. The format and delimiter are detected automatically, the points appear in the Prospector under Points.
+2. Vytvořte povrch: Nový povrch › Stávající terén (z bodů), nebo v Prospektoru pravým tlačítkem na Povrchy. Vezme skupinu Zaměření bez kódů STR.	2. Create a surface: New surface › Existing ground (from points), or right-click Surfaces in the Prospector. It takes the Survey group without STR codes.
+3. Doplňte spojnice (lomové hrany): Spojnice přes body – klikejte na body zaměření; nebo vyberte hotové 3D křivky a klikněte Přidat spojnici.	3. Add breaklines: Breakline through points – click survey points; or select existing 3D polylines and click Add breakline.
+4. Ořízněte povrch: nakreslete uzavřenou křivku a klikněte Hranice (díra vynechá vnitřek).	4. Clip the surface: draw a closed polyline and click Boundary (a hole leaves out the inside).
+5. Prohlédněte trojúhelníky (styl Trojúhelníky nebo záložka 3D) a opravte je nástroji ze skupiny Úpravy.	5. Review the triangles (Triangles style or the 3D tab) and fix them with the tools of the Edits group.
+6. Nastavte styl s vrstevnicemi a krok vrstevnic – pravým tlačítkem na povrch › Styl / Vrstevnice po.	6. Set a style with contours and the contour interval – right-click the surface › Style / Contour interval.
+Povrch se přepočítá sám, když je zapnutý automatický přepočet; jinak ukáže ⚠ zastaralý a stačí kliknout Přepočítat.	The surface recalculates itself when automatic recalculation is on; otherwise it shows ⚠ out of date and you just click Recalculate.
+Úprava trojúhelníků	Editing triangles
+Nástroje Otočit hranu, Přidat hranu, Smazat hranu, Smazat trojúhelník, Přidat bod a Odebrat bod pracují s aktivním povrchem. Klikejte do výkresu, změna se projeví hned; Enter nebo Esc nástroj ukončí.	The Swap edge, Add edge, Delete edge, Delete triangle, Add point and Remove point tools work on the active surface. Click in the drawing, the change applies immediately; Enter or Esc ends the tool.
+Každá úprava se uloží k povrchu (strom › Z čeho se povrch počítá › Ruční úpravy trojúhelníků). Tam ji můžete ukázat, vypnout nebo smazat.	Each edit is stored with the surface (tree › What the surface is built from › Manual triangle edits). There you can show, disable or delete it.
+Hranu, kterou drží spojnice, nejde otočit ani smazat. Bod, který je vrcholem spojnice, zůstane v povrchu, i když ho odeberete – nejdřív upravte spojnici.	An edge held by a breakline cannot be swapped or deleted. A point that is a breakline vertex stays in the surface even if you remove it – edit the breakline first.
+Styly a symboly	Styles and symbols
+Styl bodu určuje značku a popisy. Přiřadí se ručně (pás karet › Styl bodu, nebo pravým tlačítkem na řádek tabulky), jinak podle kódu (např. STR = strom), jinak podle skupiny, jinak Standard.	A point style sets the marker and labels. It is assigned manually (ribbon › Point style, or right-click a table row), otherwise by code (e.g. STR = tree), otherwise by group, otherwise Standard.
+Styl povrchu určuje, co se kreslí – trojúhelníky, vrstevnice s popisy, obrys, spád. Mění se pravým tlačítkem na povrch › Styl.	A surface style sets what is drawn – triangles, contours with labels, outline, slope. Change it by right-clicking the surface › Style.
+Styly upravíte v Prospektoru pod Styly. Vestavěný styl můžete změnit a vrátit k původnímu nastavení; Kopírovat jako nový vytvoří vlastní styl.	Edit styles in the Prospector under Styles. A built-in style can be changed and restored to its original settings; Copy as new creates your own style.
+Skupina vybírá body podle pravidel: mají kód, mají číslo (rozsahy 1-50), jsou ze souboru. Zvolte, zda stačí aspoň jedno pravidlo, nebo musí platit všechna.	A group selects points by rules: have code, have number (ranges 1-50), are from file. Choose whether at least one rule is enough or all must match.
+Vždy vyloučit: kódy, čísla nebo ručně vytvořené body, které do skupiny nepatří, i když splní pravidla.	Always exclude: codes, numbers or manually created points that do not belong to the group even if they match the rules.
+Ručně přidané a odebrané body mají přednost před pravidly – přidáte je z výběru ve výkrese.	Manually added and removed points take precedence over the rules – add them from the drawing selection.
+Náhled vpravo barevně ukazuje, které body do skupiny patří; klik na bod řekne proč.	The preview on the right shows in colour which points belong to the group; clicking a point tells why.
+Povrch se skládá ze skupin. Po uložení změněné skupiny se povrch přepočítá (nebo ukáže, že je zastaralý).	A surface is built from groups. After a changed group is saved the surface is recalculated (or shows it is out of date).
+Ovládání	Controls
+Výběr – ukazuje, co máte vybrané ve výkrese (bod, povrch, čáru) a co s tím jde dělat.	Selection – shows what is selected in the drawing (point, surface, line) and what you can do with it.
+Výkres – strom všeho, co plugin ve výkrese má: body, skupiny, povrchy, styly, nastavení.	Drawing – a tree of everything the plugin has in the drawing: points, groups, surfaces, styles, settings.
+3D – prohlížeč povrchů.	3D – surface viewer.
+Pravé tlačítko na uzlu stromu nebo na řádku tabulky otevře nabídku akcí.	Right-clicking a tree node or a table row opens a menu of actions.
+Dvojklik na povrch ho nastaví jako aktivní, dvojklik na bod v tabulce ho ukáže ve výkrese.	Double-clicking a surface makes it active, double-clicking a point in the table shows it in the drawing.
+Najít v Prospektoru (pás karet) skočí na objekt vybraný ve výkrese. F1 otevře tuto nápovědu.	Find in Prospector (ribbon) jumps to the object selected in the drawing. F1 opens this help.
+Prohlížeč 3D	3D viewer
+Ovládání jako v SolidWorksu:	Controls as in SolidWorks:
+Prostřední tlačítko – otáčení kolem místa pod kurzorem; levé tlačítko také otáčí.	Middle button – orbit around the point under the cursor; the left button also orbits.
+Ctrl + prostřední (nebo pravé) – posun; Shift + prostřední – zoom; kolečko – zoom ke kurzoru.	Ctrl + middle (or right) – pan; Shift + middle – zoom; wheel – zoom to cursor.
+Dvojklik prostředním nebo F – celý povrch; dvojklik – vycentrovat místo; Ctrl + dvojklik – ukázat ve výkrese.	Middle double-click or F – whole surface; double-click – centre the point; Ctrl + double-click – show in the drawing.
+Šipky – otáčení po 15° (Shift 90°), Ctrl + šipky – posun, Z / Shift+Z – zoom. Ctrl+1 shora, Ctrl+7 izometrie.	Arrows – rotate by 15° (Shift 90°), Ctrl + arrows – pan, Z / Shift+Z – zoom. Ctrl+1 top, Ctrl+7 isometric.
+Kompas: klik na S, J, V, Z natočí pohled od dané světové strany. Uložit obrázek uloží PNG do složky výkresu.	Compass: clicking N, S, E or W turns the view from that direction. Save image saves a PNG to the drawing folder.
+Pojmy	Terms
+Slovníček	Glossary
+Spojnice přes body – nakreslí lomovou hranu (3D křivku) klikáním na body zaměření; trojúhelníky ji nepřekříží.	Breakline through points – draws a breakline (3D polyline) by clicking survey points; triangles will not cross it.
+klikejte na body · Backspace = zpět · Enter = konec	click points · Backspace = undo · Enter = finish
+Přidat spojnici – vybrané 3D křivky se stanou lomovými hranami aktivního povrchu.	Add breakline – the selected 3D polylines become breaklines of the active surface.
+nejdřív vyberte čáry, pak klikněte	select lines first, then click
+Hranice – vybraná uzavřená křivka ořízne aktivní povrch.	Boundary – the selected closed polyline clips the active surface.
+nejdřív vyberte křivku, pak klikněte	select a polyline first, then click
+Díra – uvnitř vybrané uzavřené křivky se povrch vynechá.	Hole – the surface is left out inside the selected closed polyline.
+Otočit hranu – prohodí společnou hranu dvou trojúhelníků aktivního povrchu.	Swap edge – swaps the shared edge of two triangles of the active surface.
+klikejte na hrany · Enter = konec	click edges · Enter = finish
+Přidat hranu – vynutí hranu mezi dvěma vrcholy aktivního povrchu.	Add edge – forces an edge between two vertices of the active surface.
+klikněte na dva vrcholy · Enter = konec	click two vertices · Enter = finish
+Smazat hranu – odstraní hranu na okraji povrchu (zúží povrch).	Delete edge – removes an edge on the surface border (shrinks the surface).
+Smazat trojúhelník – vynechá trojúhelník z aktivního povrchu.	Delete triangle – leaves a triangle out of the active surface.
+klikejte do trojúhelníků · Enter = konec	click inside triangles · Enter = finish
+Přidat bod – přidá do aktivního povrchu bod (výšku zadáte v okně, návrh z povrchu).	Add point – adds a point to the active surface (enter the elevation in the window, suggested from the surface).
+klikejte nebo zadejte x,y,z · Enter = konec	click or enter x,y,z · Enter = finish
+Odebrat bod – vynechá bod z aktivního povrchu (bod ve výkrese zůstane).	Remove point – leaves a point out of the active surface (the point stays in the drawing).
+klikejte na vrcholy · Enter = konec	click vertices · Enter = finish
+Výška v bodě – ukáže a popíše výšku aktivního povrchu v místě kliknutí.	Elevation at point – shows and labels the active surface elevation at the clicked location.
+klikejte · Enter = konec	click · Enter = finish
+Ruční bod – vytvoří bod zaměření s dalším volným číslem.	Manual point – creates a survey point with the next free number.
+klikněte nebo zadejte x,y, výšku pak zadáte v okně · Enter = konec	click or enter x,y, then enter the elevation in the window · Enter = finish
+Bod na povrchu – vytvoří bod s výškou z aktivního povrchu.	Point on surface – creates a point with the elevation of the active surface.
+Povrch z naklikaných bodů – z bodů, na které kliknete, vznikne nová skupina a povrch.	Surface from clicked points – the points you click become a new group and a surface.
+klikejte na body · Enter = vytvořit	click points · Enter = create
+PNEZD – číslo, N(Y), E(X), Z, popis	PNEZD – number, N(Y), E(X), Z, description
+PENZD – číslo, E(X), N(Y), Z, popis	PENZD – number, E(X), N(Y), Z, description
+PYXZD – číslo, Y, X, Z, popis (S-JTSK kladné)	PYXZD – number, Y, X, Z, description (S-JTSK positive)
+NEZ – bez čísla	NEZ – no number
+ENZ – bez čísla	ENZ – no number
+červená	red
+žlutá	yellow
+zelená	green
+azurová	cyan
+modrá	blue
+purpurová	magenta
+bílá / černá	white / black
+tmavě šedá	dark grey
+světle šedá	light grey
+oranžová	orange
+hnědá	brown
+Základ	Basics
+barva {}	colour {}
+Y	Y
+X	X
+krok	step
+ZAHRNOUT	INCLUDE
+odebrat	remove
+tvar	shape
+blok	block
+velikost	size
+barva	colour
+popisek	label
+body	points
+obrys	outline
+spojnice	breaklines
+hranice	boundary
+bloky	blocks
+sloup	pole
+hydrant	hydrant
+od	from
+Y {:.2}   X {:.2}   – bod je mimo povrch	Y {:.2}   X {:.2}   – the point is outside the surface

@@ -1,0 +1,21 @@
+[package]
+name = "teren"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+encoding_rs = "0.8.42"
+spade = "2"
+
+[workspace]
+members = [".", "plugin"]
+
+[profile.release]
+opt-level = 3
+
+# Knihovna DWG (acadrust) je obrovská – s plnou optimalizací se na běžném
+# počítači sestavuje desítky minut a bere mnoho paměti. Plugin z ní používá
+# jen datové typy, takže nižší optimalizace nevadí.
+[profile.release.package.acadrust]
+opt-level = 1
