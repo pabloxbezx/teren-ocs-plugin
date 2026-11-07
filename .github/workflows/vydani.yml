@@ -26,7 +26,7 @@ jobs:
           - os: ubuntu-22.04
             lib: libteren_plugin.so
             asset: cz.fluvio.teren-linux-x86_64.so
-          - os: macos-14
+          - os: macos-latest
             lib: libteren_plugin.dylib
             asset: cz.fluvio.teren-macos-aarch64.dylib
     runs-on: ${{ matrix.os }}
