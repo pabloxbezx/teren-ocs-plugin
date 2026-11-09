@@ -187,13 +187,33 @@ impl CadModule for TerenModule {
                             ],
                             default: "TER_SB_STANDARD",
                         },
-                        RibbonItem::LabeledTool(tool("TER_UCHOPY", tr("Posun bodů"), ikona!("ter_posun_bodu"))),
+                        // přepínač – tlačítko ukazuje naposledy zvolený stav
+                        RibbonItem::LargeDropdown {
+                            id: "TER_DD_UCHOPY",
+                            label: ocs_plugin_api::ribbon::FOLLOW_CHOSEN,
+                            icon: ikona!("ter_posun_bodu_vyp"),
+                            items: vec![
+                                ("TER_UCHOPY_VYP", tr("Posun bodů: vypnuto"), ikona!("ter_posun_bodu_vyp")),
+                                ("TER_UCHOPY_ZAP", tr("Posun bodů: zapnuto"), ikona!("ter_posun_bodu")),
+                            ],
+                            default: "TER_UCHOPY_VYP",
+                        },
                         RibbonItem::LabeledTool(tool("TER_PANEL", tr("Vlastnosti bodu"), ikona!("ter_vlastnosti_bodu"))),
                     ],
                 },
                 RibbonGroup {
                     title: tr("Povrch"),
                     tools: vec![
+                        RibbonItem::LargeDropdown {
+                            id: "TER_DD_KLIK",
+                            label: ocs_plugin_api::ribbon::FOLLOW_CHOSEN,
+                            icon: ikona!("ter_povrch_klik_vyp"),
+                            items: vec![
+                                ("TER_POVRCH_KLIK_VYP", tr("Povrch: klik projde na body"), ikona!("ter_povrch_klik_vyp")),
+                                ("TER_POVRCH_KLIK_ZAP", tr("Povrch: vybírat klikem"), ikona!("ter_povrch_klik_zap")),
+                            ],
+                            default: if nastaveni::akt().povrch_nevybirat { "TER_POVRCH_KLIK_VYP" } else { "TER_POVRCH_KLIK_ZAP" },
+                        },
                         RibbonItem::LargeDropdown {
                             id: "TER_DD_NOVY",
                             label: tr("Nový povrch"),
@@ -1095,6 +1115,12 @@ impl TerenPlugin {
             "TER_SMAZAT_TROJ" => spust_editaci(host, DruhEditace::SmazatTrojuhelnik),
             "TER_PRIDAT_BOD" => spust_editaci(host, DruhEditace::PridatBod),
             "TER_ODEBRAT_BOD" => spust_editaci(host, DruhEditace::OdebratBod),
+            "TER_UCHOPY_ZAP" | "TER_UCHOPY_VYP" => {
+                spravce::posli(spravce::Akce::Uchopy(Some(nazev == "TER_UCHOPY_ZAP")));
+            }
+            "TER_POVRCH_KLIK_ZAP" | "TER_POVRCH_KLIK_VYP" => {
+                spravce::posli(spravce::Akce::PovrchyNevybirat(nazev == "TER_POVRCH_KLIK_VYP"));
+            }
             "TER_UCHOPY" => {
                 let zap = match zbytek.to_ascii_uppercase().as_str() {
                     "ZAP" | "ON" | "1" => Some(true),

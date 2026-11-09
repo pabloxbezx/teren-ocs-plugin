@@ -43,7 +43,8 @@ si prohlédněte body, skupiny, povrch a styly.
 - **Kurzorové menu (quad)**: záložka Terén u bodů a povrchů.
 - Názvy objektů Terénu ve Vlastnostech i anglicky.
 - **Povrch nejde vybrat kliknutím** (nově výchozí): klik projde přes trojúhelníky
-  na body a popisy. Povrch se vybírá v Prospektoru; volba je v Nastavení.
+  na body a popisy. Povrch se vybírá v Prospektoru; přepíná se na pásu karet
+  (skupina Povrch), tlačítko ukazuje, co platí. Stejně se přepíná Posun bodů.
 - Obsahuje i změny z 1.0.3 (samostatně nevydaná).
 
 ## Verze 1.0.3

@@ -1042,3 +1042,7 @@ Terén: posun bodů úchopem zapnutý – táhněte kroužek na bodě (úchopů:
 Terén: úchopy jen pro prvních {} bodů (dalších {} bez úchopu).	Terén: grips only for the first {} points ({} more without a grip).
 Kód STR (stromy) do terénu obvykle nepatří – ve výkrese je {} takových bodů. Doplňte ho do Vyloučit kódy.	Code STR (trees) usually does not belong in the terrain – the drawing has {} such points. Add it to Excluded codes.
 Uložit	Save
+Posun bodů: vypnuto	Move points: off
+Posun bodů: zapnuto	Move points: on
+Povrch: klik projde na body	Surface: clicks pass to points
+Povrch: vybírat klikem	Surface: select by click
