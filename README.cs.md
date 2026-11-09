@@ -9,7 +9,13 @@ Open CAD Studia. Rozhraní česky nebo anglicky. Stručný manuál je ve složce
 
 ## Instalace
 
-Potřeba je Open CAD Studio **2026.44** nebo novější.
+Každé vydání Terénu je sestavené pro jednu verzi Open CAD Studia (program
+kontroluje, že obě strany používají stejný formát dat výkresu):
+
+| Open CAD Studio | Terén |
+|---|---|
+| 2026.45 | 1.0.2 |
+| 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Správce pluginů** v Open CAD Studiu: vyhledejte *Terén* a klikněte
   Instalovat.
@@ -27,6 +33,14 @@ Potřeba je Open CAD Studio **2026.44** nebo novější.
 terénu: body se styly (stromy, sloupy, šachty…), spojnice, obrys,
 vrstevnice a popisy. Otevřete ho s nainstalovaným Terénem a v Prospektoru
 si prohlédněte body, skupiny, povrch a styly.
+
+## Verze 1.0.2
+
+- Pro Open CAD Studio **2026.45** (Terén 1.0.1 v něm nepoběží).
+
+## Verze 1.0.1
+
+- Ukázkový výkres, Zoom vše bez počátku souřadnic, tvary značek nezůstávají v počátku.
 
 ## Verze 1.0.0
 

@@ -32,7 +32,13 @@ Windows-1250 encoding).
 
 ## Installation
 
-Requires Open CAD Studio **2026.44** or newer (plugin API 14).
+Each Terén release is built for one Open CAD Studio release (the host checks
+that both sides use the same drawing data format):
+
+| Open CAD Studio | Terén |
+|---|---|
+| 2026.45 | 1.0.2 |
+| 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Plugin Manager** in Open CAD Studio: find *Terén* and click Install.
 - **Manually (Windows):** download `Teren-windows.zip` from Releases,

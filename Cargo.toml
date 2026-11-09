@@ -20,7 +20,3 @@ opt-level = 3
 [profile.release.package.acadrust]
 opt-level = 1
 
-# Knihovna acadrust se přestěhovala; Open CAD Studio 2026.44 ji vede pod
-# původní adresou, která už není veřejná – stejný commit z nové adresy.
-[patch."https://github.com/HakanSeven12/acadrust.git"]
-acadrust = { git = "https://github.com/hakanaktt/acadrust.git", rev = "53e6420" }

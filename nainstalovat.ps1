@@ -1,9 +1,9 @@
-﻿# Nainstaluje plugin Terén do Open CAD Studia (2026.44 a novější).
+﻿# Nainstaluje plugin Terén do Open CAD Studia (verze podle vydání – viz README).
 # Spouští se přes nainstalovat.bat (dvojklik).
 #
 # Je-li vedle skriptu hotový plugin (teren_plugin.dll), jen se zkopíruje.
 # Jinak se sestaví ze zdrojů – k tomu je potřeba Rust (https://rustup.rs);
-# od Open CAD Studia 2026.44 na verzi Rustu nezáleží.
+# na verzi Rustu nezáleží.
 
 $ErrorActionPreference = "Stop"
 Set-Location -Path $PSScriptRoot
