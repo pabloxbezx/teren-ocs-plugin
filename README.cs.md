@@ -42,6 +42,8 @@ si prohlédněte body, skupiny, povrch a styly.
   kód a styl vybraných bodů, přímo k úpravě.
 - **Kurzorové menu (quad)**: záložka Terén u bodů a povrchů.
 - Názvy objektů Terénu ve Vlastnostech i anglicky.
+- **Povrch nejde vybrat kliknutím** (nově výchozí): klik projde přes trojúhelníky
+  na body a popisy. Povrch se vybírá v Prospektoru; volba je v Nastavení.
 - Obsahuje i změny z 1.0.3 (samostatně nevydaná).
 
 ## Verze 1.0.3

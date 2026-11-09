@@ -64,7 +64,7 @@ impl Default for Nastaveni {
             sledovat_vyber: true,
             rezim_vykres: false,
             postup_skryt: false,
-            povrch_nevybirat: false,
+            povrch_nevybirat: true,
             nahled_importu: true,
             odsazeni_popisku: true,
             posun_jen_popis: false,
@@ -138,7 +138,8 @@ fn nacti() -> Nastaveni {
             "sledovat_vyber" => n.sledovat_vyber = v != "0",
             "rezim_vykres" => n.rezim_vykres = v == "1",
             "postup_skryt" => n.postup_skryt = v == "1",
-            "povrch_nevybirat" => n.povrch_nevybirat = v == "1",
+            // od 1.0.4 nový klíč s výchozím „ano“ (starý „povrch_nevybirat“ se ignoruje)
+            "povrch_propustit" => n.povrch_nevybirat = v != "0",
             "nahled_importu" => n.nahled_importu = v != "0",
             "odsazeni_popisku" => n.odsazeni_popisku = v != "0",
             "posun_jen_popis" => n.posun_jen_popis = v == "1",
@@ -165,7 +166,7 @@ fn nacti() -> Nastaveni {
 fn uloz(n: &Nastaveni) {
     let Some(p) = soubor() else { return };
     let text = format!(
-        "# Nastavení pluginu Terén\nformat = {}\noddelovac = {}\nmeritko = {}\nvyloucene_kody = {}\ntolerance_bodu = {}\nprah_kontroly = {}\nkod_bodu = {}\nvyska_bodu_nova = {}\nokno = {}\nsledovat_vyber = {}\nrezim_vykres = {}\npostup_skryt = {}\npovrch_nevybirat = {}\nnahled_importu = {}\nodsazeni_popisku = {}\nposun_jen_popis = {}\nbarvy_3d = {}\njazyk = {}\n", // i18n:ne
+        "# Nastavení pluginu Terén\nformat = {}\noddelovac = {}\nmeritko = {}\nvyloucene_kody = {}\ntolerance_bodu = {}\nprah_kontroly = {}\nkod_bodu = {}\nvyska_bodu_nova = {}\nokno = {}\nsledovat_vyber = {}\nrezim_vykres = {}\npostup_skryt = {}\npovrch_propustit = {}\nnahled_importu = {}\nodsazeni_popisku = {}\nposun_jen_popis = {}\nbarvy_3d = {}\njazyk = {}\n", // i18n:ne
         n.format.as_deref().unwrap_or("auto"),
         nazev_odd(n.oddelovac),
         n.meritko,
