@@ -14,7 +14,7 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.45 | 1.0.2 |
+| 2026.45 | 1.0.2 – 1.0.3 |
 | 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Správce pluginů** v Open CAD Studiu: vyhledejte *Terén* a klikněte
@@ -33,6 +33,17 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 terénu: body se styly (stromy, sloupy, šachty…), spojnice, obrys,
 vrstevnice a popisy. Otevřete ho s nainstalovaným Terénem a v Prospektoru
 si prohlédněte body, skupiny, povrch a styly.
+
+## Verze 1.0.3
+
+- **Posun bodu tažením**: chyťte značku nebo popis bodu a přesuňte ho –
+  přesune se celý bod (výška zůstane) a povrch se přepočítá. Volitelně
+  (Nastavení) posunutím popisu jen odsunete popis; *Popisy na místo* ho vrátí.
+- **Úprava v tabulce bodů**: dvojklik na číslo, kód nebo výšku, Enter uloží
+  a skočí na další bod.
+- **Hromadně**: vybraným bodům nastavit nebo přičíst výšku, nastavit kód.
+- Ve výkresech z dřívějších verzí jednou klikněte na *Překreslit body*
+  (Prospektor › Výkres), aby šly posouvat i popisy.
 
 ## Verze 1.0.2
 

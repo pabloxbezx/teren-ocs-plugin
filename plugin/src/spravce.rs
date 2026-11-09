@@ -268,6 +268,10 @@ pub enum Akce {
     // body
     BodUpravit(Handle, Bod),
     BodySmazat(Vec<Handle>),
+    /// Ručně odsunuté popisy vybraných bodů vrátit na výchozí místo.
+    PopisyNaMisto(Vec<Handle>),
+    /// Hromadně: výška (hodnota, přičíst), kód.
+    BodyHromadne(Vec<Handle>, Option<(f64, bool)>, Option<String>),
     BodyPrecislovat(Vec<Handle>, u64, u64),
     ObnovitPopisy,
     /// Vlastní styl vybraných bodů („“ = podle skupiny).
@@ -514,6 +518,8 @@ struct Pracovnik {
     posledni_vyber: Vec<Handle>,
     /// Otisky nesouladů grafiky bodů, které už byly opraveny.
     opravene: HashMap<u64, (std::collections::HashSet<u64>, std::collections::HashSet<u64>)>,
+    /// Už provedené posuny bodů podle grafiky (handle, dx, dy v mm) – kvůli „Zpět“.
+    posunute: HashMap<u64, std::collections::HashSet<(u64, i64, i64)>>,
 }
 
 const KLID: Duration = Duration::from_millis(600);
@@ -739,6 +745,26 @@ impl Pracovnik {
             k.konec_kroku();
         }
         let m = nastaveni::meritko(&doc);
+        // posunutá značka nebo popis → posunout bod (popis)
+        let (posuny, otisk) = cogo::posunuta_grafika(&doc, m, nastaveni::akt().posun_jen_popis);
+        if !posuny.is_empty() {
+            let videno = self.posunute.entry(tab).or_default();
+            if otisk.iter().all(|o| videno.contains(o)) {
+                // stejný posun už jednou proveden – nejspíš „Zpět“; nechat být
+                return;
+            }
+            if videno.len() > 20000 {
+                videno.clear();
+            }
+            videno.extend(otisk);
+            k.zpet(tr("Posun bodu"));
+            match cogo::proved_posuny(k, &doc, &posuny) {
+                Ok(_) => k.hotovo(),
+                Err(e) => k.chyba(&trf!("Terén: posun bodu: {}", e)),
+            }
+            k.konec_kroku();
+            return;
+        }
         let n = cogo::nesoulad(&doc, m);
         if n.je_prazdny() || n.navic.len() + n.chybi.len() > 2000 {
             return;
@@ -1091,6 +1117,44 @@ impl Pracovnik {
                 cogo::uprav_body(k, &doc, &[(bv, novy, styl)], tr("Upravit bod"))?;
                 k.hotovo();
                 Ok(Some(zprava))
+            }
+            Akce::BodyHromadne(h, vyska, kod) => {
+                let doc = k.dokument()?;
+                let zmeny: Vec<cogo::ZmenaBodu> = cogo::body(&doc)
+                    .into_iter()
+                    .filter(|b| h.contains(&b.handle))
+                    .map(|bv| {
+                        let mut b = bv.bod.clone();
+                        match vyska {
+                            Some((z, true)) => b.z += z,
+                            Some((z, false)) => b.z = z,
+                            None => {}
+                        }
+                        if let Some(kod) = &kod {
+                            b.popis = kod.clone();
+                        }
+                        let styl = bv.styl.clone();
+                        (bv, b, styl)
+                    })
+                    .collect();
+                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Upravit body"))?;
+                k.hotovo();
+                Ok(Some(trf!("Upraveno bodů: {}", n)))
+            }
+            Akce::PopisyNaMisto(h) => {
+                let doc = k.dokument()?;
+                let zmeny: Vec<cogo::ZmenaBodu> = cogo::body(&doc)
+                    .into_iter()
+                    .filter(|b| h.contains(&b.handle) && b.posun.is_some())
+                    .map(|mut bv| {
+                        bv.posun = None;
+                        let (b, styl) = (bv.bod.clone(), bv.styl.clone());
+                        (bv, b, styl)
+                    })
+                    .collect();
+                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Popisy na místo"))?;
+                k.hotovo();
+                Ok(Some(trf!("Popisy vráceny na místo: {}", n)))
             }
             Akce::BodySmazat(h) => {
                 let doc = k.dokument()?;
@@ -1765,6 +1829,8 @@ fn nazev_kroku(a: &Akce) -> &'static str {
         Akce::BodUpravit(..) => tr("Terén: úprava bodu"),
         Akce::BodySmazat(_) => tr("Terén: smazání bodů"),
         Akce::BodyPrecislovat(..) => tr("Terén: přečíslování bodů"),
+        Akce::BodyHromadne(..) => tr("Terén: úprava bodů"),
+        Akce::PopisyNaMisto(_) => tr("Terén: popisy na místo"),
         Akce::ObnovitPopisy => tr("Terén: obnovení popisů"),
         Akce::StylBodu(..) | Akce::UlozStylBodu(..) => tr("Terén: styl bodu"),
         Akce::UlozStylPovrchu(..) => tr("Terén: styl povrchu"),

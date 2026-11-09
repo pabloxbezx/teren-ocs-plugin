@@ -42,6 +42,8 @@ pub struct BodVykresu {
     pub zdroj: String,
     /// Vlastní styl bodu („“ = podle skupiny).
     pub styl: String,
+    /// Ručně odsunutý popis (posun vůči výchozí poloze, jednotky výkresu).
+    pub posun: Option<(f64, f64)>,
 }
 
 fn retezce(r: &ExtendedDataRecord) -> Vec<&str> {
@@ -49,13 +51,26 @@ fn retezce(r: &ExtendedDataRecord) -> Vec<&str> {
 }
 
 pub fn xdata_bodu(cislo: &str, popis: &str, zdroj: &str, styl: &str) -> ExtendedDataRecord {
+    xdata_bodu_s(cislo, popis, zdroj, styl, None)
+}
+
+/// XDATA bodu včetně ručního posunu popisu.
+pub fn xdata_bodu_s(cislo: &str, popis: &str, zdroj: &str, styl: &str, posun: Option<(f64, f64)>) -> ExtendedDataRecord {
     let mut r = ExtendedDataRecord::new(APP_BOD);
     r.add_value(XDataValue::String(cislo.into()));
     r.add_value(XDataValue::String(popis.into()));
     r.add_value(XDataValue::String(zdroj.into()));
     r.add_value(XDataValue::String(styl.into()));
     r.add_value(XDataValue::String(format!("{}BOD", crate::povrchy::TRIDA)));
+    if let Some((x, y)) = posun {
+        r.add_value(XDataValue::Real(x));
+        r.add_value(XDataValue::Real(y));
+    }
     r
+}
+
+fn realne(r: &ExtendedDataRecord) -> Vec<f64> {
+    r.values.iter().filter_map(|v| if let XDataValue::Real(c) = v { Some(*c) } else { None }).collect()
 }
 
 /// Všechny COGO body výkresu.
@@ -69,11 +84,13 @@ pub fn body(doc: &CadDocument) -> Vec<BodVykresu> {
         }
         let t = zaznam.map(retezce).unwrap_or_default();
         let s = |i: usize| t.get(i).map(|x| x.to_string()).unwrap_or_default();
+        let c = zaznam.map(realne).unwrap_or_default();
         out.push(BodVykresu {
             handle: p.common.handle,
             bod: Bod { cislo: s(0), x: p.location.x, y: p.location.y, z: p.location.z, popis: s(1) },
             zdroj: s(2),
             styl: s(3),
+            posun: (c.len() >= 2).then(|| (c[0], c[1])),
         });
     }
     out
@@ -133,11 +150,29 @@ fn odkaz(b: &Bod, druh: Druh) -> ExtendedDataRecord {
 }
 
 fn hotovo(mut e: EntityType, b: &Bod, druh: Druh, barva: styly::Barva) -> EntityType {
+    let mut r = odkaz(b, druh);
+    // kde objekt vznikl – podle toho se pozná, že ho uživatel posunul
+    if let Some((x, y)) = kotva(&e) {
+        r.add_value(XDataValue::Real(x));
+        r.add_value(XDataValue::Real(y));
+    }
     let c = e.common_mut();
     c.layer = druh.hladina().into();
     c.color = styly::barva(barva);
-    c.extended_data.add_record(odkaz(b, druh));
+    c.extended_data.add_record(r);
     e
+}
+
+/// Vztažný bod objektu grafiky (vložení textu či bloku, střed kružnice…).
+fn kotva(e: &EntityType) -> Option<(f64, f64)> {
+    match e {
+        EntityType::Text(t) => Some((t.insertion_point.x, t.insertion_point.y)),
+        EntityType::Insert(i) => Some((i.insert_point.x, i.insert_point.y)),
+        EntityType::Circle(c) => Some((c.center.x, c.center.y)),
+        EntityType::Line(l) => Some((l.start.x, l.start.y)),
+        EntityType::LwPolyline(p) => p.vertices.first().map(|v| (v.location.x, v.location.y)),
+        _ => None,
+    }
 }
 
 /// Značka a popisy bodu podle stylu; `m` = měřítko (500 = 1:500).
@@ -216,15 +251,26 @@ fn obdelnik_popisu(radky: &[(String, Druh, f64, f64, f64)]) -> Option<(f64, f64,
 /// Grafika bodů s odsunutím překrývajících se popisů (podle nastavení).
 /// `prekazky` = polohy ostatních bodů ve výkrese (jejich značky).
 pub fn grafika_rozmistena(polozky: &[(Bod, StylBodu)], prekazky: &[[f64; 2]], m: f64) -> Vec<EntityType> {
+    grafika_rozmistena_r(polozky, &[], prekazky, m)
+}
+
+/// Jako [`grafika_rozmistena`], `rucni[i]` = ručně odsunutý popis i-tého bodu.
+pub fn grafika_rozmistena_r(polozky: &[(Bod, StylBodu)], rucni: &[Option<(f64, f64)>], prekazky: &[[f64; 2]], m: f64) -> Vec<EntityType> {
+    let r = |i: usize| rucni.get(i).copied().flatten();
     if !crate::nastaveni::akt().odsazeni_popisku {
-        return polozky.iter().flat_map(|(b, s)| grafika(b, s, m)).collect();
+        return polozky.iter().enumerate().flat_map(|(i, (b, s))| grafika_posun(b, s, m, r(i).unwrap_or((0.0, 0.0)))).collect();
     }
-    let posuny = rozmisti_popisy(polozky, prekazky, m);
+    let posuny = rozmisti_popisy(polozky, rucni, prekazky, m);
     polozky.iter().zip(posuny).flat_map(|((b, s), p)| grafika_posun(b, s, m, p)).collect()
 }
 
+/// Ruční posuny popisů k položkám.
+fn rucni_posuny(body: &[&BodVykresu]) -> Vec<Option<(f64, f64)>> {
+    body.iter().map(|b| b.posun).collect()
+}
+
 /// Najde pro každý popis posun, aby se nepřekrýval s jinými popisy ani značkami.
-fn rozmisti_popisy(polozky: &[(Bod, StylBodu)], prekazky: &[[f64; 2]], m: f64) -> Vec<(f64, f64)> {
+fn rozmisti_popisy(polozky: &[(Bod, StylBodu)], rucni: &[Option<(f64, f64)>], prekazky: &[[f64; 2]], m: f64) -> Vec<(f64, f64)> {
     type Obd = (f64, f64, f64, f64);
     let prekryv = |a: &Obd, b: &Obd| a.0 < b.2 && b.0 < a.2 && a.1 < b.3 && b.1 < a.3;
     // mřížka obsazených obdélníků
@@ -256,7 +302,19 @@ fn rozmisti_popisy(polozky: &[(Bod, StylBodu)], prekazky: &[[f64; 2]], m: f64) -
         vloz(&mut mrizka, (p[0] - r, p[1] - r, p[0] + r, p[1] + r));
     }
     let mut out = Vec::with_capacity(polozky.len());
-    for (b, s) in polozky {
+    // ručně odsunuté popisy napřed – ostatní se jim vyhnou
+    for (i, (b, s)) in polozky.iter().enumerate() {
+        let Some((ox, oy)) = rucni.get(i).copied().flatten() else { continue };
+        let radky = if s.skryt { Vec::new() } else { radky_popisu(b, s, m) };
+        if let Some(o) = obdelnik_popisu(&radky) {
+            vloz(&mut mrizka, (b.x + o.0 + ox, b.y + o.1 + oy, b.x + o.2 + ox, b.y + o.3 + oy));
+        }
+    }
+    for (i, (b, s)) in polozky.iter().enumerate() {
+        if let Some(p) = rucni.get(i).copied().flatten() {
+            out.push(p);
+            continue;
+        }
         let radky = if s.skryt { Vec::new() } else { radky_popisu(b, s, m) };
         let Some(o) = obdelnik_popisu(&radky) else {
             out.push((0.0, 0.0));
@@ -623,13 +681,16 @@ pub fn nesoulad(doc: &CadDocument, m: f64) -> Nesoulad {
         }
         let k = klic(c[0], c[1]);
         let misto = match e {
-            EntityType::Text(t) => Some((t.insertion_point.x, t.insertion_point.y)),
-            EntityType::Circle(t) => Some((t.center.x, t.center.y)),
-            EntityType::Line(t) => Some((t.start.x, t.start.y)),
-            EntityType::LwPolyline(t) => t.vertices.first().map(|v| (v.location.x, v.location.y)),
-            _ => None,
+            EntityType::Insert(_) => None,
+            _ => kotva(e),
         };
-        let daleko = misto.is_some_and(|(x, y)| (x - c[0]).hypot(y - c[1]) > mez);
+        // s uloženou polohou vzniku: posunutá grafika, kterou nezpracoval
+        // posun bodu (= kopie); bez ní: daleko od bodu
+        let daleko = if c.len() >= 4 {
+            kotva(e).is_some_and(|(x, y)| (x - c[2]).hypot(y - c[3]) > 0.001)
+        } else {
+            misto.is_some_and(|(x, y)| (x - c[0]).hypot(y - c[1]) > mez)
+        };
         if !poloh.contains_key(&k) || daleko {
             navic.push(e.common().handle);
         } else {
@@ -650,14 +711,111 @@ pub fn oprav_nesoulad(v: &mut dyn Vykres, doc: &CadDocument, n: &Nesoulad) -> Re
     let ro = Rozlisovac::new(doc);
     smaz_objekty(v, n.navic.clone());
     let polozky: Vec<(Bod, StylBodu)> = n.chybi.iter().map(|b| (b.bod.clone(), ro.styl_bodu(b))).collect();
+    let rucni = rucni_posuny(&n.chybi.iter().collect::<Vec<_>>());
     let ostatni: Vec<[f64; 2]> = body(doc).iter().map(|b| [b.bod.x, b.bod.y]).collect();
     zajisti_bloky_znacek(v, doc)?;
-    let nove = grafika_rozmistena(&polozky, &ostatni, m);
+    let nove = grafika_rozmistena_r(&polozky, &rucni, &ostatni, m);
     if !nove.is_empty() {
         priprav_vykres(v)?;
         v.pridej(nove)?;
     }
     Ok(())
+}
+
+/// Posunutá grafika bodu: bod, nová poloha bodu, nový ruční posun popisu.
+pub type PosunBodu = (BodVykresu, Bod, Option<(f64, f64)>);
+
+/// Najde body, jejichž značku nebo popis uživatel posunul (MOVE, úchop).
+/// Posunutá značka posune bod; posunutý popis posune bod, nebo – při
+/// `jen_popis` – jen popis. Kopie (původní grafika zůstala na místě) se
+/// přeskočí. Vrací i otisk změny (handle + posun), aby se po „Zpět“ nepovedla
+/// stejná oprava znovu.
+pub fn posunuta_grafika(doc: &CadDocument, m: f64, jen_popis: bool) -> (Vec<PosunBodu>, Vec<(u64, i64, i64)>) {
+    let tol = 0.0005;
+    let vsechny = body(doc);
+    let mut na_miste: HashMap<(i64, i64), Vec<usize>> = HashMap::new();
+    for (i, b) in vsechny.iter().enumerate() {
+        na_miste.entry(klic(b.bod.x, b.bod.y)).or_default().push(i);
+    }
+    // grafika podle bodu: (druh, handle, posun od vzniku, poloha vzniku)
+    type Polozka = (Druh, u64, (f64, f64), (f64, f64), u8);
+    let mut graf: HashMap<(i64, i64), Vec<Polozka>> = HashMap::new();
+    for e in doc.model_space_entities() {
+        let Some(druh) = Druh::z_hladiny(&e.common().layer) else { continue };
+        let Some(r) = e.common().extended_data.get_record(APP_BOD) else { continue };
+        let c = realne(r);
+        if c.len() < 2 {
+            continue;
+        }
+        let Some(ted) = kotva(e) else { continue };
+        let vznik = if c.len() >= 4 {
+            (c[2], c[3])
+        } else if matches!(e, EntityType::Insert(_) | EntityType::Circle(_)) && druh == Druh::Znacka {
+            (c[0], c[1])
+        } else {
+            continue;
+        };
+        // druh objektu: vodicí čára (úsečka) se od značky (blok) liší
+        let typ = match e {
+            EntityType::Insert(_) => 0,
+            EntityType::Line(_) => 1,
+            EntityType::Text(_) => 2,
+            _ => 3,
+        };
+        graf.entry(klic(c[0], c[1])).or_default().push((druh, e.common().handle.value(), (ted.0 - vznik.0, ted.1 - vznik.1), vznik, typ));
+    }
+    let ro = Rozlisovac::new(doc);
+    let mut out = Vec::new();
+    let mut otisk = Vec::new();
+    let mut klice: Vec<_> = graf.keys().copied().collect();
+    klice.sort();
+    for k in klice {
+        let polozky = &graf[&k];
+        // jen jednoznačný bod na tomto místě
+        let Some(ib) = na_miste.get(&k).filter(|v| v.len() == 1).map(|v| v[0]) else { continue };
+        let posunute: Vec<&Polozka> = polozky.iter().filter(|p| p.2 .0.hypot(p.2 .1) > tol).collect();
+        if posunute.is_empty() {
+            continue;
+        }
+        // kopie: stejný druh zůstal i na původním místě
+        let kopie = posunute.iter().any(|p| polozky.iter().any(|q| q.0 == p.0 && q.4 == p.4 && q.2 .0.hypot(q.2 .1) <= tol));
+        if kopie {
+            continue;
+        }
+        let bv = &vsechny[ib];
+        let znacka = posunute.iter().find(|p| p.0 == Druh::Znacka && p.4 != 1);
+        let vzor = znacka.copied().unwrap_or(posunute[0]);
+        let (dx, dy) = vzor.2;
+        for p in &posunute {
+            otisk.push((p.1, (p.2 .0 * 1000.0).round() as i64, (p.2 .1 * 1000.0).round() as i64));
+        }
+        if znacka.is_some() || !jen_popis {
+            let novy = Bod { x: bv.bod.x + dx, y: bv.bod.y + dy, ..bv.bod.clone() };
+            out.push((bv.clone(), novy, bv.posun));
+        } else {
+            // posun použitý při vzniku popisu = poloha vzniku − výchozí poloha řádku
+            let styl = ro.styl_bodu(bv);
+            let radky = radky_popisu(&bv.bod, &styl, m);
+            let Some((_, _, px, py, _)) = radky.iter().find(|r| r.1 == vzor.0) else { continue };
+            let (ox, oy) = (vzor.3 .0 - bv.bod.x - px, vzor.3 .1 - bv.bod.y - py);
+            out.push((bv.clone(), bv.bod.clone(), Some((ox + dx, oy + dy))));
+        }
+    }
+    (out, otisk)
+}
+
+/// Provede posuny z [`posunuta_grafika`] (body i jejich grafiku).
+pub fn proved_posuny(v: &mut dyn Vykres, doc: &CadDocument, posuny: &[PosunBodu]) -> Result<usize, String> {
+    let zmeny: Vec<ZmenaBodu> = posuny
+        .iter()
+        .map(|(bv, b, p)| {
+            let mut bv = bv.clone();
+            bv.posun = *p;
+            let styl = bv.styl.clone();
+            (bv, b.clone(), styl)
+        })
+        .collect();
+    uprav_body(v, doc, &zmeny, tr("Posun bodu"))
 }
 
 /// Body vybrané ve výkrese – přímo, nebo přes jejich značku či popis.
@@ -708,7 +866,7 @@ pub fn upraveny_bod(doc: &CadDocument, bv: &BodVykresu, novy: &Bod, styl: &str) 
     p.common.layer = hladina_bodu(&ro.styl(novy, &bv.zdroj, styl)).into();
     p.location = Vector3::new(novy.x, novy.y, novy.z);
     p.common.extended_data.remove_record(APP_BOD);
-    p.common.extended_data.add_record(xdata_bodu(&novy.cislo, &novy.popis, &bv.zdroj, styl));
+    p.common.extended_data.add_record(xdata_bodu_s(&novy.cislo, &novy.popis, &bv.zdroj, styl, bv.posun));
     Some(EntityType::Point(p))
 }
 
@@ -752,13 +910,14 @@ pub fn uprav_body(v: &mut dyn Vykres, doc: &CadDocument, zmeny: &[ZmenaBodu], po
     let polohy: Vec<[f64; 2]> = zmeny.iter().map(|(bv, ..)| [bv.bod.x, bv.bod.y]).collect();
     smaz_objekty(v, grafika_bodu(doc, &polohy));
     let polozky: Vec<(Bod, StylBodu)> = zmeny.iter().map(|(bv, b, st)| (b.clone(), ro.styl(b, &bv.zdroj, st))).collect();
+    let rucni = rucni_posuny(&zmeny.iter().map(|(bv, ..)| bv).collect::<Vec<_>>());
     let ostatni: Vec<[f64; 2]> = body(doc)
         .iter()
         .filter(|b| !zmeny.iter().any(|(bv, ..)| bv.handle == b.handle))
         .map(|b| [b.bod.x, b.bod.y])
         .collect();
     zajisti_bloky_znacek(v, doc)?;
-    let nove = grafika_rozmistena(&polozky, &ostatni, m);
+    let nove = grafika_rozmistena_r(&polozky, &rucni, &ostatni, m);
     if !nove.is_empty() {
         priprav_vykres(v)?;
         v.pridej(nove)?;
@@ -818,7 +977,7 @@ pub fn obnov_grafiku(v: &mut dyn Vykres, doc: &CadDocument) -> Result<usize, Str
         if let Some(p) = bez_tridy.get(&b.handle) {
             let mut p = (*p).clone();
             p.common.extended_data.remove_record(APP_BOD);
-            p.common.extended_data.add_record(xdata_bodu(&b.bod.cislo, &b.bod.popis, &b.zdroj, &b.styl));
+            p.common.extended_data.add_record(xdata_bodu_s(&b.bod.cislo, &b.bod.popis, &b.zdroj, &b.styl, b.posun));
             presun.push(EntityType::Point(p));
         }
     }
@@ -828,8 +987,9 @@ pub fn obnov_grafiku(v: &mut dyn Vykres, doc: &CadDocument) -> Result<usize, Str
     }
     smaz_objekty(v, vsechna_grafika(doc));
     let polozky: Vec<(Bod, StylBodu)> = body.iter().map(|b| (b.bod.clone(), ro.styl_bodu(b))).collect();
+    let rucni = rucni_posuny(&body.iter().collect::<Vec<_>>());
     zajisti_bloky_znacek(v, doc)?;
-    let nove = grafika_rozmistena(&polozky, &[], m);
+    let nove = grafika_rozmistena_r(&polozky, &rucni, &[], m);
     if !nove.is_empty() {
         priprav_vykres(v)?;
         v.pridej(nove)?;

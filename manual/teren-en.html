@@ -22,7 +22,7 @@
 <h2>2. Installation</h2>
 <p><b>Plugin Manager:</b> in Open CAD Studio open the Plugin Manager, find <i>Terén</i> and click Install. After a restart the <b>Terén</b> tab appears.</p>
 <p><b>Manually (Windows):</b> download <code>Teren-windows.zip</code> from the GitHub release, extract it and run <code>nainstalovat.bat</code>. The plugin is copied to <code>%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren</code>.</p>
-<p>Each Terén release is built for one Open CAD Studio release – the Plugin Manager offers the right one; for a manual install pick the release from the table in the README (Terén 1.0.2 = Open CAD Studio 2026.45). The interface language (Czech / English) is set in Prospector › Settings.</p>
+<p>Each Terén release is built for one Open CAD Studio release – the Plugin Manager offers the right one; for a manual install pick the release from the table in the README (Terén 1.0.2 and 1.0.3 = Open CAD Studio 2026.45). The interface language (Czech / English) is set in Prospector › Settings.</p>
 
 <h2>3. Interface</h2>
 <img src="img/pas-en.png" class="siroky">
@@ -65,9 +65,9 @@
 <h3>Point styles</h3>
 <p>A style sets the marker (cross, circle, tree, manhole…) and the label (number, elevation, code). A manually set style applies, otherwise the style by code (the <i>for codes</i> field, e.g. STR → tree), otherwise the group's style, otherwise <i>Standard</i>. Sizes are in mm on paper and follow the drawing scale (annotation scale in the status bar, or Settings › Scale).</p>
 <p><b>Custom marker:</b> in the style editor choose <i>custom – drawing block</i> and select a block. The block's base point = point position, the block is scaled to the marker size; set the colour inside the block to ByBlock.</p>
-<p>A point, its marker and labels stay together – clicking any part selects the whole point. Overlapping labels are moved aside with a leader line (can be turned off in Settings).</p>
+<p>A point, its marker and labels stay together – clicking any part selects the whole point. <b>Moving a point:</b> grab the marker or a label and move it (with a grip or the Move command) – the whole point moves, its elevation stays and the surface is recalculated. With <i>moving a point label moves only the label</i> turned on in Settings, a moved label stays aside (with a leader line) and the point stays put; <i>Reset labels</i> in the point table brings it back. A copied marker or label is deleted. Overlapping labels are moved aside with a leader line (can be turned off in Settings).</p>
 <h3>Manual points and editing elevation</h3>
-<p><i>New point › Manual point</i>: click in the drawing or enter x,y; a window asks for the elevation (suggested from the surface or the previous point) and the code. <i>Point on surface</i> takes the elevation of the active surface. Change the elevation, number and description of an existing point in the Prospector (Selection or the point table).</p>
+<p><i>New point › Manual point</i>: click in the drawing or enter x,y; a window asks for the elevation (suggested from the surface or the previous point) and the code. <i>Point on surface</i> takes the elevation of the active surface. Change the elevation, number and code of an existing point directly in the point table: double-click a cell, type, Enter saves and moves to the next point (Esc cancels). For several selected points at once, set or add an elevation and set a code in the row above the table.</p>
 <h3>Point groups</h3>
 <p>A group selects points by rules (code, numbers, import file), with exclusions and manually added / removed points. The preview shows in colour which points belong. A surface is built from groups – a change of a group recalculates the surface or marks it out of date.</p>
 <h3>Survey check</h3>

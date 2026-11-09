@@ -39,6 +39,8 @@ pub struct Nastaveni {
     pub nahled_importu: bool,
     /// Překrývající se popisy bodů automaticky odsunout (s vodicí čarou).
     pub odsazeni_popisku: bool,
+    /// Posunutím popisu bodu se posune jen popis (jinak celý bod).
+    pub posun_jen_popis: bool,
     /// Barvy v prohlížeči 3D: spojnice, obrys, vrstevnice, body, hrany.
     pub barvy_3d: [[u8; 3]; 5],
     /// Jazyk: „auto“ (podle systému), „cs“, „en“.
@@ -65,6 +67,7 @@ impl Default for Nastaveni {
             povrch_nevybirat: false,
             nahled_importu: true,
             odsazeni_popisku: true,
+            posun_jen_popis: false,
             barvy_3d: BARVY_3D,
             jazyk: "auto".into(),
         }
@@ -138,6 +141,7 @@ fn nacti() -> Nastaveni {
             "povrch_nevybirat" => n.povrch_nevybirat = v == "1",
             "nahled_importu" => n.nahled_importu = v != "0",
             "odsazeni_popisku" => n.odsazeni_popisku = v != "0",
+            "posun_jen_popis" => n.posun_jen_popis = v == "1",
             "jazyk" => n.jazyk = v.to_string(),
             "barvy_3d" => {
                 for (i, c) in v.split(';').take(5).enumerate() {
@@ -161,7 +165,7 @@ fn nacti() -> Nastaveni {
 fn uloz(n: &Nastaveni) {
     let Some(p) = soubor() else { return };
     let text = format!(
-        "# Nastavení pluginu Terén\nformat = {}\noddelovac = {}\nmeritko = {}\nvyloucene_kody = {}\ntolerance_bodu = {}\nprah_kontroly = {}\nkod_bodu = {}\nvyska_bodu_nova = {}\nokno = {}\nsledovat_vyber = {}\nrezim_vykres = {}\npostup_skryt = {}\npovrch_nevybirat = {}\nnahled_importu = {}\nodsazeni_popisku = {}\nbarvy_3d = {}\njazyk = {}\n", // i18n:ne
+        "# Nastavení pluginu Terén\nformat = {}\noddelovac = {}\nmeritko = {}\nvyloucene_kody = {}\ntolerance_bodu = {}\nprah_kontroly = {}\nkod_bodu = {}\nvyska_bodu_nova = {}\nokno = {}\nsledovat_vyber = {}\nrezim_vykres = {}\npostup_skryt = {}\npovrch_nevybirat = {}\nnahled_importu = {}\nodsazeni_popisku = {}\nposun_jen_popis = {}\nbarvy_3d = {}\njazyk = {}\n", // i18n:ne
         n.format.as_deref().unwrap_or("auto"),
         nazev_odd(n.oddelovac),
         n.meritko,
@@ -177,6 +181,7 @@ fn uloz(n: &Nastaveni) {
         n.povrch_nevybirat as u8,
         n.nahled_importu as u8,
         n.odsazeni_popisku as u8,
+        n.posun_jen_popis as u8,
         n.barvy_3d.iter().map(|c| format!("{:02x}{:02x}{:02x}", c[0], c[1], c[2])).collect::<Vec<_>>().join(";"),
         n.jazyk
     );

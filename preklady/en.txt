@@ -1005,3 +1005,22 @@ sloup	pole
 hydrant	hydrant
 od	from
 Y {:.2}   X {:.2}   – bod je mimo povrch	Y {:.2}   X {:.2}   – the point is outside the surface
+posunutím popisu bodu posunout jen popis	moving a point label moves only the label
+jinak se posune celý bod (i s výškou a povrchem); posunutím značky se bod posune vždy	otherwise the whole point moves (with its elevation and the surface); moving the marker always moves the point
+Posun bodu	Move point
+Terén: posun bodu: {}	Terén: move point: {}
+Výška vybraných	Elevation of selected
+např. 0.15	e.g. 0.15
+Nastavit	Set
+všem vybraným bodům tuto výšku	set this elevation for all selected points
+Přičíst	Add
+k výšce vybraných bodů přičíst (záporné = odečíst)	add to the elevation of selected points (negative = subtract)
+Nastavit kód	Set code
+všem vybraným bodům tento kód (popis)	set this code (description) for all selected points
+Terén: úprava bodů	Terén: edit points
+Terén: popisy na místo	Terén: reset labels
+Popisy na místo	Reset labels
+Popisy vráceny na místo: {}	Labels reset: {}
+ručně odsunuté popisy vrátit na výchozí místo	move manually dragged labels back to their default position
+Upravit body	Edit points
+Upraveno bodů: {}	Points edited: {}

@@ -218,6 +218,26 @@ enum Razeni {
     Styl,
 }
 
+/// Buňka tabulky bodů upravovaná na místě (číslo, kód, výška).
+struct EditBunky {
+    h: Handle,
+    sloupec: Razeni,
+    text: String,
+    fokus: bool,
+}
+
+fn upravitelny(r: Razeni) -> bool {
+    matches!(r, Razeni::Cislo | Razeni::Popis | Razeni::Z)
+}
+
+fn text_bunky(b: &Bod, r: Razeni) -> String {
+    match r {
+        Razeni::Cislo => b.cislo.clone(),
+        Razeni::Popis => b.popis.clone(),
+        _ => format!("{:.3}", b.z),
+    }
+}
+
 /// Rozpracovaný export skupiny.
 struct Export {
     format: String,
@@ -279,7 +299,12 @@ struct Okno {
     sestupne: bool,
     posunout_na: Option<Handle>,
     // úprava bodu
+    /// Buňka tabulky bodů upravovaná na místě.
+    edit_bunka: Option<EditBunky>,
     edit_bod: Option<(Handle, String, f64, String)>,
+    /// Hromadná úprava vybraných bodů: výška, kód.
+    hrom_vyska: String,
+    hrom_kod: String,
     edit_puvodni: Option<Bod>,
     posledni_dalsi: u64,
     precislovat_od: u64,
@@ -975,6 +1000,14 @@ impl Okno {
             nastaveni::zmen(|x| x.odsazeni_popisku = ods);
             spravce::posli(Akce::ObnovitPopisy);
         }
+        let mut jen = n.posun_jen_popis;
+        if ui
+            .checkbox(&mut jen, tr("posunutím popisu bodu posunout jen popis"))
+            .on_hover_text(tr("jinak se posune celý bod (i s výškou a povrchem); posunutím značky se bod posune vždy"))
+            .changed()
+        {
+            nastaveni::zmen(|x| x.posun_jen_popis = jen);
+        }
         ui.horizontal(|ui| {
             ui.label(tr("Značky a popisy bodů"));
             if ui.button(tr("Překreslit body")).on_hover_text(tr("znovu vykreslí značky a popisy všech bodů")).clicked() {
@@ -1463,29 +1496,24 @@ impl Okno {
                 spravce::posli(Akce::VyberZVykresu);
             }
         });
-        let edit_viditelny = self.edit_bod.as_ref().is_some_and(|(h, ..)| viditelne.iter().any(|b| b.handle == *h));
-        if let Some((h, cislo, z, popis)) = self.edit_bod.as_mut().filter(|_| edit_viditelny) {
-            ui.horizontal(|ui| {
-                ui.label(tr("Číslo"));
-                ui.add(egui::TextEdit::singleline(cislo).desired_width(70.0));
-                ui.label(tr("Výška"));
-                ui.add(egui::DragValue::new(z).speed(0.01).max_decimals(3));
-                ui.label(tr("Popis"));
-                ui.add(egui::TextEdit::singleline(popis).desired_width(160.0));
-                if ui.button(tr("Uložit bod")).clicked() {
-                    if let Some(b) = stav.body.iter().find(|b| b.handle == *h) {
-                        let novy = Bod { cislo: cislo.trim().to_string(), z: *z, popis: popis.trim().to_string(), ..b.bod.clone() };
-                        spravce::posli(Akce::BodUpravit(*h, novy));
-                    }
-                }
-            });
-        }
-        if vybrane.is_empty() {
-            return;
-        }
+        // řádky akcí jsou vidět vždy (bez výběru zašedlé), aby tabulka pod
+        // nimi neposkakovala – jinak by se dvojklik do buňky netrefil
+        ui.add_enabled_ui(!vybrane.is_empty(), |ui| self.akce_vybranych(ui, stav, &vybrane));
+    }
+
+    fn akce_vybranych(&mut self, ui: &mut egui::Ui, stav: &StavSpravce, vybrane: &[Handle]) {
+        let vybrane: Vec<Handle> = vybrane.to_vec();
         ui.horizontal_wrapped(|ui| {
             if ui.button(tr("Ukázat")).clicked() {
                 ukazat_body(stav, &vybrane);
+            }
+            let odsunute = stav.body.iter().any(|b| b.posun.is_some() && vybrane.contains(&b.handle));
+            if ui
+                .add_enabled(odsunute, egui::Button::new(tr("Popisy na místo")))
+                .on_hover_text(tr("ručně odsunuté popisy vrátit na výchozí místo"))
+                .clicked()
+            {
+                spravce::posli(Akce::PopisyNaMisto(vybrane.clone()));
             }
             ui.separator();
             ui.label(tr("Přečíslovat od"));
@@ -1499,6 +1527,23 @@ impl Okno {
             if ui.button(RichText::new(trf!("Smazat ({})", vybrane.len())).color(CERVENA)).clicked() {
                 spravce::posli(Akce::BodySmazat(vybrane.clone()));
                 self.vybrane_body.clear();
+            }
+        });
+        ui.horizontal_wrapped(|ui| {
+            ui.label(tr("Výška vybraných"));
+            ui.add(egui::TextEdit::singleline(&mut self.hrom_vyska).hint_text(tr("např. 0.15")).desired_width(70.0));
+            let z = self.hrom_vyska.trim().replace(',', ".").parse::<f64>().ok().filter(|z| z.is_finite());
+            if ui.add_enabled(z.is_some(), egui::Button::new(tr("Nastavit"))).on_hover_text(tr("všem vybraným bodům tuto výšku")).clicked() {
+                spravce::posli(Akce::BodyHromadne(vybrane.clone(), z.map(|z| (z, false)), None));
+            }
+            if ui.add_enabled(z.is_some(), egui::Button::new(tr("Přičíst"))).on_hover_text(tr("k výšce vybraných bodů přičíst (záporné = odečíst)")).clicked() {
+                spravce::posli(Akce::BodyHromadne(vybrane.clone(), z.map(|z| (z, true)), None));
+            }
+            ui.separator();
+            ui.label(tr("Kód"));
+            ui.add(egui::TextEdit::singleline(&mut self.hrom_kod).desired_width(90.0));
+            if ui.button(tr("Nastavit kód")).on_hover_text(tr("všem vybraným bodům tento kód (popis)")).clicked() {
+                spravce::posli(Akce::BodyHromadne(vybrane.clone(), None, Some(self.hrom_kod.trim().to_string())));
             }
         });
         ui.horizontal_wrapped(|ui| {
@@ -1615,7 +1660,13 @@ impl Okno {
             sa = sa.vertical_scroll_offset((i as f32 * (vyska + ui.spacing().item_spacing.y) - 60.0).max(0.0));
         }
         let mut klik: Option<(usize, egui::Modifiers, bool)> = None;
+        // dokončená úprava buňky: (handle, sloupec, text, přejít na další řádek)
+        let mut ulozit: Option<(Handle, Razeni, String, bool)> = None;
+        let mut zrusit = false;
+        let mut zacit: Option<(Handle, Razeni)> = None;
+        let mut zobrazene = 0..0;
         sa.show_rows(ui, vyska, poradi.len(), |ui, rozsah| {
+            zobrazene = rozsah.clone();
             for i in rozsah {
                 let b = poradi[i];
                 let (rect, _) = ui.allocate_exact_size(egui::vec2(sirka, vyska), Sense::hover());
@@ -1636,6 +1687,28 @@ impl Okno {
                 let barva = if vybrano { ui.visuals().selection.stroke.color } else { ui.visuals().text_color() };
                 for (razeni, _, w) in &sloupce {
                     let bunka = egui::Rect::from_min_size(egui::pos2(x, rect.top()), egui::vec2(*w - 4.0, vyska));
+                    if resp.double_clicked() && upravitelny(*razeni) && resp.interact_pointer_pos().is_some_and(|p| bunka.contains(p)) {
+                        zacit = Some((b.handle, *razeni));
+                    }
+                    if let Some(e) = self.edit_bunka.as_mut().filter(|e| e.h == b.handle && e.sloupec == *razeni) {
+                        let r = ui.put(
+                            bunka,
+                            egui::TextEdit::singleline(&mut e.text).font(font.clone()).margin(egui::vec2(3.0, 1.0)),
+                        );
+                        if e.fokus {
+                            r.request_focus();
+                            e.fokus = false;
+                        } else if r.lost_focus() {
+                            let (esc, dal) = ui.input(|i| (i.key_pressed(egui::Key::Escape), i.key_pressed(egui::Key::Enter) || i.key_pressed(egui::Key::Tab)));
+                            if esc {
+                                zrusit = true;
+                            } else {
+                                ulozit = Some((e.h, e.sloupec, e.text.clone(), dal));
+                            }
+                        }
+                        x += w;
+                        continue;
+                    }
                     let p = ui.painter().with_clip_rect(bunka);
                     let lc = bunka.left_center() + egui::vec2(4.0, 0.0);
                     match *razeni {
@@ -1708,8 +1781,57 @@ impl Okno {
             }
             let stav = spravce::stav();
             self.nacti_edit_bodu(&stav);
-            if dvojklik {
+            if dvojklik && zacit.is_none() {
                 ukazat_body(&stav, &[h]);
+            }
+        }
+        if zrusit {
+            self.edit_bunka = None;
+        }
+        if let Some((h, sloupec, text, dal)) = ulozit {
+            self.edit_bunka = None;
+            if let Some(bv) = stav.body.iter().find(|b| b.handle == h) {
+                let mut novy = bv.bod.clone();
+                let t = text.trim();
+                let platne = match sloupec {
+                    Razeni::Cislo => {
+                        novy.cislo = t.to_string();
+                        true
+                    }
+                    Razeni::Popis => {
+                        novy.popis = t.to_string();
+                        true
+                    }
+                    _ => match t.replace(',', ".").parse::<f64>() {
+                        Ok(z) if z.is_finite() => {
+                            novy.z = z;
+                            true
+                        }
+                        _ => false,
+                    },
+                };
+                if platne && novy != bv.bod {
+                    spravce::posli(Akce::BodUpravit(h, novy));
+                }
+            }
+            if dal {
+                if let Some(i) = poradi.iter().position(|b| b.handle == h) {
+                    if let Some(dalsi) = poradi.get(i + 1) {
+                        self.edit_bunka =
+                            Some(EditBunky { h: dalsi.handle, sloupec, text: text_bunky(&dalsi.bod, sloupec), fokus: true });
+                        self.vybrane_body.clear();
+                        self.vybrane_body.insert(dalsi.handle);
+                        self.posledni_klik = Some(i + 1);
+                        if i + 2 >= zobrazene.end {
+                            self.posunout_na = Some(dalsi.handle);
+                        }
+                    }
+                }
+            }
+        }
+        if let Some((h, sloupec)) = zacit {
+            if let Some(b) = poradi.iter().find(|b| b.handle == h) {
+                self.edit_bunka = Some(EditBunky { h, sloupec, text: text_bunky(&b.bod, sloupec), fokus: true });
             }
         }
     }
