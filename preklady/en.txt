@@ -1024,3 +1024,21 @@ Popisy vráceny na místo: {}	Labels reset: {}
 ručně odsunuté popisy vrátit na výchozí místo	move manually dragged labels back to their default position
 Upravit body	Edit points
 Upraveno bodů: {}	Points edited: {}
+Posun bodů	Move points
+Posun bodů úchopem	Move points by grip
+Přidat bod do povrchu	Add point to surface
+Vlastnosti bodu	Point properties
+(beze změny)	(unchanged)
+Bod Terénu	Terén point
+Vyberte bod ve výkrese (klik na značku nebo popis). Více bodům najednou se uloží jen změněná pole; číslo jen u jednoho bodu.	Select a point in the drawing (click its marker or label). For several points only the changed fields are saved; the number only for a single point.
+Vybráno	Selected
+Výška Z	Elevation Z
+bod {}	point {}
+bodů: {}	points: {}
+neplatná výška: {}	invalid elevation: {}
+nic – vyberte bod	nothing – select a point
+Terén: posun bodů úchopem vypnutý.	Terén: moving points by grip is off.
+Terén: posun bodů úchopem zapnutý – táhněte kroužek na bodě (úchopů: {}). Vypnete tlačítkem Posun bodů.	Terén: moving points by grip is on – drag the circle on a point (grips: {}). Turn it off with the Move points button.
+Terén: úchopy jen pro prvních {} bodů (dalších {} bez úchopu).	Terén: grips only for the first {} points ({} more without a grip).
+Kód STR (stromy) do terénu obvykle nepatří – ve výkrese je {} takových bodů. Doplňte ho do Vyloučit kódy.	Code STR (trees) usually does not belong in the terrain – the drawing has {} such points. Add it to Excluded codes.
+Uložit	Save

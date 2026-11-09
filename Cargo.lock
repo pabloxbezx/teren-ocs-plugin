@@ -2822,7 +2822,7 @@ dependencies = [
 
 [[package]]
 name = "teren_plugin"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "eframe",
  "ocs_plugin_api",

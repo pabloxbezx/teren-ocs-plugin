@@ -15,8 +15,9 @@ each release.
   styles (markers incl. custom blocks, labels that move aside when they
   overlap), point groups by code / number / import file, manual points,
   editing right in the point table (also several points at once), moving a
-  point by dragging its marker or label, survey check of suspicious
-  elevations.
+  point by dragging its marker, label or its own grip, a *Terén point* panel
+  in the dock (number, elevation, code, style), a Terén tab in the cursor
+  menu, survey check of suspicious elevations.
 - **Surfaces** – Delaunay TIN from point groups and drawing objects,
   breaklines, boundaries and holes, max. edge length, manual triangle edits
   (swap / add / delete edge, delete triangle, add / remove point) stored with
@@ -39,7 +40,7 @@ that both sides use the same drawing data format):
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.45 | 1.0.2 – 1.0.3 |
+| 2026.45 | 1.0.2 – 1.0.4 |
 | 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Plugin Manager** in Open CAD Studio: find *Terén* and click Install.

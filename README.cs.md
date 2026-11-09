@@ -14,7 +14,7 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.45 | 1.0.2 – 1.0.3 |
+| 2026.45 | 1.0.2 – 1.0.4 |
 | 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Správce pluginů** v Open CAD Studiu: vyhledejte *Terén* a klikněte
@@ -33,6 +33,16 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 terénu: body se styly (stromy, sloupy, šachty…), spojnice, obrys,
 vrstevnice a popisy. Otevřete ho s nainstalovaným Terénem a v Prospektoru
 si prohlédněte body, skupiny, povrch a styly.
+
+## Verze 1.0.4
+
+- **Posun bodů úchopem**: tlačítko *Posun bodů* zapne na každém bodě vlastní
+  úchop; tažením se bod (i se značkou a popisy) živě posune, jeden krok Zpět.
+- **Panel Bod Terénu** v doku (tlačítko *Vlastnosti bodu*): číslo, výška,
+  kód a styl vybraných bodů, přímo k úpravě.
+- **Kurzorové menu (quad)**: záložka Terén u bodů a povrchů.
+- Názvy objektů Terénu ve Vlastnostech i anglicky.
+- Obsahuje i změny z 1.0.3 (samostatně nevydaná).
 
 ## Verze 1.0.3
 

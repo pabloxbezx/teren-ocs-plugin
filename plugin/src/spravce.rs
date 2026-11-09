@@ -15,6 +15,7 @@ use std::time::{Duration, Instant};
 
 use ocs_plugin_api::host::codec::entities::{Circle, Text};
 use ocs_plugin_api::host::codec::types::Vector3;
+use ocs_plugin_api::dialog::DialogValue;
 use ocs_plugin_api::host::{Document as CadDocument, EntityType, Handle, PluginRequestError, PluginRequestSender};
 use ocs_plugin_api::ipc::protocol::{PluginRequest, PluginResponse};
 
@@ -270,6 +271,14 @@ pub enum Akce {
     BodySmazat(Vec<Handle>),
     /// Ručně odsunuté popisy vybraných bodů vrátit na výchozí místo.
     PopisyNaMisto(Vec<Handle>),
+    /// Režim posunu bodů úchopem: zapnout / vypnout (None = přepnout).
+    Uchopy(Option<bool>),
+    /// Přiblížit a vybrat body.
+    UkazatBody(Vec<Handle>),
+    /// Z panelu Bod Terénu: body, číslo, výška, kód, styl (jen změněné).
+    BodyPanel(Vec<Handle>, Option<String>, Option<f64>, Option<String>, Option<String>),
+    /// Jen zpráva do příkazového řádku.
+    Hlaseni(String),
     /// Hromadně: výška (hodnota, přičíst), kód.
     BodyHromadne(Vec<Handle>, Option<(f64, bool)>, Option<String>),
     BodyPrecislovat(Vec<Handle>, u64, u64),
@@ -520,6 +529,36 @@ struct Pracovnik {
     opravene: HashMap<u64, (std::collections::HashSet<u64>, std::collections::HashSet<u64>)>,
     /// Už provedené posuny bodů podle grafiky (handle, dx, dy v mm) – kvůli „Zpět“.
     posunute: HashMap<u64, std::collections::HashSet<(u64, i64, i64)>>,
+    /// Otisk naposledy ohlášených úchopů bodů (aby se neposílaly zbytečně).
+    uchopy_hash: Option<u64>,
+}
+
+/// Kurzorové menu Terénu – ohlásí se, jakmile to Open CAD Studio přijme.
+fn registruj_quad(k: &mut PresKanal) {
+    if !crate::QUAD_HOTOVO.load(Ordering::SeqCst) && k.quad(crate::quad_panel()) {
+        crate::QUAD_HOTOVO.store(true, Ordering::SeqCst);
+    }
+}
+
+/// Ohlásí úchopy bodů (režim posunu bodů úchopem); vrací jejich počet.
+fn obnov_uchopy(k: &mut PresKanal, posledni: &mut Option<u64>) -> usize {
+    use std::hash::{Hash, Hasher};
+    let Ok(doc) = k.dokument() else { return 0 };
+    let (g, navic) = crate::uchopy::uchopy(&doc);
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    for x in &g {
+        x.grip_id.hash(&mut h);
+        x.point.iter().for_each(|c| c.to_bits().hash(&mut h));
+    }
+    let otisk = h.finish();
+    if *posledni != Some(otisk) {
+        *posledni = Some(otisk);
+        k.uchopy(g.clone());
+        if navic > 0 {
+            k.info(&trf!("Terén: úchopy jen pro prvních {} bodů (dalších {} bez úchopu).", crate::uchopy::MAX_UCHOPU, navic));
+        }
+    }
+    g.len()
 }
 
 const KLID: Duration = Duration::from_millis(600);
@@ -649,11 +688,21 @@ impl Pracovnik {
                 s.vyber_povrchy.clear();
                 s.vyber_jine = 0;
             });
+            if let Some(mut k) = kanal(tab) {
+                k.panel(crate::panel::hodnoty(&[]));
+            }
             return;
         }
         let Some(mut k) = kanal(tab) else { return };
+        registruj_quad(&mut k);
         let Ok(doc) = k.dokument() else { return };
         let body = cogo::body_z_vyberu(&doc, &h);
+        // panel Bod Terénu
+        {
+            let vse = cogo::body(&doc);
+            let vybrane: Vec<&BodVykresu> = vse.iter().filter(|b| body.contains(&b.handle)).collect();
+            k.panel(crate::panel::hodnoty(&vybrane));
+        }
         // bod drží pohromadě: klik na značku nebo popis vybere i bod a ostatní popisy
         if !body.is_empty() && !self.bezi(tab) {
             let polohy: Vec<[f64; 2]> =
@@ -706,8 +755,12 @@ impl Pracovnik {
             self.cekajici.remove(&tab);
             let okno = sdilene().okno_otevreno.load(Ordering::SeqCst) && Self::aktivni_tab() == Some(tab);
             let Some(mut k) = kanal(tab) else { continue };
+            registruj_quad(&mut k);
             self.hlidej_meritko(tab, &mut k);
             self.hlidej_body(tab, &mut k);
+            if crate::uchopy::zapnuto() {
+                obnov_uchopy(&mut k, &mut self.uchopy_hash);
+            }
             if nastaveni::akt().povrch_nevybirat && self.oznacene.insert(tab) {
                 if let Ok(doc) = k.dokument() {
                     oznac_povrchy(&mut k, &doc, true);
@@ -866,8 +919,31 @@ impl Pracovnik {
             return;
         };
         let Some(mut k) = kanal(tab) else { return };
+        match a {
+            Akce::Uchopy(zap) => {
+                let zap = zap.unwrap_or(!crate::uchopy::zapnuto());
+                crate::uchopy::ZAPNUTO.store(zap, Ordering::SeqCst);
+                self.uchopy_hash = None;
+                let n = obnov_uchopy(&mut k, &mut self.uchopy_hash);
+                k.panel(HashMap::from([("uchopy".to_string(), DialogValue::Bool(zap))]));
+                if zap {
+                    k.info(&trf!("Terén: posun bodů úchopem zapnutý – táhněte kroužek na bodě (úchopů: {}). Vypnete tlačítkem Posun bodů.", n));
+                } else {
+                    k.info(tr("Terén: posun bodů úchopem vypnutý."));
+                }
+                return;
+            }
+            Akce::Hlaseni(t) => {
+                k.chyba(&t);
+                return;
+            }
+            a => self.akce_hlavni(k, a),
+        }
+    }
+
+    fn akce_hlavni(&mut self, mut k: PresKanal, a: Akce) {
         uprav_stav(|s| s.pracuji = true);
-        let drzet = !matches!(a, Akce::Obnovit | Akce::Nacti3D(_) | Akce::Ukazat(..) | Akce::VyberZVykresu);
+        let drzet = !matches!(a, Akce::Obnovit | Akce::Nacti3D(_) | Akce::Ukazat(..) | Akce::UkazatBody(_) | Akce::VyberZVykresu);
         let (body, povrchy_id) = {
             let st = zamek(&sdilene().stav);
             (st.vyber_body.clone(), st.vyber_povrchy.clone())
@@ -1073,6 +1149,49 @@ impl Pracovnik {
                 let r = Self::prestav(k, &mut z, tr("Přepočítat povrch"))?;
                 Ok(Some(trf!("Objekty výkresu: {}. {}", info, r.unwrap_or_default())))
             }
+            Akce::UkazatBody(h) => {
+                let doc = k.dokument()?;
+                let body: Vec<_> = cogo::body(&doc).into_iter().filter(|b| h.contains(&b.handle)).collect();
+                if body.is_empty() {
+                    return Ok(None);
+                }
+                let (mut x0, mut x1, mut y0, mut y1) = (f64::MAX, f64::MIN, f64::MAX, f64::MIN);
+                for b in &body {
+                    x0 = x0.min(b.bod.x);
+                    x1 = x1.max(b.bod.x);
+                    y0 = y0.min(b.bod.y);
+                    y1 = y1.max(b.bod.y);
+                }
+                let r = ((x1 - x0).max(y1 - y0) / 2.0).max(5.0) * 1.4;
+                let (cx, cy) = ((x0 + x1) / 2.0, (y0 + y1) / 2.0);
+                let _ = k.prikaz(&format!("ZOOM W {},{} {},{}", cx - r, cy - r, cx + r, cy + r));
+                Ok(None)
+            }
+            Akce::BodyPanel(h, cislo, z, kod, styl) => {
+                let doc = k.dokument()?;
+                let zmeny: Vec<cogo::ZmenaBodu> = cogo::body(&doc)
+                    .into_iter()
+                    .filter(|b| h.contains(&b.handle))
+                    .map(|bv| {
+                        let mut b = bv.bod.clone();
+                        if let Some(c) = &cislo {
+                            b.cislo = c.clone();
+                        }
+                        if let Some(z) = z {
+                            b.z = z;
+                        }
+                        if let Some(kod) = &kod {
+                            b.popis = kod.clone();
+                        }
+                        let st = styl.clone().unwrap_or_else(|| bv.styl.clone());
+                        (bv, b, st)
+                    })
+                    .collect();
+                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Upravit body"))?;
+                k.hotovo();
+                Ok(Some(trf!("Upraveno bodů: {}", n)))
+            }
+            Akce::Uchopy(_) | Akce::Hlaseni(_) => Ok(None),
             Akce::Ukazat(stred, r, handly) => {
                 let r = (r * 1.4).max(15.0);
                 let _ = k.prikaz(&format!(
@@ -1831,6 +1950,8 @@ fn nazev_kroku(a: &Akce) -> &'static str {
         Akce::BodyPrecislovat(..) => tr("Terén: přečíslování bodů"),
         Akce::BodyHromadne(..) => tr("Terén: úprava bodů"),
         Akce::PopisyNaMisto(_) => tr("Terén: popisy na místo"),
+        Akce::BodyPanel(..) => tr("Terén: úprava bodů"),
+        Akce::Uchopy(_) | Akce::UkazatBody(_) | Akce::Hlaseni(_) => tr("Terén"),
         Akce::ObnovitPopisy => tr("Terén: obnovení popisů"),
         Akce::StylBodu(..) | Akce::UlozStylBodu(..) => tr("Terén: styl bodu"),
         Akce::UlozStylPovrchu(..) => tr("Terén: styl povrchu"),

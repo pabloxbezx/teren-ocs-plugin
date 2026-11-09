@@ -122,6 +122,69 @@ impl Vykres for PresHost<'_> {
     }
 }
 
+/// Výkres přímo přes `HostApi` bez kanálu požadavků (uvnitř tažení vlastního
+/// úchopu – pracovní vlákno tehdy čeká, kanál by čekal také). Krok Zpět
+/// otevírá volající přes `push_undo`.
+pub struct PresHostPrimo<'a>(pub &'a mut dyn HostApi);
+
+impl Vykres for PresHostPrimo<'_> {
+    fn dokument(&mut self) -> Result<CadDocument, String> {
+        Ok(self.0.document().clone())
+    }
+    fn info(&mut self, z: &str) {
+        self.0.push_info(z)
+    }
+    fn vystup(&mut self, z: &str) {
+        self.0.push_output(z)
+    }
+    fn chyba(&mut self, z: &str) {
+        self.0.push_error(z)
+    }
+    fn zpet(&mut self, _n: &str) {}
+    fn zacatek_kroku(&mut self, _n: &str) {}
+    fn konec_kroku(&mut self) {}
+    fn hotovo(&mut self) {
+        self.0.bump_geometry();
+        self.0.set_dirty();
+    }
+    fn pridej(&mut self, e: Vec<EntityType>) -> Result<Vec<Handle>, String> {
+        PresHost(&mut *self.0).pridej(e)
+    }
+    fn pridej_jednu(&mut self, e: EntityType) -> Result<Handle, String> {
+        PresHost(&mut *self.0).pridej_jednu(e)
+    }
+    fn uprav(&mut self, e: EntityType) -> bool {
+        self.0.update_entity(e)
+    }
+    fn odeber(&mut self, h: Handle) -> bool {
+        self.0.remove_entity(h)
+    }
+    fn zapis_xdata(&mut self, h: Handle, r: ExtendedDataRecord) -> bool {
+        self.0.write_record(h, r)
+    }
+    fn tabulka(&mut self, op: TableOperation) -> Result<Handle, String> {
+        self.0.table_operation(op)
+    }
+    fn hladina(&mut self, cfg: LayerConfig) {
+        self.0.add_layer(cfg);
+    }
+    fn prikaz(&mut self, prikaz: &str) -> bool {
+        self.0.execute_command(prikaz)
+    }
+    fn vyber(&mut self, h: Vec<Handle>) {
+        let _ = self.0.set_selection(&h);
+    }
+    fn vybrane(&mut self) -> Vec<Handle> {
+        self.0.selection()
+    }
+    fn transakce(&mut self, popis: &str, e: Vec<EntityType>) -> Result<(), String> {
+        PresHost(&mut *self.0).transakce(popis, e)
+    }
+    fn jen_zobrazeni(&mut self, h: Handle, ano: bool) -> bool {
+        self.0.set_reference_only(h, ano).is_ok()
+    }
+}
+
 /// Běží interaktivní příkaz – kroky Zpět bez skupin (skupina by se s
 /// krokem příkazu pobila).
 pub static BEZ_SKUPIN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
@@ -130,6 +193,21 @@ pub static BEZ_SKUPIN: std::sync::atomic::AtomicBool = std::sync::atomic::Atomic
 pub struct PresKanal(pub Box<dyn PluginRequestSender>);
 
 impl PresKanal {
+    /// Ohlásí vlastní úchopy pluginu (nahradí předchozí).
+    pub fn uchopy(&mut self, g: Vec<ocs_plugin_api::host::PluginGrip>) {
+        let _ = self.pozadavek(PluginRequest::SetPluginGrips { grips: g });
+    }
+    /// Ohlásí kurzorové menu pluginu; true = přijato.
+    pub fn quad(&mut self, panel: ocs_plugin_api::dialog::QuadPanelDef) -> bool {
+        matches!(
+            self.pozadavek(PluginRequest::RegisterQuadPanels { panels: vec![panel] }),
+            Ok(PluginResponse::QuadPanelsRegistered { ok, .. }) if ok.first().copied().unwrap_or(false)
+        )
+    }
+    /// Nové hodnoty polí panelu Bod Terénu.
+    pub fn panel(&mut self, hodnoty: std::collections::HashMap<String, ocs_plugin_api::dialog::DialogValue>) {
+        let _ = self.pozadavek(PluginRequest::UpdatePanel { panel_id: crate::panel::ID.into(), values: hodnoty });
+    }
     fn pozadavek(&self, r: PluginRequest) -> Result<PluginResponse, String> {
         if !matches!(r, PluginRequest::ShowDialog(_)) {
             pockej_na_konec_prikazu();
@@ -356,6 +434,11 @@ impl ocs_plugin_api::host::InteractiveCommand for Hlidany {
 fn pockej_na_konec_prikazu() {
     use std::sync::atomic::Ordering;
     let mut volno_od: Option<std::time::Instant> = None;
+    // tažení vlastního úchopu (nejdéle minutu – pojistka)
+    let t0 = std::time::Instant::now();
+    while crate::uchopy::TAHNE.load(Ordering::SeqCst) && t0.elapsed() < std::time::Duration::from_secs(60) {
+        std::thread::sleep(std::time::Duration::from_millis(40));
+    }
     while PRIKAZY.load(Ordering::SeqCst) > 0 {
         if BEZ_SKUPIN.load(Ordering::SeqCst) {
             volno_od = None;

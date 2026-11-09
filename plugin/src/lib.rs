@@ -11,9 +11,11 @@ mod import;
 mod interaktivni;
 mod nastaveni;
 mod okno;
+mod panel;
 mod povrchy;
 mod spravce;
 mod styly;
+mod uchopy;
 mod vykres;
 
 use teren::preklad::tr;
@@ -45,18 +47,63 @@ static MANIFEST: PluginManifest = PluginManifest {
 const MERITKA: [u32; 6] = [100, 200, 250, 500, 1000, 2000];
 
 /// Názvy objektů pluginu ve Vlastnostech (API v10).
-static TRIDY: ocs_plugin_api::manifest::EntityClasses = ocs_plugin_api::manifest::EntityClasses {
-    app_id: povrchy::APP_BOD,
-    class_prefix: povrchy::TRIDA,
-    labels: &[
-        ("BOD", "Bod zaměření"),
-        ("ZNACKA", "Značka bodu"),
-        ("CISLO", "Číslo bodu"),
-        ("VYSKA", "Výška bodu"),
-        ("POPIS", "Popis bodu"),
-        ("POVRCH", "Povrch TIN"),
-    ],
-};
+fn tridy() -> &'static ocs_plugin_api::manifest::EntityClasses {
+    static T: OnceLock<ocs_plugin_api::manifest::EntityClasses> = OnceLock::new();
+    T.get_or_init(|| {
+        let labels: Vec<(&'static str, &'static str)> = [
+            ("BOD", "Bod zaměření"),
+            ("ZNACKA", "Značka bodu"),
+            ("CISLO", "Číslo bodu"),
+            ("VYSKA", "Výška bodu"),
+            ("POPIS", "Popis bodu"),
+            ("POVRCH", "Povrch TIN"),
+        ]
+        .into_iter()
+        .map(|(k, v)| (k, tr(v)))
+        .collect();
+        ocs_plugin_api::manifest::EntityClasses {
+            app_id: povrchy::APP_BOD,
+            class_prefix: povrchy::TRIDA,
+            labels: Box::leak(labels.into_boxed_slice()),
+        }
+    })
+}
+
+/// Ohlásí kurzorové menu (jednou za běh; při neúspěchu zkusí znovu příště).
+pub(crate) static QUAD_HOTOVO: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+fn registruj_quad(host: &mut dyn HostApi) {
+    if QUAD_HOTOVO.load(std::sync::atomic::Ordering::SeqCst) {
+        return;
+    }
+    let r = host.register_quad_panels(MANIFEST.id, &[quad_panel()]);
+    if r.first().copied().unwrap_or(false) {
+        QUAD_HOTOVO.store(true, std::sync::atomic::Ordering::SeqCst);
+    }
+}
+
+/// Kurzorové menu (quad, API v15) – záložka Terén u bodů a povrchů.
+pub(crate) fn quad_panel() -> ocs_plugin_api::dialog::QuadPanelDef {
+    use ocs_plugin_api::dialog::{QuadActionDef, QuadItemDef, QuadPanelDef};
+    use ocs_plugin_api::ribbon::owned::OwnedIconKind;
+    let p = |id: &str, label: &str, svg: &[u8]| QuadItemDef {
+        control_id: id.to_ascii_lowercase(),
+        label: label.into(),
+        icon: OwnedIconKind::Svg(svg.to_vec()),
+        action: QuadActionDef::Command(id.into()),
+    };
+    let mut q = QuadPanelDef::new("teren", tr("Terén")).with_applies_to(
+        ["Point", "Insert", "Text", "Line", "LwPolyline", "Circle"].iter().map(|s| s.to_string()).collect(),
+    );
+    q.items = vec![
+        p("TER_PANEL", tr("Vlastnosti bodu"), include_bytes!("../assets/ter_vlastnosti_bodu.svg")),
+        p("TER_UCHOPY", tr("Posun bodů úchopem"), include_bytes!("../assets/ter_posun_bodu.svg")),
+        p("TER_PRIDAT_BOD", tr("Přidat bod do povrchu"), include_bytes!("../assets/ter_pridat_bod.svg")),
+        p("TER_PREPOCITAT", tr("Přepočítat povrch"), include_bytes!("../assets/ter_prepocitat.svg")),
+        p("TER_PROSPEKTOR", tr("Prospektor"), include_bytes!("../assets/ter_prospektor.svg")),
+    ];
+    q
+}
 
 // ── Pás karet ───────────────────────────────────────────────────────────────
 
@@ -140,6 +187,8 @@ impl CadModule for TerenModule {
                             ],
                             default: "TER_SB_STANDARD",
                         },
+                        RibbonItem::LabeledTool(tool("TER_UCHOPY", tr("Posun bodů"), ikona!("ter_posun_bodu"))),
+                        RibbonItem::LabeledTool(tool("TER_PANEL", tr("Vlastnosti bodu"), ikona!("ter_vlastnosti_bodu"))),
                     ],
                 },
                 RibbonGroup {
@@ -802,7 +851,14 @@ impl BuiltinPlugin for TerenPlugin {
         &MANIFEST
     }
     fn entity_classes(&self) -> Option<&'static ocs_plugin_api::manifest::EntityClasses> {
-        Some(&TRIDY)
+        Some(tridy())
+    }
+    fn on_custom_grip_event(
+        &mut self,
+        host: &mut dyn HostApi,
+        event: ocs_plugin_api::host::CustomGripEvent,
+    ) -> ocs_plugin_api::host::CustomGripResponse {
+        uchopy::udalost(host, event)
     }
     fn ribbon(&self) -> Box<dyn CadModule> {
         Box::new(TerenModule)
@@ -811,6 +867,7 @@ impl BuiltinPlugin for TerenPlugin {
         if let Some(s) = host.plugin_request_sender() {
             spravce::registruj_kanal(host.tab_id(), s);
         }
+        registruj_quad(host);
     }
     fn on_notification(&mut self, _command_id: Option<u64>, n: HostNotification) {
         match n {
@@ -820,6 +877,9 @@ impl BuiltinPlugin for TerenPlugin {
             HostNotification::CommandStateChanged { tab_id, command } => spravce::stav_prikazu(tab_id, command.is_some()),
             HostNotification::SelectionChangedV4 { tab_id, handles } => spravce::vyber_zmenen(tab_id, handles),
             HostNotification::DocumentOpened { tab_id } => spravce::dokument_otevren(tab_id),
+            HostNotification::PanelAction { panel_id, control_id, action, value } if panel_id == panel::ID => {
+                panel::akce(&control_id, &action, value)
+            }
             _ => {}
         }
     }
@@ -850,6 +910,7 @@ impl TerenPlugin {
         if let Some(s) = host.plugin_request_sender() {
             spravce::registruj_kanal(host.tab_id(), s);
         }
+        registruj_quad(host);
         let cmd = cmd.trim();
         let (nazev, zbytek) = match cmd.find(char::is_whitespace) {
             Some(i) => (&cmd[..i], cmd[i..].trim()),
@@ -1034,6 +1095,25 @@ impl TerenPlugin {
             "TER_SMAZAT_TROJ" => spust_editaci(host, DruhEditace::SmazatTrojuhelnik),
             "TER_PRIDAT_BOD" => spust_editaci(host, DruhEditace::PridatBod),
             "TER_ODEBRAT_BOD" => spust_editaci(host, DruhEditace::OdebratBod),
+            "TER_UCHOPY" => {
+                let zap = match zbytek.to_ascii_uppercase().as_str() {
+                    "ZAP" | "ON" | "1" => Some(true),
+                    "VYP" | "OFF" | "0" => Some(false),
+                    _ => None,
+                };
+                spravce::posli(spravce::Akce::Uchopy(zap));
+            }
+            "TER_PANEL" => {
+                let doc = host.document().clone();
+                let styly: Vec<(String, String)> = styly::styly_bodu(&doc).into_iter().map(|s| (s.id, s.jmeno)).collect();
+                host.register_panel(panel::definice(&styly));
+                host.toggle_panel(panel::ID, Some(true));
+                let vyber = host.selection();
+                let h = cogo::body_z_vyberu(&doc, &vyber);
+                let vse = cogo::body(&doc);
+                let vybrane: Vec<&cogo::BodVykresu> = vse.iter().filter(|b| h.contains(&b.handle)).collect();
+                host.update_panel(panel::ID, panel::hodnoty(&vybrane));
+            }
             "TER_VYSKA" => {
                 let mut v = PresHost(host);
                 let Some((z, doc)) = aktivni(&mut v) else { return true };

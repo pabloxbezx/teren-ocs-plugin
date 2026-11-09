@@ -22,7 +22,7 @@
 <h2>2. Instalace</h2>
 <p><b>Správce pluginů:</b> v Open CAD Studiu otevřete Správce pluginů, vyhledejte <i>Terén</i> a klikněte Instalovat. Po restartu se objeví záložka <b>Terén</b>.</p>
 <p><b>Ručně (Windows):</b> stáhněte <code>Teren-windows.zip</code> z vydání na GitHubu, zip rozbalte a spusťte <code>nainstalovat.bat</code>. Plugin se zkopíruje do <code>%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren</code>.</p>
-<p>Každé vydání Terénu je sestavené pro jednu verzi Open CAD Studia – Správce pluginů nabídne to správné; při ruční instalaci zvolte vydání podle tabulky v README (Terén 1.0.2 a 1.0.3 = Open CAD Studio 2026.45).</p>
+<p>Každé vydání Terénu je sestavené pro jednu verzi Open CAD Studia – Správce pluginů nabídne to správné; při ruční instalaci zvolte vydání podle tabulky v README (Terén 1.0.2 – 1.0.4 = Open CAD Studio 2026.45).</p>
 
 <h2>3. Rozhraní</h2>
 <img src="img/pas.png" class="siroky">
@@ -66,6 +66,10 @@
 <p>Styl určuje značku (křížek, kolečko, strom, šachta…) a popis (číslo, výška, kód). Platí ručně nastavený styl, jinak styl podle kódu (pole <i>pro kódy</i>, např. STR → strom), jinak styl skupiny, jinak <i>Standard</i>. Velikosti jsou v mm na papíře a řídí se měřítkem výkresu (měřítko poznámek ve stavovém řádku, nebo Nastavení › Měřítko).</p>
 <p><b>Vlastní značka:</b> v editoru stylu zvolte <i>vlastní – blok výkresu</i> a vyberte blok. Základní bod bloku = poloha bodu, blok se zvětší na velikost značky, barvu v bloku nastavte „podle bloku“.</p>
 <p>Bod, značka a popisy drží pohromadě – klik na kteroukoli část vybere celý bod. <b>Posun bodu:</b> chyťte značku nebo popis a přesuňte je (úchopem nebo příkazem Přesunout) – přesune se celý bod, výška zůstane a povrch se přepočítá. Když v Nastavení zapnete <i>posunutím popisu bodu posunout jen popis</i>, posunutý popis zůstane odsunutý stranou (s vodicí čarou) a bod zůstane na místě; <i>Popisy na místo</i> v tabulce bodů ho vrátí. Kopie značky nebo popisu se smaže. Překrývající se popisy se odsunou s vodicí čarou (vypnete v Nastavení).</p>
+<h3>Posun bodů úchopem, panel Bod Terénu, kurzorové menu</h3>
+<p><b>Posun bodů</b> (záložka Terén › Body) zapne vlastní úchopy: na každém bodě se objeví kroužek. Chyťte ho a táhněte – značka i popisy jdou s bodem, po puštění se bod přesune (výška zůstane) jedním krokem Zpět. Dalším klikem na <i>Posun bodů</i> úchopy vypnete (když jsou zapnuté, klik do středu bodu ho nevybere, ale začne posun).</p>
+<p><b>Vlastnosti bodu</b> otevře v doku panel <i>Bod Terénu</i>: po výběru bodu ukáže číslo, výšku, kód a styl. Pole přepište a klikněte <i>Uložit</i>. U více vybraných bodů se uloží jen změněná pole (číslo jen u jednoho bodu).</p>
+<p><b>Kurzorové menu</b> (quad; v Open CAD Studiu se zapíná klávesou F12 nebo polem QUAD ve stavovém řádku) má u bodů a povrchů záložku <i>Terén</i>: vlastnosti bodu, posun bodů, přidat bod do povrchu, přepočítat povrch, Prospektor.</p>
 <h3>Ruční body a úprava výšky</h3>
 <p><i>Nový bod › Ruční bod</i>: klikněte do výkresu nebo zadejte x,y; otevře se okno s výškou (návrh z povrchu nebo z předchozího bodu) a kódem. <i>Bod na povrchu</i> vezme výšku z aktivního povrchu. Výšku, číslo a kód existujícího bodu změníte přímo v tabulce bodů: dvojklik na buňku, přepsat, Enter uloží a skočí na další bod (Esc zruší). Více vybraným bodům najednou nastavíte nebo přičtete výšku a nastavíte kód řádkem nad tabulkou.</p>
 <h3>Skupiny bodů</h3>
