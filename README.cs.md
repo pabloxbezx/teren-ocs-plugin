@@ -1,11 +1,58 @@
-# Terén – plugin pro Open CAD Studio
+# Terén
+
+**Body zaměření a povrchy terénu pro Open CAD Studio.**
+Naimportujete zaměření a za minutu máte povrch TIN s vrstevnicemi – všechno
+ve výkrese, upravitelné a vždy jedním krokem Zpět.
 
 *English: [README.md](README.md)*
 
-Body zaměření, povrchy TIN, spojnice (lomové hrany), hranice, vrstevnice,
-prohlížeč 3D a export povrchu do LandXML / DXF – přímo ve výkrese
-Open CAD Studia. Rozhraní česky nebo anglicky. Stručný manuál je ve složce
-`manual` (PDF česky i anglicky).
+![Povrch stávajícího terénu s vrstevnicemi a body zaměření v Open CAD Studiu](manual/img/povrch2.png)
+
+## Proč Terén
+
+- **Funguje hned.** Import pozná formát, oddělovač i kódování a ukáže náhled.
+  Nový povrch se sám přepočítá, když se změní body, spojnice nebo hranice.
+- **Stav je vždy vidět.** Aktuální ✔ / zastaralý ⚠ povrch, aktivní povrch,
+  odkud má bod styl, co akce udělá.
+- **Úprava tam, kde se díváte.** Bod přetáhnete ve výkrese, výšku přepíšete
+  v tabulce, v panelu *Bod Terénu* v doku nebo z kurzorového menu.
+- **Nic se nerozbije omylem.** Každá akce je jeden krok Zpět. Povrch se
+  náhodným kliknutím nevybere.
+- **České zvyklosti.** S-JTSK, soubory PYXZD od geodeta, Windows-1250.
+  Rozhraní česky nebo anglicky.
+
+## Začněte ve čtyřech krocích
+
+1. V Open CAD Studiu otevřete **Správce pluginů**, najděte *Terén* a klikněte
+   Instalovat.
+2. Záložka **Terén** › **Import bodů** › vyberte soubor › zkontrolujte náhled
+   › Importovat.
+3. **Nový povrch** › **Stávající terén (z bodů)** – objeví se trojúhelníky,
+   vrstevnice a popisy.
+4. V **Prospektoru** najdete body, skupiny, povrchy a styly.
+
+Jen se chcete podívat? Otevřete ukázkový výkres `ukazka/teren-sample.dwg` –
+malé zaměření v lese s hotovým povrchem.
+
+## Co umí
+
+| Oblast | Co dostanete |
+|---|---|
+| **Body** | Import z textových souborů (PNEZD, PYXZD, ENZ…), ruční body, body na povrchu, kontrola podezřelých výšek, export zpět do textu. |
+| **Skupiny bodů** | Pravidla jako věty („mají kód T, PAT“, „číslo 1-50“, „ze souboru …“), vyloučení, ručně přidané body, živý náhled. |
+| **Styly bodů** | Značka (křížek, kolečko, strom, šachta, hydrant… nebo vlastní blok), rozložení popisu, desetinná místa; podle kódu, skupiny nebo pro jednotlivý bod. Překrývající se popisy se odsunou. |
+| **Povrchy** | TIN (Delaunay) ze skupin bodů a objektů výkresu, spojnice (lomové hrany), hranice a díry, max. délka hrany. |
+| **Úpravy trojúhelníků** | Otočit, přidat a smazat hranu, smazat trojúhelník, přidat a odebrat bod – uloží se s povrchem, projeví se hned. |
+| **Zobrazení** | Vedlejší a hlavní vrstevnice s popisy, trojúhelníky, obrys, šipky spádu; styly povrchů. |
+| **Prohlížeč 3D** | Barvy podle výšky nebo sklonu, převýšení, vrstevnice a spojnice, uložení obrázku. |
+| **Prospektor** | Jedno okno pro výběr, strom celého výkresu, nastavení, nápovědu a průvodce novým povrchem. |
+| **Export** | Povrch do LandXML 1.2 nebo DXF (3D plochy); body do textových souborů. |
+
+Všechno je uložené ve výkrese (DWG/DXF) – žádné soubory navíc, žádná databáze.
+
+![Prohlížeč 3D – povrch obarvený podle výšky](manual/img/3d.png)
+
+![Prospektor – strom výkresu a tabulka bodů](manual/img/prospektor.png)
 
 ## Instalace
 
@@ -19,7 +66,8 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 
 - **Správce pluginů** v Open CAD Studiu: vyhledejte *Terén* a klikněte
   Instalovat.
-- **Ručně (Windows):** stáhněte `Teren-windows.zip` z vydání (Releases),
+- **Ručně (Windows):** stáhněte `Teren-windows.zip` z
+  [vydání](https://github.com/pabloxbezx/teren-ocs-plugin/releases),
   rozbalte ho a spusťte `nainstalovat.bat`. Plugin se zkopíruje do
   `%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren`.
 - **Ze zdrojů:** `cargo build --release -p teren_plugin` (libovolná stabilní
@@ -27,12 +75,19 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
   pluginů. `nainstalovat.bat` bez přiloženého `teren_plugin.dll` udělá
   totéž.
 
-## Ukázkový výkres
+Jazyk: Prospektor › Nastavení › Jazyk / Language (automaticky, čeština,
+angličtina), projeví se po novém spuštění.
 
-`ukazka/teren-sample.dwg` – malé zaměření v lese s povrchem stávajícího
-terénu: body se styly (stromy, sloupy, šachty…), spojnice, obrys,
-vrstevnice a popisy. Otevřete ho s nainstalovaným Terénem a v Prospektoru
-si prohlédněte body, skupiny, povrch a styly.
+## Nápověda a připomínky
+
+- **Manuál** (PDF): [česky](manual/Teren-manual-cs.pdf) ·
+  [English](manual/Teren-manual-en.pdf); je přiložený i ke každému vydání.
+- **V programu:** záložka Terén › Nápověda, v Prospektoru klávesa F1.
+- **Chyba nebo něco chybí?**
+  [Založte issue](https://github.com/pabloxbezx/teren-ocs-plugin/issues) –
+  nejvíc pomůže krátký popis a malý vymyšlený soubor zaměření.
+
+# Co je nového
 
 ## Verze 1.0.4
 
@@ -84,7 +139,8 @@ si prohlédněte body, skupiny, povrch a styly.
   spojnice se zapínají zvlášť.
 - Manuál PDF (česky a anglicky).
 
-## Historie verzí
+<details>
+<summary><b>Starší verze (0.4 – 0.10.5)</b></summary>
 
 ### Verze 0.10.5
 
@@ -344,7 +400,11 @@ hranice, díry, styly, vrstevnice, měřítko, otočit/přidat/smazat hranu, vý
 Nastavení (formát importu, měřítko, vyloučené kódy, práh kontroly, kód a výška
 nových bodů) se pamatuje v `%APPDATA%\OpenCADStudio\teren_nastaveni.txt`.
 
-### Jak je to uloženo ve výkrese
+</details>
+
+# Pro pokročilé
+
+## Jak je to uloženo ve výkrese
 - bod: POINT s XDATA `TEREN_BOD` (číslo, popis, soubor importu, vlastní styl);
   značka a popisy bodu jsou na hladinách `TER_BODY_ZNACKA`, `TER_BODY_CISLO`,
   `TER_BODY_VYSKA`, `TER_BODY_POPIS`
@@ -355,7 +415,7 @@ nových bodů) se pamatuje v `%APPDATA%\OpenCADStudio\teren_nastaveni.txt`.
 - objekty výkresu v povrchu nesou v XDATA, ke kterým povrchům patří
 - výkresy z verze 0.3 se převedou samy (povrch bere skupinu „Všechny body“)
 
-### Příkaz TER_AKCE
+## Příkaz TER_AKCE
 Akce Prospektoru jdou spustit i z příkazové řádky (pro skripty), např.
 `TER_AKCE PREHLED`, `TER_AKCE SKUPINA id=T;jmeno=Terén;kody=T`,
 `TER_AKCE POVRCH_ZE_SKUPINY T Terén`, `TER_AKCE EXPORT * PYXZD C:\body.txt`.
@@ -400,4 +460,4 @@ Hladiny v DXF: `TER_BODY`, `TER_BODY_CISLO`, `TER_BODY_VYSKA`, `TER_BODY_POPIS`,
 
 ## Licence
 
-GPL-3.0-only. Autor: Ing. Pavel Janouš.
+GPL-3.0-only.
