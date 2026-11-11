@@ -1,4 +1,4 @@
-//! Jednoduchý zápis DXF (AutoCAD R12, ASCII) pro kontrolu výsledků
+//! Jednoduchý zápis DXF (verze R12, ASCII) pro kontrolu výsledků
 //! v Open CAD Studiu nebo jiném CAD programu.
 //!
 //! Text se zapisuje v kódové stránce Windows-1250 (`$DWGCODEPAGE ANSI_1250`),
@@ -11,7 +11,7 @@ use std::fmt::Write as _;
 
 pub struct Hladina {
     pub nazev: &'static str,
-    /// Barva AutoCAD (ACI).
+    /// Index barvy DXF (ACI).
     pub barva: i32,
 }
 
