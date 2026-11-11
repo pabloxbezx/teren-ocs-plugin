@@ -61,7 +61,7 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.45 | 1.0.2 – 1.0.4 |
+| 2026.45 | 1.0.2 – 1.0.5 |
 | 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Správce pluginů** v Open CAD Studiu: vyhledejte *Terén* a klikněte
@@ -89,7 +89,7 @@ angličtina), projeví se po novém spuštění.
 
 # Co je nového
 
-## Další verze (ve vývoji)
+## Verze 1.0.5
 
 - **Pás karet podle postupu práce**: Prospektor (Prospektor, Import bodů,
   Šablona výkresu, Nápověda) · Body · Povrch · Definice povrchu · Úpravy
