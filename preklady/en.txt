@@ -1057,3 +1057,4 @@ Průvodce novým povrchem…	New surface wizard…
 Terén: nejdřív vyberte body ve výkrese (stačí kliknout na značku nebo popis) a klikněte znovu.	Terén: first select points in the drawing (clicking a marker or label is enough) and click again.
 Terén: export bodů je v Prospektoru u skupiny bodů (Všechny body nebo jiná skupina) – Export bodů skupiny.	Terén: point export is in the Prospector at a point group (All points or another group) – Export the group's points.
 Terén: povrch „{}“ ve 3D – v okně Prospektoru.	Terén: surface "{}" in 3D – in the Prospector window.
+Body zaměření	Survey points

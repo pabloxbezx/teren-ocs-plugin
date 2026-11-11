@@ -92,7 +92,7 @@ angličtina), projeví se po novém spuštění.
 ## Verze 1.0.5
 
 - **Pás karet podle postupu práce**: Prospektor (Prospektor, Import bodů,
-  Šablona výkresu, Nápověda) · Body · Povrch · Definice povrchu · Úpravy
+  Šablona výkresu, Nápověda) · Body zaměření · Povrch · Definice povrchu · Úpravy
   trojúhelníků · Výstupy. Velká tlačítka jen pro hlavní kroky, ostatní malá.
 - **Přepínače Posun bodů a Povrch klik** jsou malé a jejich popisek ukazuje
   platný stav.

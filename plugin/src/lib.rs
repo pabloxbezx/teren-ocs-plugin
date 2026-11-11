@@ -172,7 +172,8 @@ impl CadModule for TerenModule {
                     ],
                 },
                 RibbonGroup {
-                    title: tr("Body"),
+                    // ne „Body“ – OCS by ho přeložil jako anglické „Body“ (Těleso)
+                    title: tr("Body zaměření"),
                     tools: vec![
                         RibbonItem::LargeDropdown {
                             id: "TER_DD_BOD",
