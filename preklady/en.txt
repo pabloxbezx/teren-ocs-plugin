@@ -418,7 +418,7 @@ Podrobnosti z přepočtu jsou k dispozici po přepočtu v tomto spuštění.	Det
 Spojnice se kříží – úsek nevložen	Breaklines cross – segment not inserted
 Úprava bez účinku: {}	Edit without effect: {}
 {} vrcholů spojnic leží na bodě s jinou výškou – použita výška bodu	{} breakline vertices lie on a point with a different elevation – the point's elevation was used
-Úpravy přidáte tlačítky ve skupině Úpravy na záložce Terén.	Add edits with the buttons in the Edits group on the Terén tab.
+Úpravy přidáte tlačítky ve skupině Úpravy trojúhelníků na záložce Terén.	Add edits with the buttons in the Triangle edits group on the Terén tab.
 Ruční úprava	Manual edit
 Smazat	Delete
 Smazat všechny úpravy	Delete all edits
@@ -754,12 +754,12 @@ Styl všem	Style for all
 Tlačítko Import bodů na záložce Terén; formát se rozpozná sám.	The Import points button on the Terén tab; the format is detected automatically.
 {} bodů · {}	{} points · {}
 Stávající terén ze skupiny Zaměření (bez kódů STR).	Existing ground from the Survey group (without STR codes).
-Vyberte křivky ve výkrese a přidejte je jako hranici nebo spojnice (záložka Terén, skupina Definice).	Select polylines in the drawing and add them as a boundary or breaklines (Terén tab, Definition group).
+Vyberte křivky ve výkrese a přidejte je jako hranici nebo spojnice (záložka Terén, skupina Definice povrchu).	Select polylines in the drawing and add them as a boundary or breaklines (Terén tab, Surface definition group).
 Úpravy trojúhelníků	Triangle edits
 Otočit, přidat nebo smazat hranu – projeví se hned po kliknutí.	Swap, add or delete an edge – applies right after the click.
 Symboly podle kódů (např. STR = strom), vrstevnice a popisy.	Symbols by codes (e.g. STR = tree), contours and labels.
 Vytvořit stávající terén	Create existing ground
-Nástroje jsou na pásu karet: Terén › Úpravy	The tools are on the ribbon: Terén › Edits
+Nástroje jsou na pásu karet: Terén › Úpravy trojúhelníků	The tools are on the ribbon: Terén › Triangle edits
 Už neukazovat	Do not show again
  – body neleží v S-JTSK pro ČR, formát ověřte	 – the points do not lie in S-JTSK for the Czech Republic, check the format
  – pozor, číslo už má jiný bod	 – warning, another point already has this number
@@ -894,7 +894,7 @@ kódy {}	codes {}
 interval vrstevnic musí být kladný	the contour interval must be positive
 řádek {}: {} ({})	line {}: {} ({})
 mezera	space
-Povrch, se kterým pracují nástroje Úpravy, Výška v bodě a Bod na povrchu. Nastavíte ho v horním řádku Prospektoru nebo dvojklikem na povrch ve stromu.	The surface used by the Edits, Elevation at point and Point on surface tools. Set it in the top row of the Prospector or by double-clicking a surface in the tree.
+Povrch, se kterým pracují nástroje Úpravy trojúhelníků, Výška v bodě a Bod na povrchu. Nastavíte ho v horním řádku Prospektoru nebo dvojklikem na povrch ve stromu.	The surface used by the Triangle edits, Elevation at point and Point on surface tools. Set it in the top row of the Prospector or by double-clicking a surface in the tree.
 Pravidla, podle kterých se vyberou body (kód, čísla, soubor importu). Povrch se skládá ze skupin – změna skupiny povrch označí jako zastaralý.	Rules that select points (code, numbers, import file). A surface is built from groups – a change of a group marks the surface as out of date.
 3D křivka, kterou trojúhelníky nesmí překřížit – hrana svahu, pata a koruna, osa příkopu. Její vrcholy jsou vždy součástí povrchu.	A 3D polyline the triangles must not cross – slope edge, toe and top, ditch centreline. Its vertices are always part of the surface.
 Uzavřená křivka: povrch se ořízne na hranici, uvnitř díry se vynechá.	A closed polyline: the surface is clipped at the boundary and left out inside a hole.
@@ -911,7 +911,7 @@ Terén ze zaměření	Ground from a survey
 2. Vytvořte povrch: Nový povrch › Stávající terén (z bodů), nebo v Prospektoru pravým tlačítkem na Povrchy. Vezme skupinu Zaměření bez kódů STR.	2. Create a surface: New surface › Existing ground (from points), or right-click Surfaces in the Prospector. It takes the Survey group without STR codes.
 3. Doplňte spojnice (lomové hrany): Spojnice přes body – klikejte na body zaměření; nebo vyberte hotové 3D křivky a klikněte Přidat spojnici.	3. Add breaklines: Breakline through points – click survey points; or select existing 3D polylines and click Add breakline.
 4. Ořízněte povrch: nakreslete uzavřenou křivku a klikněte Hranice (díra vynechá vnitřek).	4. Clip the surface: draw a closed polyline and click Boundary (a hole leaves out the inside).
-5. Prohlédněte trojúhelníky (styl Trojúhelníky nebo záložka 3D) a opravte je nástroji ze skupiny Úpravy.	5. Review the triangles (Triangles style or the 3D tab) and fix them with the tools of the Edits group.
+5. Prohlédněte trojúhelníky (styl Trojúhelníky nebo záložka 3D) a opravte je nástroji ze skupiny Úpravy trojúhelníků.	5. Review the triangles (Triangles style or the 3D tab) and fix them with the tools of the Triangle edits group.
 6. Nastavte styl s vrstevnicemi a krok vrstevnic – pravým tlačítkem na povrch › Styl / Vrstevnice po.	6. Set a style with contours and the contour interval – right-click the surface › Style / Contour interval.
 Povrch se přepočítá sám, když je zapnutý automatický přepočet; jinak ukáže ⚠ zastaralý a stačí kliknout Přepočítat.	The surface recalculates itself when automatic recalculation is on; otherwise it shows ⚠ out of date and you just click Recalculate.
 Úprava trojúhelníků	Editing triangles
@@ -933,7 +933,7 @@ Výkres – strom všeho, co plugin ve výkrese má: body, skupiny, povrchy, sty
 3D – prohlížeč povrchů.	3D – surface viewer.
 Pravé tlačítko na uzlu stromu nebo na řádku tabulky otevře nabídku akcí.	Right-clicking a tree node or a table row opens a menu of actions.
 Dvojklik na povrch ho nastaví jako aktivní, dvojklik na bod v tabulce ho ukáže ve výkrese.	Double-clicking a surface makes it active, double-clicking a point in the table shows it in the drawing.
-Najít v Prospektoru (pás karet) skočí na objekt vybraný ve výkrese. F1 otevře tuto nápovědu.	Find in Prospector (ribbon) jumps to the object selected in the drawing. F1 opens this help.
+Ukázat v Prospektoru (pás karet) skočí na objekt vybraný ve výkrese. F1 otevře tuto nápovědu.	Show in Prospector (ribbon) jumps to the object selected in the drawing. F1 opens this help.
 Prohlížeč 3D	3D viewer
 Ovládání jako v SolidWorksu:	Controls as in SolidWorks:
 Prostřední tlačítko – otáčení kolem místa pod kurzorem; levé tlačítko také otáčí.	Middle button – orbit around the point under the cursor; the left button also orbits.
@@ -1046,3 +1046,14 @@ Posun bodů: vypnuto	Move points: off
 Posun bodů: zapnuto	Move points: on
 Povrch: klik projde na body	Surface: clicks pass to points
 Povrch: vybírat klikem	Surface: select by click
+Ukázat v Prospektoru	Show in Prospector
+Definice povrchu	Surface definition
+Výstupy	Outputs
+Srovnat body	Sync points
+Skupina z výběru	Group from selection
+Export bodů	Point export
+Další povrch z bodů (jiné jméno)	Another surface from points (new name)
+Průvodce novým povrchem…	New surface wizard…
+Terén: nejdřív vyberte body ve výkrese (stačí kliknout na značku nebo popis) a klikněte znovu.	Terén: first select points in the drawing (clicking a marker or label is enough) and click again.
+Terén: export bodů je v Prospektoru u skupiny bodů (Všechny body nebo jiná skupina) – Export bodů skupiny.	Terén: point export is in the Prospector at a point group (All points or another group) – Export the group's points.
+Terén: povrch „{}“ ve 3D – v okně Prospektoru.	Terén: surface "{}" in 3D – in the Prospector window.

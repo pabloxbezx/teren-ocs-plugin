@@ -56,6 +56,17 @@ pub fn otevri_pruvodce() {
     otevri();
 }
 
+fn pozadavek_3d() -> &'static Mutex<Option<Vec<String>>> {
+    static P: OnceLock<Mutex<Option<Vec<String>>>> = OnceLock::new();
+    P.get_or_init(|| Mutex::new(None))
+}
+
+/// Otevře Prospektor v prohlížeči 3D s danými povrchy (id).
+pub fn otevri_3d(povrchy: Vec<String>) {
+    *pozadavek_3d().lock().unwrap_or_else(|e| e.into_inner()) = Some(povrchy);
+    otevri();
+}
+
 /// Otevře Prospektor s nápovědou (`tema` = id tématu, např. „teren“).
 pub fn otevri_napovedu(tema: &str) {
     *pozadavek_napovedy().lock().unwrap_or_else(|e| e.into_inner()) = Some(tema.to_string());
@@ -392,6 +403,10 @@ impl eframe::App for Okno {
         }
         if ui.input(|i| i.key_pressed(egui::Key::F1)) {
             self.napoveda = if self.napoveda.is_some() { None } else { Some(self.tema_napovedy()) };
+        }
+        if let Some(p) = pozadavek_3d().lock().unwrap_or_else(|e| e.into_inner()).take() {
+            self.pohled.otevri(p);
+            self.rezim = Rezim::Pohled3D;
         }
         if POZADAVEK_PRUVODCE.swap(false, Ordering::SeqCst) {
             self.pruvodce = Some(pruvodce::Pruvodce::novy(&stav));
@@ -3011,7 +3026,7 @@ fn detail_upozorneni(ui: &mut egui::Ui, p: &PrehledPovrchu) {
 
 fn detail_upravy(ui: &mut egui::Ui, p: &PrehledPovrchu) {
     ui.horizontal_wrapped(|ui| {
-        ui.label(RichText::new(tr("Úpravy přidáte tlačítky ve skupině Úpravy na záložce Terén.")).color(SEDA));
+        ui.label(RichText::new(tr("Úpravy přidáte tlačítky ve skupině Úpravy trojúhelníků na záložce Terén.")).color(SEDA));
         napoveda::otaznik(ui, tr("Ruční úprava"));
     });
     ui.add_space(4.0);

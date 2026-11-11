@@ -127,22 +127,26 @@ impl CadModule for TerenModule {
         tr("Terén")
     }
     fn ribbon_groups(&self) -> &[RibbonGroup] {
+        // Pořadí skupin podle práce: Prospektor (začátek) → Body → Povrch →
+        // Definice → Úpravy → Výstupy. Nabídky mají výchozí položku na prvním
+        // místě – OCS před první volbou kreslí na tlačítku první položku.
         static G: OnceLock<Vec<RibbonGroup>> = OnceLock::new();
         G.get_or_init(|| {
             let styl = ikona!("ter_styl");
             let sb = ikona!("ter_styl_bodu");
+            let mut klik = vec![
+                ("TER_POVRCH_KLIK_VYP", tr("Povrch: klik projde na body"), ikona!("ter_povrch_klik_vyp")),
+                ("TER_POVRCH_KLIK_ZAP", tr("Povrch: vybírat klikem"), ikona!("ter_povrch_klik_zap")),
+            ];
+            if !nastaveni::akt().povrch_nevybirat {
+                klik.reverse();
+            }
+            let klik_default = klik[0].0;
             vec![
                 RibbonGroup {
                     title: tr("Prospektor"),
                     tools: vec![
                         RibbonItem::LargeTool(tool("TER_PROSPEKTOR", tr("Prospektor"), ikona!("ter_prospektor"))),
-                        RibbonItem::LabeledTool(tool("TER_PRIPRAVIT", tr("Připravit výkres"), ikona!("ter_sablona"))),
-                        RibbonItem::LabeledTool(tool("TER_NAPOVEDA", tr("Nápověda"), ikona!("ter_napoveda"))),
-                    ],
-                },
-                RibbonGroup {
-                    title: tr("Body"),
-                    tools: vec![
                         RibbonItem::LargeTool(ToolDef {
                             id: "TER_IMPORT",
                             label: tr("Import bodů"),
@@ -154,6 +158,22 @@ impl CadModule for TerenModule {
                                 extensions: vec!["txt".into(), "csv".into(), "xyz".into(), "*".into()],
                             },
                         }),
+                        RibbonItem::LabeledDropdown {
+                            id: "TER_DD_SABLONA",
+                            label: tr("Šablona výkresu"),
+                            icon: ikona!("ter_sablona"),
+                            items: vec![
+                                ("TER_PRIPRAVIT", tr("Připravit výkres ze šablony"), ikona!("ter_sablona")),
+                                ("TER_SABLONA_ULOZ", tr("Uložit tento výkres jako šablonu"), ikona!("ter_sablona_ulozit")),
+                            ],
+                            default: "TER_PRIPRAVIT",
+                        },
+                        RibbonItem::LabeledTool(tool("TER_NAPOVEDA", tr("Nápověda"), ikona!("ter_napoveda"))),
+                    ],
+                },
+                RibbonGroup {
+                    title: tr("Body"),
+                    tools: vec![
                         RibbonItem::LargeDropdown {
                             id: "TER_DD_BOD",
                             label: tr("Nový bod"),
@@ -164,13 +184,14 @@ impl CadModule for TerenModule {
                             ],
                             default: "TER_BOD",
                         },
-                        RibbonItem::LargeDropdown {
+                        RibbonItem::LabeledTool(tool("TER_PANEL", tr("Vlastnosti bodu"), ikona!("ter_vlastnosti_bodu"))),
+                        RibbonItem::LabeledDropdown {
                             id: "TER_DD_STYL_BODU",
                             label: tr("Styl bodu"),
                             icon: sb,
                             items: vec![
-                                ("TER_SB_SKUPINA", tr("Podle skupiny / kódu"), ikona!("ter_sb_skupina")),
                                 ("TER_SB_STANDARD", tr("Standard (číslo a výška)"), ikona!("ter_sb_standard")),
+                                ("TER_SB_SKUPINA", tr("Podle skupiny / kódu"), ikona!("ter_sb_skupina")),
                                 ("TER_SB_KRIZ_VYSKA", tr("Křížek s výškou"), ikona!("ter_sb_kriz_vyska")),
                                 ("TER_SB_KRIZ_RADEK", tr("Křížek, číslo a výška vedle sebe"), ikona!("ter_sb_kriz_radek")),
                                 ("TER_SB_JEN_ZNACKA", tr("Jen značka"), ikona!("ter_sb_jen_znacka")),
@@ -187,10 +208,10 @@ impl CadModule for TerenModule {
                             ],
                             default: "TER_SB_STANDARD",
                         },
-                        // přepínač – tlačítko ukazuje naposledy zvolený stav
-                        RibbonItem::LargeDropdown {
+                        // přepínač – prázdný popisek: tlačítko ukáže název a ikonu zvoleného stavu
+                        RibbonItem::LabeledDropdown {
                             id: "TER_DD_UCHOPY",
-                            label: ocs_plugin_api::ribbon::FOLLOW_CHOSEN,
+                            label: "",
                             icon: ikona!("ter_posun_bodu_vyp"),
                             items: vec![
                                 ("TER_UCHOPY_VYP", tr("Posun bodů: vypnuto"), ikona!("ter_posun_bodu_vyp")),
@@ -198,32 +219,24 @@ impl CadModule for TerenModule {
                             ],
                             default: "TER_UCHOPY_VYP",
                         },
-                        RibbonItem::LabeledTool(tool("TER_PANEL", tr("Vlastnosti bodu"), ikona!("ter_vlastnosti_bodu"))),
+                        RibbonItem::LabeledTool(tool("TER_SROVNAT", tr("Srovnat body"), ikona!("ter_srovnat_body"))),
+                        RibbonItem::LabeledTool(tool("TER_POPISY_NA_MISTO", tr("Popisy na místo"), ikona!("ter_popisy_na_misto"))),
+                        RibbonItem::LabeledTool(tool("TER_SKUPINA_Z_VYBERU", tr("Skupina z výběru"), ikona!("ter_skupina_bodu"))),
                     ],
                 },
                 RibbonGroup {
                     title: tr("Povrch"),
                     tools: vec![
                         RibbonItem::LargeDropdown {
-                            id: "TER_DD_KLIK",
-                            label: ocs_plugin_api::ribbon::FOLLOW_CHOSEN,
-                            icon: ikona!("ter_povrch_klik_vyp"),
-                            items: vec![
-                                ("TER_POVRCH_KLIK_VYP", tr("Povrch: klik projde na body"), ikona!("ter_povrch_klik_vyp")),
-                                ("TER_POVRCH_KLIK_ZAP", tr("Povrch: vybírat klikem"), ikona!("ter_povrch_klik_zap")),
-                            ],
-                            default: if nastaveni::akt().povrch_nevybirat { "TER_POVRCH_KLIK_VYP" } else { "TER_POVRCH_KLIK_ZAP" },
-                        },
-                        RibbonItem::LargeDropdown {
                             id: "TER_DD_NOVY",
                             label: tr("Nový povrch"),
                             icon: ikona!("ter_povrch_novy"),
                             items: vec![
                                 ("TER_NOVY_STAV", tr("Stávající terén (z bodů)"), ikona!("ter_povrch_novy")),
-                                ("TER_NOVY_NAVRH", tr("Návrh (z vybraných 3D čar)"), ikona!("ter_povrch_novy")),
+                                ("TER_NOVY_NAVRH", tr("Návrh (z vybraných 3D čar)"), ikona!("ter_povrch_navrh")),
                                 ("TER_NOVY_KLIK", tr("Z naklikaných bodů"), ikona!("ter_povrch_z_bodu")),
-                                ("TER_NOVY", tr("Další povrch z bodů"), ikona!("ter_povrch_novy")),
-                                ("TER_PRUVODCE", tr("Průvodce… (Prospektor)"), ikona!("ter_povrch_novy")),
+                                ("TER_NOVY", tr("Další povrch z bodů (jiné jméno)"), ikona!("ter_povrch_novy")),
+                                ("TER_PRUVODCE", tr("Průvodce novým povrchem…"), ikona!("ter_prospektor")),
                             ],
                             default: "TER_NOVY_STAV",
                         },
@@ -234,21 +247,28 @@ impl CadModule for TerenModule {
                             items: vec![
                                 ("TER_SP_VRSTP", tr("Vrstevnice s popisem"), ikona!("ter_vrstevnice")),
                                 ("TER_SP_VRST", tr("Vrstevnice"), ikona!("ter_vrstevnice")),
-                                ("TER_SP_TINVRST", tr("Trojúhelníky + vrstevnice"), styl),
-                                ("TER_SP_TIN", tr("Trojúhelníky"), ikona!("ter_smazat_troj")),
+                                ("TER_SP_TINVRST", tr("Trojúhelníky + vrstevnice"), ikona!("ter_sp_tin_vrst")),
+                                ("TER_SP_TIN", tr("Trojúhelníky"), ikona!("ter_sp_tin")),
                                 ("TER_SP_OBRYS", tr("Obrys"), ikona!("ter_hranice")),
-                                ("TER_SP_SPAD", tr("Spád (šipky)"), styl),
+                                ("TER_SP_SPAD", tr("Spád (šipky)"), ikona!("ter_sp_spad")),
                                 ("TER_SP_SKRYT", tr("Nezobrazovat"), ikona!("ter_sp_skryt")),
                                 ("TER_SP_DALSI", tr("Další styly… (Prospektor)"), styl),
                             ],
                             default: "TER_SP_VRSTP",
                         },
-                        RibbonItem::LargeTool(tool("TER_NAJIT", tr("Najít v Prospektoru"), ikona!("ter_vybrat_povrch"))),
-                        RibbonItem::LabeledTool(tool("TER_EXPORT_POVRCHU", tr("Export povrchu"), ikona!("ter_export_povrchu"))),
+                        RibbonItem::LabeledTool(tool("TER_PREPOCITAT", tr("Přepočítat povrch"), ikona!("ter_prepocitat"))),
+                        RibbonItem::LabeledTool(tool("TER_NAJIT", tr("Ukázat v Prospektoru"), ikona!("ter_ukazat_v_prospektoru"))),
+                        RibbonItem::LabeledDropdown {
+                            id: "TER_DD_KLIK",
+                            label: "",
+                            icon: ikona!("ter_povrch_klik_vyp"),
+                            items: klik,
+                            default: klik_default,
+                        },
                     ],
                 },
                 RibbonGroup {
-                    title: tr("Definice"),
+                    title: tr("Definice povrchu"),
                     tools: vec![
                         RibbonItem::LargeTool(tool("TER_SPOJNICE", tr("Spojnice přes body"), ikona!("ter_spojnice_body"))),
                         RibbonItem::LabeledTool(tool("TER_PRIDAT_SPOJNICI", tr("Přidat spojnici"), ikona!("ter_pridat_spojnici"))),
@@ -257,19 +277,26 @@ impl CadModule for TerenModule {
                     ],
                 },
                 RibbonGroup {
-                    title: tr("Úpravy"),
+                    title: tr("Úpravy trojúhelníků"),
                     tools: vec![
                         RibbonItem::LargeTool(tool("TER_OTOCIT", tr("Otočit hranu"), ikona!("ter_otocit_hranu"))),
-                        RibbonItem::LargeTool(tool("TER_PRIDAT_HRANU", tr("Přidat hranu"), ikona!("ter_zlomova_hrana"))),
-                        RibbonItem::LargeTool(tool("TER_SMAZAT_HRANU", tr("Smazat hranu"), ikona!("ter_smazat_troj"))),
-                        RibbonItem::LargeTool(tool("TER_SMAZAT_TROJ", tr("Smazat trojúhelník"), ikona!("ter_smazat_troj"))),
-                        RibbonItem::LargeTool(tool("TER_PRIDAT_BOD", tr("Přidat bod"), ikona!("ter_pridat_bod"))),
-                        RibbonItem::LargeTool(tool("TER_ODEBRAT_BOD", tr("Odebrat bod"), ikona!("ter_odebrat_bod"))),
+                        RibbonItem::LabeledTool(tool("TER_PRIDAT_HRANU", tr("Přidat hranu"), ikona!("ter_zlomova_hrana"))),
+                        RibbonItem::LabeledTool(tool("TER_SMAZAT_HRANU", tr("Smazat hranu"), ikona!("ter_smazat_hranu"))),
+                        RibbonItem::LabeledTool(tool("TER_SMAZAT_TROJ", tr("Smazat trojúhelník"), ikona!("ter_smazat_troj"))),
+                        RibbonItem::LabeledTool(tool("TER_PRIDAT_BOD", tr("Přidat bod do povrchu"), ikona!("ter_pridat_bod"))),
+                        RibbonItem::LabeledTool(tool("TER_ODEBRAT_BOD", tr("Odebrat bod z povrchu"), ikona!("ter_odebrat_bod"))),
+                        RibbonItem::LabeledTool(tool("TER_ZRUSIT_UPRAVY", tr("Zrušit úpravy povrchu"), ikona!("ter_zrusit_upravy"))),
                     ],
                 },
                 RibbonGroup {
-                    title: tr("Analýza"),
-                    tools: vec![RibbonItem::LargeTool(tool("TER_VYSKA", tr("Výška v bodě"), ikona!("ter_vyska_v_bode")))],
+                    title: tr("Výstupy"),
+                    tools: vec![
+                        RibbonItem::LargeTool(tool("TER_EXPORT_POVRCHU", tr("Export povrchu"), ikona!("ter_export_povrchu"))),
+                        RibbonItem::LargeTool(tool("TER_3D", tr("Prohlížeč 3D"), ikona!("ter_3d"))),
+                        RibbonItem::LabeledTool(tool("TER_EXPORT_BODU", tr("Export bodů"), ikona!("ter_export_bodu"))),
+                        RibbonItem::LabeledTool(tool("TER_VYSKA", tr("Výška v bodě"), ikona!("ter_vyska_v_bode"))),
+                        RibbonItem::LabeledTool(tool("TER_KONTROLA", tr("Kontrola zaměření"), ikona!("ter_kontrola"))),
+                    ],
                 },
             ]
         })
@@ -1129,6 +1156,53 @@ impl TerenPlugin {
                 };
                 spravce::posli(spravce::Akce::Uchopy(zap));
             }
+            "TER_SROVNAT" => {
+                let mut v = PresHost(host);
+                proved(&mut v, spravce::Akce::SrovnatBody(false));
+                spravce::posli(spravce::Akce::Obnovit);
+            }
+            "TER_POPISY_NA_MISTO" | "TER_SKUPINA_Z_VYBERU" => {
+                let vyber = host.selection();
+                let mut v = PresHost(host);
+                let doc = match v.dokument() {
+                    Ok(d) => d,
+                    Err(e) => {
+                        v.chyba(&trf!("Terén: {}", e));
+                        return true;
+                    }
+                };
+                let body = cogo::body_z_vyberu(&doc, &vyber);
+                if body.is_empty() {
+                    v.info(tr("Terén: nejdřív vyberte body ve výkrese (stačí kliknout na značku nebo popis) a klikněte znovu."));
+                    return true;
+                }
+                if nazev == "TER_POPISY_NA_MISTO" {
+                    proved(&mut v, spravce::Akce::PopisyNaMisto(body.clone()));
+                    spravce::obnov_vyber(&mut v, &body, &[]);
+                } else {
+                    // akce sama nastaví skok na novou skupinu
+                    proved(&mut v, spravce::Akce::SkupinaNova(body));
+                    okno::otevri();
+                }
+                spravce::posli(spravce::Akce::Obnovit);
+            }
+            "TER_EXPORT_BODU" => {
+                spravce::skoc(spravce::Skok::Skupina(teren::skupiny::VSECHNY.to_string()));
+                okno::otevri();
+                spravce::posli(spravce::Akce::Obnovit);
+                host.push_info(tr("Terén: export bodů je v Prospektoru u skupiny bodů (Všechny body nebo jiná skupina) – Export bodů skupiny."));
+            }
+            "TER_3D" => {
+                let mut v = PresHost(host);
+                if let Some((z, _)) = aktivni(&mut v) {
+                    okno::otevri_3d(vec![z.id.clone()]);
+                    v.info(&trf!("Terén: povrch „{}“ ve 3D – v okně Prospektoru.", z.jmeno));
+                }
+            }
+            "TER_SABLONA_ULOZ" => {
+                let mut v = PresHost(host);
+                proved(&mut v, spravce::Akce::SablonaUloz);
+            }
             "TER_PANEL" => {
                 let doc = host.document().clone();
                 let styly: Vec<(String, String)> = styly::styly_bodu(&doc).into_iter().map(|s| (s.id, s.jmeno)).collect();
@@ -1164,6 +1238,15 @@ impl TerenPlugin {
 }
 
 ocs_plugin_api::export_plugin!(TerenPlugin);
+
+/// Provede akci Prospektoru z pásu karet a vypíše výsledek.
+fn proved(v: &mut dyn Vykres, a: spravce::Akce) {
+    match spravce::proved_hned(v, a) {
+        Ok(Some(t)) => v.info(&trf!("Terén: {}", t)),
+        Ok(None) => {}
+        Err(e) => v.chyba(&trf!("Terén: {}", e)),
+    }
+}
 
 /// Spustí interaktivní příkaz Terénu (hlídaný – viz `vykres::PRIKAZY`).
 fn spust(host: &mut dyn HostApi, c: Box<dyn ocs_plugin_api::host::InteractiveCommand>) {

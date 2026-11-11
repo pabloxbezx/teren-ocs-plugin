@@ -7,7 +7,7 @@ use super::{Okno, SEDA};
 
 /// Slovníček – stejné vysvětlivky ukazuje „?“ vedle pojmů v Prospektoru.
 pub const POJMY: &[(&str, &str)] = &[
-    ("Aktivní povrch", "Povrch, se kterým pracují nástroje Úpravy, Výška v bodě a Bod na povrchu. Nastavíte ho v horním řádku Prospektoru nebo dvojklikem na povrch ve stromu."),
+    ("Aktivní povrch", "Povrch, se kterým pracují nástroje Úpravy trojúhelníků, Výška v bodě a Bod na povrchu. Nastavíte ho v horním řádku Prospektoru nebo dvojklikem na povrch ve stromu."),
     ("Skupina bodů", "Pravidla, podle kterých se vyberou body (kód, čísla, soubor importu). Povrch se skládá ze skupin – změna skupiny povrch označí jako zastaralý."),
     ("Spojnice (lomová hrana)", "3D křivka, kterou trojúhelníky nesmí překřížit – hrana svahu, pata a koruna, osa příkopu. Její vrcholy jsou vždy součástí povrchu."),
     ("Hranice / díra", "Uzavřená křivka: povrch se ořízne na hranici, uvnitř díry se vynechá."),
@@ -57,7 +57,7 @@ const TEMATA: &[Tema] = &[
             "2. Vytvořte povrch: Nový povrch › Stávající terén (z bodů), nebo v Prospektoru pravým tlačítkem na Povrchy. Vezme skupinu Zaměření bez kódů STR.",
             "3. Doplňte spojnice (lomové hrany): Spojnice přes body – klikejte na body zaměření; nebo vyberte hotové 3D křivky a klikněte Přidat spojnici.",
             "4. Ořízněte povrch: nakreslete uzavřenou křivku a klikněte Hranice (díra vynechá vnitřek).",
-            "5. Prohlédněte trojúhelníky (styl Trojúhelníky nebo záložka 3D) a opravte je nástroji ze skupiny Úpravy.",
+            "5. Prohlédněte trojúhelníky (styl Trojúhelníky nebo záložka 3D) a opravte je nástroji ze skupiny Úpravy trojúhelníků.",
             "6. Nastavte styl s vrstevnicemi a krok vrstevnic – pravým tlačítkem na povrch › Styl / Vrstevnice po.",
             "Povrch se přepočítá sám, když je zapnutý automatický přepočet; jinak ukáže ⚠ zastaralý a stačí kliknout Přepočítat.",
         ],
@@ -104,7 +104,7 @@ const TEMATA: &[Tema] = &[
             "3D – prohlížeč povrchů.",
             "Pravé tlačítko na uzlu stromu nebo na řádku tabulky otevře nabídku akcí.",
             "Dvojklik na povrch ho nastaví jako aktivní, dvojklik na bod v tabulce ho ukáže ve výkrese.",
-            "Najít v Prospektoru (pás karet) skočí na objekt vybraný ve výkrese. F1 otevře tuto nápovědu.",
+            "Ukázat v Prospektoru (pás karet) skočí na objekt vybraný ve výkrese. F1 otevře tuto nápovědu.",
         ],
     },
     Tema {

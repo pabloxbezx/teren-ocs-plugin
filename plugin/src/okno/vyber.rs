@@ -519,7 +519,7 @@ impl Okno {
                 tr("Nový povrch"),
                 tr("Stávající terén ze skupiny Zaměření (bez kódů STR).").into(),
             ),
-            (ma_cary, tr("Hranice a spojnice"), tr("Vyberte křivky ve výkrese a přidejte je jako hranici nebo spojnice (záložka Terén, skupina Definice).").into()),
+            (ma_cary, tr("Hranice a spojnice"), tr("Vyberte křivky ve výkrese a přidejte je jako hranici nebo spojnice (záložka Terén, skupina Definice povrchu).").into()),
             (ma_upravy, tr("Úpravy trojúhelníků"), tr("Otočit, přidat nebo smazat hranu – projeví se hned po kliknutí.").into()),
             (ma_styly, tr("Styly"), tr("Symboly podle kódů (např. STR = strom), vrstevnice a popisy.").into()),
         ];
@@ -550,7 +550,7 @@ impl Okno {
                                     }
                                 }
                                 3 => {
-                                    ui.label(RichText::new(tr("Nástroje jsou na pásu karet: Terén › Úpravy")).small().color(SEDA));
+                                    ui.label(RichText::new(tr("Nástroje jsou na pásu karet: Terén › Úpravy trojúhelníků")).small().color(SEDA));
                                 }
                                 4 => {
                                     if ui.button(tr("Styly bodů")).clicked() {

@@ -29,12 +29,12 @@
 <p class="popisek">The Terén ribbon tab</p>
 <table class="mrizka">
 <tr><th>Group</th><th>Contents</th></tr>
-<tr><td>Prospector</td><td>Prospector window, Prepare drawing (layers, markers, template), Help</td></tr>
-<tr><td>Points</td><td>Import points, New point (manual, on surface), Point style for selected points</td></tr>
-<tr><td>Surface</td><td>New surface (existing ground, design from 3D lines, from clicked points, wizard), Surface style, Find in Prospector, Surface export</td></tr>
-<tr><td>Definition</td><td>Breakline through points, Add breakline, Boundary, Hole</td></tr>
-<tr><td>Edits</td><td>Swap / add / delete edge, delete triangle, add / remove point</td></tr>
-<tr><td>Analysis</td><td>Elevation at point</td></tr>
+<tr><td>Prospector</td><td>Prospector window, Import points, Drawing template (prepare the drawing from the template, save this drawing as the template), Help</td></tr>
+<tr><td>Points</td><td>New point (manual, on surface), Point properties, Point style for selected points, Move points (on / off), Sync points, Reset labels, Group from selection</td></tr>
+<tr><td>Surface</td><td>New surface (existing ground, design from 3D lines, from clicked points, wizard), Surface style, Recalculate surface, Show in Prospector, Surface: select by click / clicks pass to points</td></tr>
+<tr><td>Surface definition</td><td>Breakline through points, Add breakline, Boundary, Hole</td></tr>
+<tr><td>Triangle edits</td><td>Swap / add / delete edge, delete triangle, add point to surface / remove point from surface, undo surface edits</td></tr>
+<tr><td>Outputs</td><td>Surface export, 3D viewer, Point export, Elevation at point, Survey check</td></tr>
 </table>
 <p>The <b>Prospector</b> is a separate window with three modes:</p>
 <ul>
@@ -52,7 +52,7 @@
 <li><b>New surface.</b> New surface › <i>Existing ground (from points)</i>. It takes the <i>Survey</i> group without STR codes (trees). The wizard (New surface › Wizard) lets you choose groups, max. edge length, style and contour interval.</li>
 <li><b>Breaklines.</b> <i>Breakline through points</i> – click survey points (slope edge, toe, top, ditch centreline); Enter = finish. Existing 3D polylines are added with <i>Add breakline</i>.</li>
 <li><b>Boundary.</b> Draw a closed polyline around the area, select it and click <i>Boundary</i>. <i>Hole</i> leaves out the inside of a polyline.</li>
-<li><b>Check and edit.</b> The <i>Triangles</i> style or the 3D tab shows the network. Swap or delete unsuitable edges with the Edits tools; each edit is stored with the surface and reapplied on recalculation.</li>
+<li><b>Check and edit.</b> The <i>Triangles</i> style or the 3D tab shows the network. Swap or delete unsuitable edges with the Triangle edits tools; each edit is stored with the surface and reapplied on recalculation.</li>
 <li><b>Contours.</b> Right-click the surface in the Prospector › Style (e.g. <i>Contours with labels</i>) and Contour interval (0.1 / 0.5 m …).</li>
 </ol>
 <img src="img/import-en.png" class="stred">
@@ -79,7 +79,7 @@
 
 <h2>6. Surfaces</h2>
 <p>A surface is built from point groups, drawing objects (points, blocks, lines, 3D faces – e.g. a surveyor's drawing), breaklines, boundaries and holes, and manual edits. All are listed in the Prospector at the surface › <i>What the surface is built from</i>; each item can be disabled, shown or removed.</p>
-<p>The <b>active surface</b> (top row of the Prospector, double-click in the tree) is used by the Edits tools, Elevation at point and Point on surface.</p>
+<p>The <b>active surface</b> (top row of the Prospector, double-click in the tree) is used by the Triangle edits tools, Elevation at point and Point on surface.</p>
 <p>The <b>surface style</b> sets what is drawn: triangles, contours (minor / major, colours, labels), outline, slope arrows. Edit styles in the Prospector under Styles; a built-in style can always be restored to its original settings.</p>
 <p>In the drawing a surface is a block on its own layers; Settings › <i>Surface cannot be selected by clicking</i> lets clicks pass through to the points below.</p>
 

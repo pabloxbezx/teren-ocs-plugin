@@ -89,6 +89,20 @@ angličtina), projeví se po novém spuštění.
 
 # Co je nového
 
+## Další verze (ve vývoji)
+
+- **Pás karet podle postupu práce**: Prospektor (Prospektor, Import bodů,
+  Šablona výkresu, Nápověda) · Body · Povrch · Definice povrchu · Úpravy
+  trojúhelníků · Výstupy. Velká tlačítka jen pro hlavní kroky, ostatní malá.
+- **Přepínače Posun bodů a Povrch klik** jsou malé a jejich popisek ukazuje
+  platný stav.
+- **Nová tlačítka** pro funkce, které byly jen v Prospektoru: Srovnat body,
+  Popisy na místo, Skupina z výběru, Přepočítat povrch, Zrušit úpravy povrchu,
+  Prohlížeč 3D, Export bodů, Kontrola zaměření, Uložit tento výkres jako šablonu.
+- *Najít v Prospektoru* se jmenuje *Ukázat v Prospektoru*.
+- Nové ikony stylů povrchu (trojúhelníky, trojúhelníky + vrstevnice, spád),
+  Smazat hranu, Návrh z 3D čar a další.
+
 ## Verze 1.0.4
 
 - **Posun bodů úchopem**: tlačítko *Posun bodů* zapne na každém bodě vlastní
