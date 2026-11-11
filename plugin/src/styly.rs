@@ -103,7 +103,7 @@ pub const STANDARD: &str = "STANDARD";
 /// Styl „Nezobrazovat“ (pro body i povrchy).
 pub const SKRYT: &str = "SKRYT";
 
-/// Barva: 256 = podle hladiny, 1–255 = barva AutoCADu (ACI).
+/// Barva: 256 = podle hladiny, 1–255 = index barvy DWG (ACI).
 pub type Barva = i16;
 pub const PODLE_HLADINY: Barva = 256;
 
