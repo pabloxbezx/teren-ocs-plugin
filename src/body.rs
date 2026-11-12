@@ -480,7 +480,8 @@ mod testy {
         assert_eq!(v.body.len(), 2);
         assert_eq!((v.chyby[0].radek, v.chyby[0].sloupec), (2, Some(1)));
         assert_eq!((v.chyby[1].radek, v.chyby[1].sloupec), (4, Some(3)));
-        assert!(v.chyby[1].duvod.contains("chybí"), "{}", v.chyby[1].duvod);
+        // hláška je přeložená podle jazyka systému (na serverech sestavení anglicky)
+        assert_eq!(v.chyby[1].duvod, trf!("chybí hodnota {}", "Z"));
     }
 
     #[test]
