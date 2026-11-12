@@ -548,9 +548,14 @@ pub fn objekty_bodu(b: &Bod, zdroj: &str, styl: &StylBodu, m: f64) -> Vec<Entity
 
 /// Samotný POINT bodu s XDATA (bez značky a popisů).
 pub fn bod_entita(b: &Bod, zdroj: &str, styl: &StylBodu) -> EntityType {
+    bod_entita_styl(b, zdroj, styl, "")
+}
+
+/// POINT bodu s vlastním stylem uloženým u bodu (`vlastni` = id stylu, „“ = podle skupiny).
+pub fn bod_entita_styl(b: &Bod, zdroj: &str, styl: &StylBodu, vlastni: &str) -> EntityType {
     let mut p = Point::from_coords(b.x, b.y, b.z);
     p.common.layer = hladina_bodu(styl).into();
-    p.common.extended_data.add_record(xdata_bodu(&b.cislo, &b.popis, zdroj, ""));
+    p.common.extended_data.add_record(xdata_bodu(&b.cislo, &b.popis, zdroj, vlastni));
     EntityType::Point(p)
 }
 

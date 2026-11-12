@@ -291,8 +291,11 @@ pub enum Akce {
     SmazStyl(String),
     SablonaUloz,
     SablonaNacti,
-    /// Import bodů po náhledu: (cesta, formát, oddělovač, přeskočit řádků).
-    Import(String, String, Oddelovac, usize),
+    /// Import bodů z okna náhledu (formát, duplicity, skupina, styl…).
+    Import(Box<crate::import::NastaveniImportu>),
+    /// Převést body nakreslené ve výkrese pro náhled importu:
+    /// (hladina – `None` = všechny, jen výběr, tolerance párování textů; 0 = auto).
+    BodyZVykresu(Option<String>, bool, f64),
     /// Měřítko výkresu (jmenovatel).
     Meritko(u32),
     /// Nový povrch jako tlačítko na pásu: (základ id, jméno, z bodů zaměření / z vybraných čar).
@@ -943,7 +946,7 @@ impl Pracovnik {
 
     fn akce_hlavni(&mut self, mut k: PresKanal, a: Akce) {
         uprav_stav(|s| s.pracuji = true);
-        let drzet = !matches!(a, Akce::Obnovit | Akce::Nacti3D(_) | Akce::Ukazat(..) | Akce::UkazatBody(_) | Akce::VyberZVykresu);
+        let drzet = !matches!(a, Akce::Obnovit | Akce::Nacti3D(_) | Akce::Ukazat(..) | Akce::UkazatBody(_) | Akce::VyberZVykresu | Akce::BodyZVykresu(..));
         let (body, povrchy_id) = {
             let st = zamek(&sdilene().stav);
             (st.vyber_body.clone(), st.vyber_povrchy.clone())
@@ -1437,22 +1440,8 @@ impl Pracovnik {
                 k.hotovo();
                 Ok(Some(trf!("Ze šablony načteno {} stylů, přepočteno povrchů: {}", n, prepocteno)))
             }
-            Akce::Import(cesta, f, o, hl) => {
-                let Some(body) = crate::import::priprav(k, &cesta, Some((&f, o, hl))) else {
-                    return Err(tr("import se nepovedl (podrobnosti v příkazovém řádku)").into());
-                };
-                cogo::priprav_vykres(k)?;
-                let soubor = crate::import::jmeno_souboru(&cesta);
-                let doc = k.dokument()?;
-                let skupina = crate::import::skupina_importu(&doc, &soubor);
-                let ro = styly::Rozlisovac::new(&doc).s_skupinou(skupina.as_ref());
-                let m = nastaveni::meritko(&doc);
-                let obj = crate::import::objekty_importu(&body, &ro, m, &soubor, skupina);
-                k.zpet(tr("Import bodů"));
-                k.pridej(obj)?;
-                k.hotovo();
-                Ok(Some(trf!("Importováno {} bodů ze souboru {}", body.len(), soubor)))
-            }
+            Akce::Import(n) => crate::import::proved_import(k, *n).map(Some),
+            Akce::BodyZVykresu(hladina, vyber, tol) => crate::import::priprav_z_vykresu(k, hladina.as_deref(), vyber, tol).map(Some),
             Akce::Meritko(m) => {
                 crate::zmen_meritko_v(k, m);
                 Ok(Some(trf!("Měřítko 1:{}", m)))

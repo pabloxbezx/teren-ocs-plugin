@@ -1069,3 +1069,144 @@ v souboru GSI nejsou souřadnice bodů (slova 81, 82)	the GSI file contains no p
 sešit nejde otevřít: {}	the workbook cannot be opened: {}
 sešit nemá žádný list	the workbook has no sheet
 list {} nejde přečíst: {}	sheet {} cannot be read: {}
+{} převedený na {}	{} converted to {}
+není co importovat – žádný bod se nenačetl	nothing to import – no point was read
+Přepsat body	Overwrite points
+Importováno {} bodů do skupiny „{}“	Imported {} points into group "{}"
+Importováno {} bodů ze zdroje {}	Imported {} points from source {}
+ · přepsáno {}	 · overwritten {}
+ · duplicit přeskočeno {}	 · duplicates skipped {}
+ · přečíslováno {}	 · renumbered {}
+ · nečitelných řádků {}	 · unreadable lines {}
+ · vyřazeno {}	 · excluded {}
+Z výkresu připraveno {} bodů k náhledu	{} points from the drawing prepared for preview
+Y (S-JTSK)	Y (S-JTSK)
+X (S-JTSK)	X (S-JTSK)
+E (výkres)	E (drawing)
+N (výkres)	N (drawing)
+Kód/popis	Code/description
+Ignorovat	Ignore
+schránka {}	clipboard {}
+výkres	drawing
+podle Nastavení (pevný formát)	from Settings (fixed format)
+rozpoznáno automaticky	detected automatically
+rozpoznáno automaticky – body neleží v S-JTSK pro ČR, ověřte sloupce	detected automatically – points do not lie in S-JTSK for the Czech Republic, check the columns
+formát se nepodařilo rozpoznat – nastavte sloupce ručně	the format could not be detected – set the columns manually
+šablona „{}“	template "{}"
+výška {:.2} m – překlep?	elevation {:.2} m – typo?
+daleko od ostatních bodů	far from the other points
+mimo ČR (S-JTSK)	outside the Czech Republic (S-JTSK)
+ → přeskočí se	 → will be skipped
+ → přepíše	 → will overwrite
+ → přečísluje se	 → will be renumbered
+číslo {} je v souboru víckrát{}	number {} appears more than once in the file{}
+{} už je ve výkresu ({:.2} m jinde){}	{} is already in the drawing ({:.2} m away){}
+auto	auto
+žádné body	no points
+mimo: {} ›	outside: {} ›
+S ↑	N ↑
+Ve výkrese zatím nejsou body.	There are no points in the drawing yet.
+Body leží daleko od bodů výkresu – zkontrolujte sloupce a soustavu.	The points are far from the drawing's points – check the columns and coordinate system.
+Body leží u bodů výkresu (šedě).	The points lie near the drawing's points (grey).
+Čtu body z výkresu…	Reading points from the drawing…
+Přetáhněte sem soubor (nebo více souborů)	Drop a file here (or several files)
+TXT, CSV, XYZ, XLSX, LandXML, JobXML, GSI · nebo stiskněte Ctrl+V pro vložení tabulky ze schránky	TXT, CSV, XYZ, XLSX, LandXML, JobXML, GSI · or press Ctrl+V to paste a table from the clipboard
+cesta k souboru	path to the file
+Soubor vyberete i tlačítkem Import bodů na pásu karet.	You can also choose a file with the Import points button on the ribbon.
+Zdroj	Source
+Textový soubor	Text file
+TXT, CSV, XYZ – libovolné pořadí sloupců, rozpozná se samo	TXT, CSV, XYZ – any column order, detected automatically
+Schránka (Ctrl+V)	Clipboard (Ctrl+V)
+tabulka zkopírovaná z Excelu, e-mailu nebo webu	a table copied from Excel, an e-mail or a web page
+Excel	Excel
+XLSX, XLS, ODS – výběr listu, sloupce stejně jako u textu	XLSX, XLS, ODS – choose a sheet, columns as with text
+LandXML, Trimble JobXML, Leica GSI	LandXML, Trimble JobXML, Leica GSI
+body CgPoints, redukované body, GSI-8/16	CgPoints, reduced points, GSI-8/16
+Z výkresu…	From the drawing…
+POINT, bloky s atributy, texty výšek u značky → body Terénu	POINT, blocks with attributes, elevation texts next to a marker → Terén points
+Více souborů	Several files
+přetáhněte je najednou – každý do vlastní skupiny	drop them at once – each into its own group
+Poslední soubory	Recent files
+zatím žádné	none yet
+Šablony formátu	Format templates
+Šablonu uložíte v náhledu tlačítkem Uložit šablonu.	Save a template in the preview with the Save template button.
+{} řádků	{} lines
+soubor {} z {}	file {} of {}
+jméno šablony	template name
+Uložit šablonu…	Save template…
+Uložit sloupce, oddělovač, kódování a desetinnou čárku jako šablonu	Save the columns, delimiter, encoding and decimal separator as a template
+Šablona…	Template…
+Rozpoznat automaticky	Detect automatically
+Naposledy použité ({})	Last used ({})
+Jiný zdroj…	Other source…
+List	Sheet
+Kódování	Encoding
+Desetinná	Decimal
+Záhlaví	Header
+ ř.	 lines
+počet úvodních řádků, které se nenačtou	number of leading lines that are not read
+Souřadnice	Coordinates
+S-JTSK → výkres −Y/−X	S-JTSK → drawing −Y/−X
+výkres E/N (beze změny)	drawing E/N (unchanged)
+Sloupce nedávají platný formát: {}	The columns do not form a valid format: {}
+Y a X (N a E) jsou nejspíš prohozené – po prohození leží body v ČR.	Y and X (N and E) are probably swapped – after swapping, the points lie in the Czech Republic.
+Prohodit	Swap
+Souřadnice mají opačné znaménko než sloupce – po převodu leží body v ČR.	The coordinates have the opposite sign to the columns – after conversion, the points lie in the Czech Republic.
+Převést	Convert
+Souřadnice jsou prohozené a mají opačné znaménko – po opravě leží body v ČR.	The coordinates are swapped and have the opposite sign – after the fix, the points lie in the Czech Republic.
+Opravit	Fix
+V textu jsou nečitelné znaky – soubor je možná v kódování {}.	The text contains unreadable characters – the file may be in the {} encoding.
+Použít {}	Use {}
+Většina řádků nejde přečíst – zkontrolujte oddělovač, desetinnou čárku a sloupce.	Most lines cannot be read – check the delimiter, decimal separator and columns.
+Vrátit rozpoznané	Restore detected
+Soubor už byl importován ({} bodů ve výkrese) – body se stejným číslem jde aktualizovat.	The file has already been imported ({} points in the drawing) – points with the same number can be updated.
+Aktualizovat podle čísla	Update by number
+Značek {} · výška z textu {} · z atributu {} · ze značky {} · bez výšky {}	Markers {} · elevation from text {} · from attribute {} · from marker {} · without elevation {}
+Hladina	Layer
+všechny	all
+jen vybrané	selected only
+Tolerance textu	Text tolerance
+0 = trojnásobek výšky textu	0 = three times the text height
+řádků s daty	lines with data
+načte se	will be read
+nečitelné	unreadable
+podezřelé	suspicious
+duplicitní čísla	duplicate numbers
+klikněte pro filtr tabulky	click to filter the table
+sloupec {}	column {}
+záhlaví – nenačítá se	header – not read
+vyřadit	exclude
+v pořádku	OK
+Žádné řádky – zkuste jiný filtr.	No lines – try another filter.
+Poloha bodů	Point location
+Duplicitní čísla · {} v souboru, {} ve výkresu	Duplicate numbers · {} in the file, {} in the drawing
+Přeskočit	Skip
+ponechat body ve výkrese, z dvojic v souboru vzít první	keep the points in the drawing, take the first of pairs in the file
+{} přeskočeno	{} skipped
+Přepsat	Overwrite
+aktualizovat polohu a výšku podle souboru	update position and elevation from the file
+{} přepsáno	{} overwritten
+nová čísla dostanou jen duplicity	only duplicates get new numbers
+{} nových čísel	{} new numbers
+Importovat i tak	Import anyway
+dosavadní chování – dvě stejná čísla	previous behaviour – two identical numbers
+{} zdvojeno	{} doubled
+Kam	Where
+Nová skupina „Import {}“	New group "Import {}"
+Bez skupiny	No group
+Podle skupiny a kódu	By group and code
+Po importu přiblížit na body	Zoom to the points after import
+Zapamatovat nastavení pro příště	Remember settings for next time
+{} bodů se vloží	{} points will be inserted
+ · {} přepíše	 · {} will overwrite
+ · {} duplicit se přeskočí	 · {} duplicates will be skipped
+ · {} nečitelných se vynechá	 · {} unreadable will be left out
+ · {} podezřelých (lze vyřadit)	 · {} suspicious (can be excluded)
+naposledy	last used
+Přeskočit soubor	Skip file
+PNEZD – číslo, N, E, Z, popis	PNEZD – number, N, E, Z, description
+PENZD – číslo, E, N, Z, popis	PENZD – number, E, N, Z, description
+PYXZD – číslo, Y, X, Z, popis (S-JTSK)	PYXZD – number, Y, X, Z, description (S-JTSK)
+PXYZD – číslo, X, Y, Z, popis (S-JTSK)	PXYZD – number, X, Y, Z, description (S-JTSK)
+YXZ – bez čísla (S-JTSK)	YXZ – without number (S-JTSK)
+Body (TXT, CSV, XYZ, XLSX, XML, GSI)	Points (TXT, CSV, XYZ, XLSX, XML, GSI)

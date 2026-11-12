@@ -38,7 +38,7 @@ forest survey with a finished surface.
 
 | Area | What you get |
 |---|---|
-| **Points** | Import from text files (PNEZD, PYXZD, ENZ…), manual points, points on a surface, survey check of suspicious elevations, export back to text. |
+| **Points** | Import from text and CSV in any column order, from the clipboard, Excel, LandXML, Trimble JobXML, Leica GSI and from points drawn in the drawing; preview with checks of errors, S-JTSK and duplicates. Manual points, points on a surface, survey check of suspicious elevations, export back to text. |
 | **Point groups** | Rules in plain words (“code is T, PAT”, “number 1-50”, “from file …”), exclusions, points added by hand, live preview. |
 | **Point styles** | Marker (cross, circle, tree, manhole, hydrant… or your own block), label layout, decimals; by code, by group or per point. Labels move aside when they overlap. |
 | **Surfaces** | Delaunay TIN from point groups and drawing objects, breaklines, boundaries and holes, max. edge length. |

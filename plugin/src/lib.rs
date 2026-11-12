@@ -154,8 +154,8 @@ impl CadModule for TerenModule {
                             event: ModuleEvent::PluginFileDialog {
                                 command: "TER_IMPORT".into(),
                                 title: tr("Import bodů").into(),
-                                filter_name: tr("Body (TXT, CSV, XYZ)").into(),
-                                extensions: vec!["txt".into(), "csv".into(), "xyz".into(), "*".into()],
+                                filter_name: tr("Body (TXT, CSV, XYZ, XLSX, XML, GSI)").into(),
+                                extensions: ["txt", "csv", "xyz", "xlsx", "xls", "ods", "xml", "jxl", "gsi", "*"].iter().map(|p| p.to_string()).collect(),
                             },
                         }),
                         RibbonItem::LabeledDropdown {

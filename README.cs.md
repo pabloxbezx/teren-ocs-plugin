@@ -38,7 +38,7 @@ malé zaměření v lese s hotovým povrchem.
 
 | Oblast | Co dostanete |
 |---|---|
-| **Body** | Import z textových souborů (PNEZD, PYXZD, ENZ…), ruční body, body na povrchu, kontrola podezřelých výšek, export zpět do textu. |
+| **Body** | Import z textu a CSV v libovolném pořadí sloupců, ze schránky, z Excelu, LandXML, Trimble JobXML, Leica GSI i z bodů nakreslených ve výkrese; náhled s kontrolou chyb, S-JTSK a duplicit. Ruční body, body na povrchu, kontrola podezřelých výšek, export zpět do textu. |
 | **Skupiny bodů** | Pravidla jako věty („mají kód T, PAT“, „číslo 1-50“, „ze souboru …“), vyloučení, ručně přidané body, živý náhled. |
 | **Styly bodů** | Značka (křížek, kolečko, strom, šachta, hydrant… nebo vlastní blok), rozložení popisu, desetinná místa; podle kódu, skupiny nebo pro jednotlivý bod. Překrývající se popisy se odsunou. |
 | **Povrchy** | TIN (Delaunay) ze skupin bodů a objektů výkresu, spojnice (lomové hrany), hranice a díry, max. délka hrany. |
@@ -88,6 +88,26 @@ angličtina), projeví se po novém spuštění.
   nejvíc pomůže krátký popis a malý vymyšlený soubor zaměření.
 
 # Co je nového
+
+## Další verze (připravuje se)
+
+- **Nový import bodů**: nad každým sloupcem výběr role (Číslo, Y, X, E, N, Z,
+  Kód/popis, Ignorovat) místo výběru celého formátu; souhrnný pás s formátem,
+  oddělovačem, kódováním, desetinnou čárkou a záhlavím (rozpoznáno / ručně).
+- Počty načtených, nečitelných, podezřelých a duplicitních bodů – kliknutím
+  filtr tabulky; chybná buňka je zvýrazněná přímo v tabulce, podezřelé body
+  jde vyřadit.
+- Kontrola S-JTSK: nabídne prohození Y/X nebo převod znaménka, upozorní na
+  body daleko od ostatních. Mapka ukáže polohu bodů vůči bodům výkresu.
+- Duplicitní čísla (v souboru i proti výkresu): přeskočit, přepsat,
+  přečíslovat nebo importovat i tak. Opakovaný import téhož souboru body
+  aktualizuje podle čísla.
+- Při importu jde zvolit skupinu a styl bodů; nastavení se pamatuje, vlastní
+  šablony formátu, poslední soubory.
+- Nové zdroje: schránka (Ctrl+V), více souborů přetažením (každý do vlastní
+  skupiny), Excel (výběr listu), LandXML (CgPoints), Trimble JobXML, Leica GSI
+  a body nakreslené ve výkrese (POINT, bloky s atributy, texty výšek u značky).
+- Kódování UTF-8, UTF-16, Windows-1250 i DOS 852; čísla s oddělovačem tisíců.
 
 ## Verze 1.0.5
 

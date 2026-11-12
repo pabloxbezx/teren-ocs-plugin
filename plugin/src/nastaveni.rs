@@ -6,7 +6,49 @@
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 
-use teren::body::Oddelovac;
+use teren::body::{Desetinna, Oddelovac};
+use teren::kodovani::Kodovani;
+
+/// Uložené nastavení čtení souboru bodů (šablona formátu).
+#[derive(Clone, Debug, PartialEq)]
+pub struct SablonaImportu {
+    pub jmeno: String,
+    /// Vzor sloupců (např. `PYXZD`, `P-YXZ`).
+    pub vzor: String,
+    pub oddelovac: Oddelovac,
+    /// `None` = rozpoznat automaticky.
+    pub kodovani: Option<Kodovani>,
+    pub desetinna: Desetinna,
+    pub hlavicka: usize,
+}
+
+impl SablonaImportu {
+    fn zapis(&self) -> String {
+        format!(
+            "{}|{}|{}|{}|{}|{}",
+            self.jmeno.replace('|', "/"),
+            self.vzor,
+            nazev_odd(self.oddelovac),
+            self.kodovani.map_or("auto", |k| k.klic()),
+            self.desetinna.klic(),
+            self.hlavicka
+        )
+    }
+    fn precti(v: &str) -> Option<Self> {
+        let c: Vec<&str> = v.split('|').map(str::trim).collect();
+        if c.len() < 6 || teren::body::FormatBodu::z_retezce(c[1], Oddelovac::Mezera).is_err() {
+            return None;
+        }
+        Some(Self {
+            jmeno: c[0].to_string(),
+            vzor: c[1].to_string(),
+            oddelovac: Oddelovac::z_nazvu(c[2]).unwrap_or(Oddelovac::Mezera),
+            kodovani: Kodovani::z_klice(c[3]),
+            desetinna: Desetinna::z_klice(c[4]),
+            hlavicka: c[5].parse().unwrap_or(0),
+        })
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Nastaveni {
@@ -45,6 +87,16 @@ pub struct Nastaveni {
     pub barvy_3d: [[u8; 3]; 5],
     /// Jazyk: „auto“ (podle systému), „cs“, „en“.
     pub jazyk: String,
+    /// Vlastní šablony formátu pro import.
+    pub import_sablony: Vec<SablonaImportu>,
+    /// Naposledy použité nastavení čtení souboru.
+    pub import_posledni: Option<SablonaImportu>,
+    /// Co s duplicitními čísly (klíč `teren::duplicity::Politika`).
+    pub import_duplicity: String,
+    /// Po importu přiblížit na body.
+    pub import_priblizit: bool,
+    /// Naposledy importované soubory (nejnovější první).
+    pub posledni_soubory: Vec<String>,
 }
 
 pub const BARVY_3D: [[u8; 3]; 5] = [[240, 220, 60], [90, 200, 255], [150, 80, 30], [240, 165, 60], [15, 15, 15]];
@@ -70,6 +122,11 @@ impl Default for Nastaveni {
             posun_jen_popis: false,
             barvy_3d: BARVY_3D,
             jazyk: "auto".into(),
+            import_sablony: Vec::new(),
+            import_posledni: None,
+            import_duplicity: "preskocit".into(),
+            import_priblizit: true,
+            posledni_soubory: Vec::new(),
         }
     }
 }
@@ -144,6 +201,11 @@ fn nacti() -> Nastaveni {
             "odsazeni_popisku" => n.odsazeni_popisku = v != "0",
             "posun_jen_popis" => n.posun_jen_popis = v == "1",
             "jazyk" => n.jazyk = v.to_string(),
+            "sablona_importu" => n.import_sablony.extend(SablonaImportu::precti(v)),
+            "posledni_import" => n.import_posledni = SablonaImportu::precti(v),
+            "import_duplicity" => n.import_duplicity = v.to_string(),
+            "import_priblizit" => n.import_priblizit = v != "0",
+            "posledni_soubor" if n.posledni_soubory.len() < POSLEDNICH => n.posledni_soubory.push(v.to_string()),
             "barvy_3d" => {
                 for (i, c) in v.split(';').take(5).enumerate() {
                     if let Some(b) = hex(c.trim()) {
@@ -186,10 +248,41 @@ fn uloz(n: &Nastaveni) {
         n.barvy_3d.iter().map(|c| format!("{:02x}{:02x}{:02x}", c[0], c[1], c[2])).collect::<Vec<_>>().join(";"),
         n.jazyk
     );
+    let mut text = text;
+    for s in &n.import_sablony {
+        text.push_str(&format!("sablona_importu = {}
+", s.zapis())); // i18n:ne
+    }
+    if let Some(s) = &n.import_posledni {
+        text.push_str(&format!("posledni_import = {}
+", s.zapis())); // i18n:ne
+    }
+    text.push_str(&format!("import_duplicity = {}
+import_priblizit = {}
+", n.import_duplicity, n.import_priblizit as u8)); // i18n:ne
+    for s in &n.posledni_soubory {
+        text.push_str(&format!("posledni_soubor = {}
+", s)); // i18n:ne
+    }
     if let Some(d) = p.parent() {
         let _ = std::fs::create_dir_all(d);
     }
     let _ = std::fs::write(p, text);
+}
+
+/// Kolik naposledy importovaných souborů si pamatovat.
+pub const POSLEDNICH: usize = 6;
+
+/// Zapíše soubor mezi naposledy importované.
+pub fn pridej_posledni(cesta: &str) {
+    if cesta.trim().is_empty() {
+        return;
+    }
+    zmen(|n| {
+        n.posledni_soubory.retain(|c| !c.eq_ignore_ascii_case(cesta));
+        n.posledni_soubory.insert(0, cesta.to_string());
+        n.posledni_soubory.truncate(POSLEDNICH);
+    });
 }
 
 fn globalni() -> &'static Mutex<Nastaveni> {
@@ -205,4 +298,28 @@ pub fn zmen(f: impl FnOnce(&mut Nastaveni)) {
     let mut g = globalni().lock().unwrap_or_else(|e| e.into_inner());
     f(&mut g);
     uloz(&g);
+}
+
+#[cfg(test)]
+mod testy {
+    use super::*;
+
+    #[test]
+    fn nastaveni_importu_tam_a_zpet() {
+        let s = SablonaImportu {
+            jmeno: "Geodet | PYXZD".into(),
+            vzor: "P-YXZD".into(),
+            oddelovac: Oddelovac::Strednik,
+            kodovani: Some(Kodovani::Cp1250),
+            desetinna: Desetinna::Carka,
+            hlavicka: 1,
+        };
+        let z = SablonaImportu::precti(&s.zapis()).unwrap();
+        assert_eq!(z.jmeno, "Geodet / PYXZD");
+        assert_eq!(SablonaImportu { jmeno: s.jmeno.clone(), ..z }, s);
+        let auto = SablonaImportu { kodovani: None, ..s.clone() };
+        assert_eq!(SablonaImportu::precti(&auto.zapis()).unwrap().kodovani, None);
+        assert!(SablonaImportu::precti("x|QQ|mezera|auto|auto|0").is_none());
+        assert!(SablonaImportu::precti("neúplné").is_none());
+    }
 }

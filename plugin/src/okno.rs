@@ -415,7 +415,7 @@ impl eframe::App for Okno {
             self.nahled_importu = Some(import_nahled::NahledImportu::novy(&c));
         }
         let ctx = ui.ctx().clone();
-        self.okno_importu(&ctx);
+        self.okno_importu(&ctx, &stav);
         self.okno_pruvodce(&ctx, &stav);
         self.okno_napovedy(&ctx);
         if self.verze != stav.verze {
