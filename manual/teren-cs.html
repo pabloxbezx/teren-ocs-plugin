@@ -22,7 +22,7 @@
 <h2>2. Instalace</h2>
 <p><b>Správce pluginů:</b> v Open CAD Studiu otevřete Správce pluginů, vyhledejte <i>Terén</i> a klikněte Instalovat. Po restartu se objeví záložka <b>Terén</b>.</p>
 <p><b>Ručně (Windows):</b> stáhněte <code>Teren-windows.zip</code> z vydání na GitHubu, zip rozbalte a spusťte <code>nainstalovat.bat</code>. Plugin se zkopíruje do <code>%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren</code>.</p>
-<p>Každé vydání Terénu je sestavené pro jednu verzi Open CAD Studia – Správce pluginů nabídne to správné; při ruční instalaci zvolte vydání podle tabulky v README (Terén 1.0.2 – 1.0.6 = Open CAD Studio 2026.45).</p>
+<p>Každé vydání Terénu je sestavené pro jednu verzi Open CAD Studia – Správce pluginů nabídne to správné; při ruční instalaci zvolte vydání podle tabulky v README (Terén 1.0.2 – 1.0.7 = Open CAD Studio 2026.45).</p>
 
 <h2>3. Rozhraní</h2>
 <img src="img/pas.png" class="siroky">
@@ -36,14 +36,14 @@
 <tr><td>Úpravy trojúhelníků</td><td>Otočit / přidat / smazat hranu, smazat trojúhelník, přidat bod do povrchu / odebrat bod z povrchu, zrušit úpravy povrchu</td></tr>
 <tr><td>Výstupy</td><td>Export povrchu, Prohlížeč 3D, Export bodů, Výška v bodě, Kontrola zaměření</td></tr>
 </table>
-<p><b>Prospektor</b> je samostatné okno se třemi režimy:</p>
+<p><b>Prospektor</b> je samostatné okno: vlevo strom, vpravo podrobnosti vybrané položky.</p>
 <ul>
-<li><b>Výběr</b> – co je vybrané ve výkrese (bod, povrch) a co s tím jde dělat: úprava výšky a čísla bodu, styl, skupiny, přepočet povrchu.</li>
-<li><b>Výkres</b> – strom všeho, co plugin ve výkrese má: body (tabulka), skupiny bodů, povrchy, styly, kontrola zaměření, nastavení. Pravé tlačítko otevře nabídku akcí.</li>
-<li><b>3D</b> – prohlížeč povrchů.</li>
+<li><b>Strom</b> – nahoře <i>Vybráno ve výkrese</i> (vlastnosti vybraného bodu nebo povrchu), pod ním body (tabulka), skupiny bodů, povrchy (pod každým jeho zdroje), styly bodů a povrchů, kontrola zaměření a nastavení. Vpravo u položek jsou počty a stav: tečka u povrchu zelená = aktuální, oranžová = zastaralý, ★ = aktivní povrch. Pravé tlačítko otevře nabídku akcí.</li>
+<li><b>Karta</b> – podrobnosti začínají kartou s názvem, stavem, hlavními čísly a nejčastějšími akcemi; další akce jsou pod <i>⋯</i>. Povrch má záložky Přehled, Zdroje, Export a Upozornění.</li>
+<li><b>Horní lišta</b> – název výkresu (klik = přehled a postup „Jak na to“), hledání, <i>Najít v Prospektoru</i>, <i>◎ Sledovat výběr</i> a nápověda. <i>Prohlédnout ve 3D</i> u povrchu otevře prohlížeč povrchů.</li>
 </ul>
 <img src="img/prospektor.png" class="stred">
-<p class="popisek">Prospektor – režim Výkres, tabulka bodů</p>
+<p class="popisek">Prospektor – tabulka bodů</p>
 <p>Nápověda s postupy a slovníčkem pojmů je v Prospektoru (klávesa <b>F1</b>); otazník <span class="otaznik">?</span> vedle pojmu ukáže vysvětlivku.</p>
 
 <h2>4. Terén ze zaměření – krok za krokem</h2>
@@ -52,7 +52,7 @@
 <li><b>Nový povrch.</b> Nový povrch › <i>Stávající terén (z bodů)</i>. Vezme skupinu <i>Zaměření</i> bez kódů STR (stromy). Průvodce (Nový povrch › Průvodce) nechá vybrat skupiny, max. délku hrany, styl a krok vrstevnic.</li>
 <li><b>Spojnice.</b> <i>Spojnice přes body</i> – klikejte na body zaměření (hrana svahu, pata, koruna, osa příkopu); Enter = konec. Hotové 3D křivky přidáte tlačítkem <i>Přidat spojnici</i>.</li>
 <li><b>Hranice.</b> Nakreslete uzavřenou křivku kolem území, vyberte ji a klikněte <i>Hranice</i>. <i>Díra</i> vynechá vnitřek křivky.</li>
-<li><b>Kontrola a úpravy.</b> Styl <i>Trojúhelníky</i> nebo záložka 3D ukáže síť. Nástroji skupiny Úpravy trojúhelníků otočte nebo smažte nevhodné hrany; každá úprava se uloží k povrchu a při přepočtu se použije znovu.</li>
+<li><b>Kontrola a úpravy.</b> Styl <i>Trojúhelníky</i> nebo <i>Prohlédnout ve 3D</i> ukáže síť. Nástroji skupiny Úpravy trojúhelníků otočte nebo smažte nevhodné hrany; každá úprava se uloží k povrchu a při přepočtu se použije znovu.</li>
 <li><b>Vrstevnice.</b> Pravým tlačítkem na povrch v Prospektoru › Styl (např. <i>Vrstevnice s popisem</i>) a Vrstevnice po (0,1 / 0,5 m …).</li>
 </ol>
 <img src="img/import.png" class="stred">
@@ -66,20 +66,20 @@
 <p>Styl určuje značku (křížek, kolečko, strom, šachta…) a popis (číslo, výška, kód). Platí ručně nastavený styl, jinak styl podle kódu (pole <i>pro kódy</i>, např. STR → strom), jinak styl skupiny, jinak <i>Standard</i>. Velikosti jsou v mm na papíře a řídí se měřítkem výkresu (měřítko poznámek ve stavovém řádku, nebo Nastavení › Měřítko).</p>
 <p><b>Vlastní značka:</b> v editoru stylu zvolte <i>vlastní – blok výkresu</i> a vyberte blok. Základní bod bloku = poloha bodu, blok se zvětší na velikost značky, barvu v bloku nastavte „podle bloku“.</p>
 <p>Bod, značka a popisy drží pohromadě – klik na kteroukoli část vybere celý bod. <b>Posun bodu:</b> chyťte značku nebo popis a přesuňte je (úchopem nebo příkazem Přesunout) – přesune se celý bod, výška zůstane a povrch se přepočítá. Když v Nastavení zapnete <i>posunutím popisu bodu posunout jen popis</i>, posunutý popis zůstane odsunutý stranou (s vodicí čarou) a bod zůstane na místě; <i>Popisy na místo</i> v tabulce bodů ho vrátí. Kopie značky nebo popisu se smaže. Překrývající se popisy se odsunou s vodicí čarou (vypnete v Nastavení).</p>
-<h3>Posun bodů úchopem, panel Bod Terénu, kurzorové menu</h3>
+<h3>Posun bodů úchopem, panel Vlastnosti bodu, kurzorové menu</h3>
 <p><b>Posun bodů</b> (záložka Terén › Body; tlačítko ukazuje stav <i>zapnuto / vypnuto</i>, přepíná se šipkou) zapne vlastní úchopy: na každém bodě se objeví kroužek. Chyťte ho a táhněte – značka i popisy jdou s bodem, po puštění se bod přesune (výška zůstane) jedním krokem Zpět. Dalším klikem na <i>Posun bodů</i> úchopy vypnete (když jsou zapnuté, klik do středu bodu ho nevybere, ale začne posun).</p>
-<p><b>Vlastnosti bodu</b> otevře v doku panel <i>Bod Terénu</i>: po výběru bodu ukáže číslo, výšku, kód a styl. Pole přepište a klikněte <i>Uložit</i>. U více vybraných bodů se uloží jen změněná pole (číslo jen u jednoho bodu).</p>
+<p><b>Vlastnosti bodu</b> otevře v doku stejnojmenný panel: po výběru bodu ukáže číslo, výšku, kód a styl. Pole přepište a klikněte <i>Uložit</i>. U více vybraných bodů se uloží jen změněná pole (číslo jen u jednoho bodu). Ve skupině <i>Aktivní povrch</i> panel ukazuje aktivní povrch a jeho stav (aktuální / zastaralý) s tlačítky <i>Přepočítat</i> a <i>Prohlédnout ve 3D</i> – Prospektor nemusí být otevřený.</p>
 <p><b>Kurzorové menu</b> (quad; v Open CAD Studiu se zapíná klávesou F12 nebo polem QUAD ve stavovém řádku) má u bodů a povrchů záložku <i>Terén</i>: vlastnosti bodu, posun bodů, přidat bod do povrchu, přepočítat povrch, Prospektor.</p>
 <h3>Ruční body a úprava výšky</h3>
-<p><i>Nový bod › Ruční bod</i>: klikněte do výkresu nebo zadejte x,y; otevře se okno s výškou (návrh z povrchu nebo z předchozího bodu) a kódem. <i>Bod na povrchu</i> vezme výšku z aktivního povrchu. Výšku, číslo a kód existujícího bodu změníte přímo v tabulce bodů: dvojklik na buňku, přepsat, Enter uloží a skočí na další bod (Esc zruší). Více vybraným bodům najednou nastavíte nebo přičtete výšku a nastavíte kód řádkem nad tabulkou.</p>
+<p><i>Nový bod › Ruční bod</i>: klikněte do výkresu nebo zadejte x,y; otevře se okno s výškou (návrh z povrchu nebo z předchozího bodu) a kódem. <i>Bod na povrchu</i> vezme výšku z aktivního povrchu. Výšku, číslo a kód existujícího bodu změníte přímo v tabulce bodů: dvojklik na buňku, přepsat, Enter uloží a skočí na další bod (Esc zruší). F2 upraví buňku vybraného bodu. Více vybraným bodům najednou nastavíte nebo přičtete výšku, kód, styl, skupinu nebo je přečíslujete z lišty nad tabulkou; filtry nad ní vyberou body podle skupiny, kódu a výšky.</p>
 <h3>Skupiny bodů</h3>
 <p>Skupina vybírá body podle pravidel (kód, čísla, soubor importu), s výjimkami a ručně přidanými / odebranými body. Náhled barevně ukazuje, které body do skupiny patří. Povrch se skládá ze skupin – změna skupiny povrch přepočítá nebo označí jako zastaralý.</p>
 <h3>Kontrola zaměření</h3>
 <p>Prospektor › Kontrola zaměření najde body, jejichž výška výrazně vybočuje z okolí (překlep, bod na autě). Podezřelé body označí kroužkem na hladině TER_KONTROLA; jedním kliknutím je vynecháte z povrchu.</p>
 
 <h2>6. Povrchy</h2>
-<p>Povrch tvoří: skupiny bodů, objekty výkresu (body, bloky, čáry, 3D plochy – např. výkres od geodeta), spojnice, hranice a díry a ruční úpravy. Vše je v Prospektoru u povrchu › <i>Z čeho se povrch počítá</i>; každou položku jde vypnout, ukázat nebo odebrat.</p>
-<p><b>Aktivní povrch</b> (horní řádek Prospektoru, dvojklik ve stromu) používají nástroje Úpravy trojúhelníků, Výška v bodě a Bod na povrchu.</p>
+<p>Povrch tvoří: skupiny bodů, objekty výkresu (body, bloky, čáry, 3D plochy – např. výkres od geodeta), spojnice, hranice a díry a ruční úpravy. Vše je v Prospektoru ve stromu pod povrchem a na jeho kartě na záložce <i>Zdroje</i>; každou položku jde vypnout, ukázat nebo odebrat.</p>
+<p><b>Aktivní povrch</b> (horní řádek Prospektoru, dvojklik ve stromu, ★ ve stromu) používají nástroje Úpravy trojúhelníků, Výška v bodě a Bod na povrchu.</p>
 <p><b>Styl povrchu</b> určuje, co se kreslí: trojúhelníky, vrstevnice (vedlejší / hlavní, barvy, popisy), obrys, šipky spádu. Styly upravíte v Prospektoru pod Styly; vestavěný styl jde kdykoli vrátit k původnímu nastavení.</p>
 <p>Povrch je ve výkrese blok na vlastních hladinách; v Nastavení lze zapnout <i>Povrch nejde vybrat kliknutím</i>, aby klik prošel na body pod ním.</p>
 
@@ -94,7 +94,7 @@
 </ul>
 
 <h2>9. Nastavení a šablona výkresu</h2>
-<p>Prospektor › Nastavení: jazyk (čeština / angličtina, projeví se po restartu Open CAD Studia), měřítko, odsazení popisů, náhled importu, vyloučené kódy nového povrchu, přichycení spojnic, práh kontroly zaměření.</p>
+<p>Prospektor › Nastavení je rozdělené do kategorií: Obecné (jazyk – projeví se po restartu Open CAD Studia, sledování výběru), Výkres a měřítko (měřítko, odsazení popisů, šablona), Body a import, Povrchy (vyloučené kódy nového povrchu, přichycení spojnic, výběr kliknutím), Kontrola zaměření (práh) a Okno Prospektoru (co ukázat po otevření, vždy navrchu, úzké / široké okno). Vysvětlivky ukáže tooltip.</p>
 <p><b>Šablona výkresu:</b> <i>Uložit tento výkres jako šablonu</i> uloží styly a měřítko do profilu uživatele; <i>Připravit výkres</i> (pás karet) pak v novém výkrese jedním kliknutím připraví hladiny, značky bodů, měřítko a styly.</p>
 
 <h2>10. Tipy a řešení problémů</h2>

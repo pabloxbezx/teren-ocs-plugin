@@ -22,7 +22,7 @@
 <h2>2. Installation</h2>
 <p><b>Plugin Manager:</b> in Open CAD Studio open the Plugin Manager, find <i>Terén</i> and click Install. After a restart the <b>Terén</b> tab appears.</p>
 <p><b>Manually (Windows):</b> download <code>Teren-windows.zip</code> from the GitHub release, extract it and run <code>nainstalovat.bat</code>. The plugin is copied to <code>%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren</code>.</p>
-<p>Each Terén release is built for one Open CAD Studio release – the Plugin Manager offers the right one; for a manual install pick the release from the table in the README (Terén 1.0.2 – 1.0.6 = Open CAD Studio 2026.45). The interface language (Czech / English) is set in Prospector › Settings.</p>
+<p>Each Terén release is built for one Open CAD Studio release – the Plugin Manager offers the right one; for a manual install pick the release from the table in the README (Terén 1.0.2 – 1.0.7 = Open CAD Studio 2026.45). The interface language (Czech / English) is set in Prospector › Settings.</p>
 
 <h2>3. Interface</h2>
 <img src="img/pas-en.png" class="siroky">
@@ -36,14 +36,14 @@
 <tr><td>Triangle edits</td><td>Swap / add / delete edge, delete triangle, add point to surface / remove point from surface, undo surface edits</td></tr>
 <tr><td>Outputs</td><td>Surface export, 3D viewer, Point export, Elevation at point, Survey check</td></tr>
 </table>
-<p>The <b>Prospector</b> is a separate window with three modes:</p>
+<p>The <b>Prospector</b> is a separate window: a tree on the left, details of the selected item on the right.</p>
 <ul>
-<li><b>Selection</b> – what is selected in the drawing (point, surface) and what you can do with it: edit elevation and number, style, groups, recalculation.</li>
-<li><b>Drawing</b> – a tree of everything the plugin has in the drawing: points (table), point groups, surfaces, styles, survey check, settings. Right-click opens a menu of actions.</li>
-<li><b>3D</b> – surface viewer.</li>
+<li><b>Tree</b> – at the top <i>Selected in drawing</i> (properties of the selected point or surface), below it points (table), point groups, surfaces (each with its sources underneath), point and surface styles, survey check and settings. Counts and status are on the right: the dot at a surface is green = up to date, orange = out of date, ★ = active surface. Right-click opens a menu of actions.</li>
+<li><b>Card</b> – details start with a card showing the name, status, key numbers and the most common actions; more actions are under <i>⋯</i>. A surface has the tabs Overview, Sources, Export and Warnings.</li>
+<li><b>Top bar</b> – drawing name (click = overview and the "How to" steps), search, <i>Find in Prospector</i>, <i>◎ Follow selection</i> and help. <i>View in 3D</i> at a surface opens the surface viewer.</li>
 </ul>
 <img src="img/prospektor-en.png" class="stred">
-<p class="popisek">Prospector – Drawing mode, point table</p>
+<p class="popisek">Prospector – point table</p>
 <p>Help with workflows and a glossary is in the Prospector (<b>F1</b>); the <span class="otaznik">?</span> next to a term shows an explanation.</p>
 
 <h2>4. Ground from a survey – step by step</h2>
@@ -52,7 +52,7 @@
 <li><b>New surface.</b> New surface › <i>Existing ground (from points)</i>. It takes the <i>Survey</i> group without STR codes (trees). The wizard (New surface › Wizard) lets you choose groups, max. edge length, style and contour interval.</li>
 <li><b>Breaklines.</b> <i>Breakline through points</i> – click survey points (slope edge, toe, top, ditch centreline); Enter = finish. Existing 3D polylines are added with <i>Add breakline</i>.</li>
 <li><b>Boundary.</b> Draw a closed polyline around the area, select it and click <i>Boundary</i>. <i>Hole</i> leaves out the inside of a polyline.</li>
-<li><b>Check and edit.</b> The <i>Triangles</i> style or the 3D tab shows the network. Swap or delete unsuitable edges with the Triangle edits tools; each edit is stored with the surface and reapplied on recalculation.</li>
+<li><b>Check and edit.</b> The <i>Triangles</i> style or <i>View in 3D</i> shows the network. Swap or delete unsuitable edges with the Triangle edits tools; each edit is stored with the surface and reapplied on recalculation.</li>
 <li><b>Contours.</b> Right-click the surface in the Prospector › Style (e.g. <i>Contours with labels</i>) and Contour interval (0.1 / 0.5 m …).</li>
 </ol>
 <img src="img/import-en.png" class="stred">
@@ -66,20 +66,20 @@
 <p>A style sets the marker (cross, circle, tree, manhole…) and the label (number, elevation, code). A manually set style applies, otherwise the style by code (the <i>for codes</i> field, e.g. STR → tree), otherwise the group's style, otherwise <i>Standard</i>. Sizes are in mm on paper and follow the drawing scale (annotation scale in the status bar, or Settings › Scale).</p>
 <p><b>Custom marker:</b> in the style editor choose <i>custom – drawing block</i> and select a block. The block's base point = point position, the block is scaled to the marker size; set the colour inside the block to ByBlock.</p>
 <p>A point, its marker and labels stay together – clicking any part selects the whole point. <b>Moving a point:</b> grab the marker or a label and move it (with a grip or the Move command) – the whole point moves, its elevation stays and the surface is recalculated. With <i>moving a point label moves only the label</i> turned on in Settings, a moved label stays aside (with a leader line) and the point stays put; <i>Reset labels</i> in the point table brings it back. A copied marker or label is deleted. Overlapping labels are moved aside with a leader line (can be turned off in Settings).</p>
-<h3>Moving points by grip, Terén point panel, cursor menu</h3>
+<h3>Moving points by grip, Point properties panel, cursor menu</h3>
 <p><b>Move points</b> (Terén tab › Points; the button shows <i>on / off</i>, switch with its arrow) turns on custom grips: a circle appears on every point. Grab it and drag – the marker and labels move with the point; on release the point moves (its elevation stays) in one undo step. Click <i>Move points</i> again to turn the grips off (while they are on, a click on a point's centre starts a move instead of selecting it).</p>
-<p><b>Point properties</b> opens the <i>Terén point</i> panel in the dock: after selecting a point it shows the number, elevation, code and style. Edit the fields and click <i>Save</i>. With several points selected only the changed fields are saved (the number only for a single point).</p>
+<p><b>Point properties</b> opens the panel of the same name in the dock: after selecting a point it shows the number, elevation, code and style. Edit the fields and click <i>Save</i>. With several points selected only the changed fields are saved (the number only for a single point). The <i>Active surface</i> group shows the active surface and its status (up to date / out of date) with <i>Recalculate</i> and <i>View in 3D</i> – the Prospector does not need to be open.</p>
 <p>The <b>cursor menu</b> (quad; turned on in Open CAD Studio with F12 or the QUAD field in the status bar) has a <i>Terén</i> tab for points and surfaces: point properties, move points, add point to surface, recalculate surface, Prospector.</p>
 <h3>Manual points and editing elevation</h3>
-<p><i>New point › Manual point</i>: click in the drawing or enter x,y; a window asks for the elevation (suggested from the surface or the previous point) and the code. <i>Point on surface</i> takes the elevation of the active surface. Change the elevation, number and code of an existing point directly in the point table: double-click a cell, type, Enter saves and moves to the next point (Esc cancels). For several selected points at once, set or add an elevation and set a code in the row above the table.</p>
+<p><i>New point › Manual point</i>: click in the drawing or enter x,y; a window asks for the elevation (suggested from the surface or the previous point) and the code. <i>Point on surface</i> takes the elevation of the active surface. Change the elevation, number and code of an existing point directly in the point table: double-click a cell, type, Enter saves and moves to the next point (Esc cancels). F2 edits a cell of the selected point. For several selected points at once, set or add an elevation, set a code, style or group, or renumber them from the bar above the table; the filters above it pick points by group, code and elevation.</p>
 <h3>Point groups</h3>
 <p>A group selects points by rules (code, numbers, import file), with exclusions and manually added / removed points. The preview shows in colour which points belong. A surface is built from groups – a change of a group recalculates the surface or marks it out of date.</p>
 <h3>Survey check</h3>
 <p>Prospector › Survey check finds points whose elevation differs markedly from their surroundings (typo, point on a car). Suspicious points are circled on the TER_KONTROLA layer; one click leaves them out of the surface.</p>
 
 <h2>6. Surfaces</h2>
-<p>A surface is built from point groups, drawing objects (points, blocks, lines, 3D faces – e.g. a surveyor's drawing), breaklines, boundaries and holes, and manual edits. All are listed in the Prospector at the surface › <i>What the surface is built from</i>; each item can be disabled, shown or removed.</p>
-<p>The <b>active surface</b> (top row of the Prospector, double-click in the tree) is used by the Triangle edits tools, Elevation at point and Point on surface.</p>
+<p>A surface is built from point groups, drawing objects (points, blocks, lines, 3D faces – e.g. a surveyor's drawing), breaklines, boundaries and holes, and manual edits. All are listed in the Prospector tree under the surface and on its card on the <i>Sources</i> tab; each item can be disabled, shown or removed.</p>
+<p>The <b>active surface</b> (top row of the Prospector, double-click in the tree, ★ in the tree) is used by the Triangle edits tools, Elevation at point and Point on surface.</p>
 <p>The <b>surface style</b> sets what is drawn: triangles, contours (minor / major, colours, labels), outline, slope arrows. Edit styles in the Prospector under Styles; a built-in style can always be restored to its original settings.</p>
 <p>In the drawing a surface is a block on its own layers; Settings › <i>Surface cannot be selected by clicking</i> lets clicks pass through to the points below.</p>
 
@@ -94,7 +94,7 @@
 </ul>
 
 <h2>9. Settings and drawing template</h2>
-<p>Prospector › Settings: language (Czech / English, takes effect after Open CAD Studio is restarted), scale, label offset, import preview, excluded codes for a new surface, breakline snap, survey check threshold.</p>
+<p>Prospector › Settings is split into categories: General (language – takes effect after Open CAD Studio is restarted, follow selection), Drawing and scale (scale, label offset, template), Points and import, Surfaces (excluded codes for a new surface, breakline snap, selection by click), Survey check (threshold) and Prospector window (what to show on opening, always on top, narrow / wide window). Tooltips explain each option.</p>
 <p><b>Drawing template:</b> <i>Save this drawing as the template</i> stores the styles and scale in the user profile; <i>Prepare drawing</i> (ribbon) then sets up layers, point markers, scale and styles in a new drawing with one click.</p>
 
 <h2>10. Tips and troubleshooting</h2>

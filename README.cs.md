@@ -15,7 +15,7 @@ ve výkrese, upravitelné a vždy jedním krokem Zpět.
 - **Stav je vždy vidět.** Aktuální ✔ / zastaralý ⚠ povrch, aktivní povrch,
   odkud má bod styl, co akce udělá.
 - **Úprava tam, kde se díváte.** Bod přetáhnete ve výkrese, výšku přepíšete
-  v tabulce, v panelu *Bod Terénu* v doku nebo z kurzorového menu.
+  v tabulce, v panelu *Vlastnosti bodu* v doku nebo z kurzorového menu.
 - **Nic se nerozbije omylem.** Každá akce je jeden krok Zpět. Povrch se
   náhodným kliknutím nevybere.
 - **České zvyklosti.** S-JTSK, soubory PYXZD od geodeta, Windows-1250.
@@ -61,7 +61,7 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.45 | 1.0.2 – 1.0.6 |
+| 2026.45 | 1.0.2 – 1.0.7 |
 | 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Správce pluginů** v Open CAD Studiu: vyhledejte *Terén* a klikněte
@@ -88,6 +88,34 @@ angličtina), projeví se po novém spuštění.
   nejvíc pomůže krátký popis a malý vymyšlený soubor zaměření.
 
 # Co je nového
+
+## Verze 1.0.7
+
+Přehlednější Prospektor:
+
+- **Jedno okno místo režimů Výběr / Výkres / 3D.** Vlevo strom, vpravo
+  podrobnosti; to, co je vybrané ve výkrese, je nahoře ve stromu
+  (*Vybráno ve výkrese*). *Prohlédnout ve 3D* u povrchu otevře prohlížeč
+  a tlačítkem vlevo nahoře se vrátíte do stromu.
+- **Strom s ikonami a stavem**: stejné ikony jako na pásu karet, počty vpravo,
+  tečka zelená = aktuální / oranžová = zastaralý, ★ = aktivní povrch.
+  Zdroje povrchu (skupiny, hranice a díry, spojnice, objekty, úpravy) jsou
+  přímo pod povrchem, styly bodů a povrchů na první úrovni.
+- **Karta detailu**: název se stavem, hlavní čísla a nejčastější akce nahoře,
+  další pod *⋯*. Povrch má záložky Přehled, Zdroje, Export a Upozornění;
+  přejmenování přímo na kartě.
+- **Tabulka bodů**: místo čtyř řádků hromadných akcí jedna lišta výběru
+  (výška, kód, styl, skupina, přečíslování v nabídkách), filtr podle výšky,
+  F2 upraví buňku.
+- **Nastavení v kategoriích**, vysvětlivky v tooltipech, potvrzení před
+  obnovením výchozích hodnot; okno může být *vždy navrchu* a *úzké* (nezakrývá
+  výkres).
+- Po smazání povrchu, skupiny, stylu nebo bodů hláška s tím, co se smazalo,
+  a jak to vrátit (Ctrl+Z).
+- **Panel Vlastnosti bodu** v doku (dřív *Bod Terénu*) ukazuje i aktivní
+  povrch a jeho stav, s tlačítky *Přepočítat* a *Prohlédnout ve 3D*.
+- Jednotné názvy s pásem karet (*Najít v Prospektoru*, *Prohlédnout ve 3D*,
+  *Nastavit jako aktivní*, *Podle skupiny / kódu*…).
 
 ## Verze 1.0.6
 

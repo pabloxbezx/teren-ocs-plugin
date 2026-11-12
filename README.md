@@ -16,7 +16,7 @@ everything in the drawing, editable and one Undo away.
 - **You always see the state.** Up-to-date ✔ or outdated ⚠ surface, the
   active surface, where a point gets its style from, what an action will do.
 - **Edit where you look.** Drag a point in the drawing, type into the point
-  table, use the *Terén point* panel in the dock or the cursor menu.
+  table, use the *Point properties* panel in the dock or the cursor menu.
 - **Nothing breaks by accident.** Every action is a single Undo step. The
   surface can't be picked by a stray click.
 - **Made for Czech surveys.** S-JTSK coordinates, PYXZD files from
@@ -61,7 +61,7 @@ that both sides use the same drawing data format):
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.45 | 1.0.2 – 1.0.6 |
+| 2026.45 | 1.0.2 – 1.0.7 |
 | 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Plugin Manager** in Open CAD Studio: find *Terén* and click Install.
