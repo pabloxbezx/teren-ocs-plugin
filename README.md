@@ -61,7 +61,7 @@ that both sides use the same drawing data format):
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.45 | 1.0.2 – 1.0.5 |
+| 2026.45 | 1.0.2 – 1.0.6 |
 | 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Plugin Manager** in Open CAD Studio: find *Terén* and click Install.

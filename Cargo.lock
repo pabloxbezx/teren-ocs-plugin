@@ -2905,7 +2905,7 @@ dependencies = [
 
 [[package]]
 name = "teren_plugin"
-version = "1.0.5"
+version = "1.0.6"
 dependencies = [
  "eframe",
  "ocs_plugin_api",
