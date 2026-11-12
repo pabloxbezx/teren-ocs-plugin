@@ -82,21 +82,15 @@ pub fn definice(styly: &[(String, String)]) -> PanelDef {
             text: tr("Vyberte bod ve výkrese (klik na značku nebo popis). Více bodům najednou se uloží jen změněná pole; číslo jen u jednoho bodu.").into(),
             align_h: None,
         })
-        .with_control(DialogControl::Fields {
-            id: "aktivni_povrch".into(),
-            title: Some(tr("Aktivní povrch").into()),
+        // aktivní povrch – jen prvky, které panel už používá (bez skupiny Fields)
+        .with_control(text("povrch", tr("Aktivní povrch")))
+        .with_control(DialogControl::Row {
             controls: vec![
-                text("povrch", tr("Povrch")),
-                DialogControl::Row {
-                    controls: vec![
-                        tlacitko("prepocitat", tr("Přepočítat"), Some("TER_PREPOCITAT")),
-                        tlacitko("pohled3d", tr("Prohlédnout ve 3D"), Some("TER_3D")),
-                    ],
-                    align_h: None,
-                    align_v: None,
-                },
+                tlacitko("prepocitat", tr("Přepočítat"), Some("TER_PREPOCITAT")),
+                tlacitko("pohled3d", tr("Prohlédnout ve 3D"), Some("TER_3D")),
             ],
-            collapsed: false,
+            align_h: None,
+            align_v: None,
         })
         .with_control(tlacitko("prospektor", tr("Otevřít Prospektor"), Some("TER_PROSPEKTOR")))
 }
