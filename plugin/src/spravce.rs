@@ -382,6 +382,16 @@ fn zamek<T>(m: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
     m.lock().unwrap_or_else(|e| e.into_inner())
 }
 
+/// Ukázka okna bez Open CAD Studia: akce se nikam neposílají.
+static UKAZKA: AtomicBool = AtomicBool::new(false);
+
+/// Nastaví ukázková data a vypne posílání akcí (jen pro vývoj).
+#[cfg(feature = "ukazka")]
+pub fn ukazka(s: StavSpravce) {
+    UKAZKA.store(true, Ordering::SeqCst);
+    *zamek(&sdilene().stav) = s;
+}
+
 pub fn stav() -> StavSpravce {
     zamek(&sdilene().stav).clone()
 }
@@ -474,6 +484,9 @@ pub fn ukaz_dialog(def: ocs_plugin_api::dialog::DialogDef) {
 }
 
 pub fn posli(a: Akce) {
+    if UKAZKA.load(Ordering::SeqCst) {
+        return;
+    }
     spust_vlakno();
     if let Some(tx) = zamek(&sdilene().tx).as_ref() {
         let _ = tx.send(Udalost::Akce(a));

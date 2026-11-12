@@ -21,6 +21,8 @@ use teren::skupiny::{kody_z_textu, SeznamCisel, SkupinaBodu, VSECHNY};
 use crate::cogo::BodVykresu;
 use crate::nastaveni;
 use crate::povrchy::{cislo_cz, DruhPolozky, TypObjektu, HRANY, INTERVALY, TYPY_OBJEKTU};
+#[cfg(feature = "ukazka")]
+mod foto;
 mod import_nahled;
 #[doc(hidden)]
 pub use import_nahled::ukazka as ukazka_importu;
@@ -141,6 +143,14 @@ pub fn otevri() {
     }
 }
 
+/// Ukázka okna bez Open CAD Studia (examples/ukazka_okna.rs).
+#[cfg(feature = "ukazka")]
+pub fn spust_ukazku() {
+    if let Err(e) = spust() {
+        eprintln!("[teren] ukázka: {e}");
+    }
+}
+
 fn spust() -> eframe::Result {
     let mut viewport = egui::ViewportBuilder::default()
         .with_title(tr("Terén – Prospektor"))
@@ -183,10 +193,53 @@ fn spust() -> eframe::Result {
     )
 }
 
+/// Tmavé téma sladěné s Open CAD Studiem (barvy jako náhled Prospektoru).
 fn nastav_vzhled(ctx: &egui::Context) {
-    ctx.set_visuals(egui::Visuals::dark());
+    let rgb = Color32::from_rgb;
+    let mut v = egui::Visuals::dark();
+    v.panel_fill = rgb(30, 33, 37);
+    v.window_fill = rgb(36, 40, 45);
+    v.extreme_bg_color = rgb(21, 23, 26);
+    v.faint_bg_color = rgb(35, 39, 44);
+    v.code_bg_color = rgb(42, 46, 52);
+    v.hyperlink_color = rgb(88, 166, 255);
+    v.window_stroke = egui::Stroke::new(1.0, rgb(58, 63, 70));
+    v.window_corner_radius = egui::CornerRadius::same(8);
+    v.menu_corner_radius = egui::CornerRadius::same(6);
+    v.selection.bg_fill = rgb(31, 61, 92);
+    v.selection.stroke = egui::Stroke::new(1.0, rgb(207, 227, 255));
+    let r = egui::CornerRadius::same(5);
+    let w = &mut v.widgets;
+    w.noninteractive.bg_fill = rgb(30, 33, 37);
+    w.noninteractive.weak_bg_fill = rgb(30, 33, 37);
+    w.noninteractive.bg_stroke = egui::Stroke::new(1.0, rgb(51, 56, 63));
+    w.noninteractive.fg_stroke = egui::Stroke::new(1.0, rgb(201, 205, 211));
+    w.noninteractive.corner_radius = r;
+    w.inactive.bg_fill = rgb(42, 46, 52);
+    w.inactive.weak_bg_fill = rgb(42, 46, 52);
+    w.inactive.bg_stroke = egui::Stroke::new(1.0, rgb(59, 65, 72));
+    w.inactive.fg_stroke = egui::Stroke::new(1.0, rgb(212, 215, 220));
+    w.inactive.corner_radius = r;
+    w.hovered.bg_fill = rgb(48, 53, 60);
+    w.hovered.weak_bg_fill = rgb(48, 53, 60);
+    w.hovered.bg_stroke = egui::Stroke::new(1.0, rgb(84, 94, 107));
+    w.hovered.fg_stroke = egui::Stroke::new(1.5, rgb(236, 238, 241));
+    w.hovered.corner_radius = r;
+    w.active.bg_fill = rgb(36, 71, 107);
+    w.active.weak_bg_fill = rgb(36, 71, 107);
+    w.active.bg_stroke = egui::Stroke::new(1.0, rgb(59, 119, 184));
+    w.active.fg_stroke = egui::Stroke::new(1.5, Color32::WHITE);
+    w.active.corner_radius = r;
+    w.open.bg_fill = rgb(42, 46, 52);
+    w.open.weak_bg_fill = rgb(42, 46, 52);
+    w.open.bg_stroke = egui::Stroke::new(1.0, rgb(59, 119, 184));
+    w.open.corner_radius = r;
+    ctx.set_visuals(v);
     ctx.global_style_mut(|s| {
-        s.spacing.item_spacing = egui::vec2(8.0, 5.0);
+        s.spacing.item_spacing = egui::vec2(8.0, 6.0);
+        s.spacing.button_padding = egui::vec2(9.0, 4.0);
+        s.spacing.interact_size.y = 22.0;
+        s.spacing.menu_margin = egui::Margin::same(6);
     });
 }
 
@@ -376,6 +429,9 @@ struct Okno {
     /// Poloha a velikost okna k uložení (a kdy se naposledy změnila).
     geometrie: Option<([f32; 4], std::time::Instant)>,
     ulozena_geometrie: Option<[f32; 4]>,
+    /// Ukázka: automatické snímky stránek.
+    #[cfg(feature = "ukazka")]
+    foto: Option<foto::Foto>,
 }
 
 /// Sloupce tabulky bodů, které jde skrýt.
@@ -480,6 +536,8 @@ impl eframe::App for Okno {
         // průběžně se dívat po změnách (stav mění jiné vlákno)
         ui.ctx().request_repaint_after(std::time::Duration::from_millis(400));
         self.zpracuj_skok(ui.ctx(), &stav);
+        #[cfg(feature = "ukazka")]
+        self.foto_krok(ui.ctx());
         self.hlidej_geometrii(ui.ctx());
         if let Some(t) = pozadavek_napovedy().lock().unwrap_or_else(|e| e.into_inner()).take() {
             self.napoveda = Some(t);
@@ -976,13 +1034,13 @@ impl Okno {
                     ui.label(tr("Velikost okna"));
                     ui.horizontal(|ui| {
                         if ui
-                            .button(tr("▭ Úzké"))
+                            .button(tr("Úzké"))
                             .on_hover_text(tr("úzký pruh se stromem nahoře a podrobnostmi pod ním – nezakrývá výkres"))
                             .clicked()
                         {
                             zmen_velikost(ui.ctx(), true);
                         }
-                        if ui.button(tr("▣ Široké")).on_hover_text(tr("strom vlevo, podrobnosti vpravo")).clicked() {
+                        if ui.button(tr("Široké")).on_hover_text(tr("strom vlevo, podrobnosti vpravo")).clicked() {
                             zmen_velikost(ui.ctx(), false);
                         }
                     });
@@ -1319,7 +1377,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                 spravce::posli(Akce::Kontrola);
                 self.vyber_uzel(Uzel::Kontrola);
             }
-            ui.menu_button("⋯", |ui| {
+            ui.menu_button(tr("Další ⏷"), |ui| {
                 if ui.button(tr("Nastavení nových bodů a importu…")).clicked() {
                     self.kat_nastaveni = 2;
                     self.vyber_uzel(Uzel::Nastaveni);
@@ -1930,7 +1988,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                     self.filtr_skupina = if vestavena { None } else { Some(id.to_string()) };
                     self.vyber_uzel(Uzel::Body);
                 }
-                ui.menu_button("⋯", |ui| self.menu_skupiny(ui, stav, &prehled.skupina));
+                ui.menu_button(tr("Další ⏷"), |ui| self.menu_skupiny(ui, stav, &prehled.skupina));
             });
             ui.add_space(4.0);
             ui.separator();
@@ -3731,9 +3789,12 @@ fn nastaveni_importu(ui: &mut egui::Ui) {
     info(ui, tr("Platí pro tlačítko Import bodů. Automaticky se formát i oddělovač rozpoznají ze souboru."));
 }
 
-/// Malé „ⓘ“ s vysvětlením v tooltipu (místo šedého textu pod volbou).
+/// Malé „i“ v kroužku s vysvětlením v tooltipu (místo šedého textu pod volbou).
 fn info(ui: &mut egui::Ui, text: &str) {
-    ui.label(RichText::new("ⓘ").color(SEDA)).on_hover_text(text);
+    let (rect, r) = ui.allocate_exact_size(egui::vec2(16.0, 16.0), Sense::hover());
+    ui.painter().circle_stroke(rect.center(), 7.0, egui::Stroke::new(1.0, SEDA));
+    ui.painter().text(rect.center(), Align2::CENTER_CENTER, "i", FontId::proportional(11.0), SEDA);
+    r.on_hover_text(text);
 }
 
 /// Volba: povrch nejde vybrat kliknutím (klik projde na body pod ním).

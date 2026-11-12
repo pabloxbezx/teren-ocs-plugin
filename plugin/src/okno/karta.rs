@@ -24,13 +24,27 @@ pub(super) enum ZalozkaPovrchu {
 }
 
 /// Barevný štítek (stav, aktivní…).
+/// Text začínající „● “ dostane místo znaku nakreslenou tečku (písmo egui ● nemá).
 pub(super) fn pilulka(ui: &mut egui::Ui, text: &str, barva: Color32) -> egui::Response {
+    let (tecka, text) = match text.strip_prefix("● ") {
+        Some(t) => (true, t),
+        None => (false, text),
+    };
     egui::Frame::new()
         .fill(barva.gamma_multiply(0.16))
         .stroke(egui::Stroke::new(1.0, barva.gamma_multiply(0.55)))
         .corner_radius(9.0)
-        .inner_margin(egui::Margin::symmetric(8, 1))
-        .show(ui, |ui| ui.label(RichText::new(text).color(barva).small()))
+        .inner_margin(egui::Margin::symmetric(8, 2))
+        .show(ui, |ui| {
+            ui.spacing_mut().item_spacing.x = 5.0;
+            ui.horizontal(|ui| {
+                if tecka {
+                    let (r, _) = ui.allocate_exact_size(egui::vec2(8.0, 8.0), Sense::hover());
+                    ui.painter().circle_filled(r.center(), 3.5, barva);
+                }
+                ui.label(RichText::new(text).color(barva).size(12.0));
+            });
+        })
         .response
 }
 
@@ -214,7 +228,7 @@ impl Okno {
             {
                 spravce::posli(Akce::Nastav(vec![id.clone()], Zmena::Auto(auto)));
             }
-            ui.menu_button("⋯", |ui| self.menu_povrchu(ui, stav, p)).response.on_hover_text(tr("Další akce: styl, vrstevnice, přejmenovat, export, smazat"));
+            ui.menu_button(tr("Další ⏷"), |ui| self.menu_povrchu(ui, stav, p)).response.on_hover_text(tr("Další akce: styl, vrstevnice, přejmenovat, export, smazat"));
         });
         ui.add_space(6.0);
 

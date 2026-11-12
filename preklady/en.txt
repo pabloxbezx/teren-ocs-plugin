@@ -1275,9 +1275,9 @@ přehled výkresu	drawing overview
 Vždy navrchu	Always on top
 okno Prospektoru zůstane nad Open CAD Studiem	the Prospector window stays above Open CAD Studio
 Velikost okna	Window size
-▭ Úzké	▭ Narrow
+Úzké	Narrow
 úzký pruh se stromem nahoře a podrobnostmi pod ním – nezakrývá výkres	narrow strip with the tree on top and details below – does not cover the drawing
-▣ Široké	▣ Wide
+Široké	Wide
 strom vlevo, podrobnosti vpravo	tree on the left, details on the right
 # Prospektor 1.0.7 – karty
 vestavěná	built-in
@@ -1385,3 +1385,4 @@ Styl podle kódu	Style by code
  · {} nečitelné se vynechají	 · {} unreadable will be left out
  · {} podezřelé se vloží (lze vyřadit)	 · {} suspicious will be inserted (can be excluded)
  · Zpět jedním krokem	 · Undo in one step
+Další ⏷	More ⏷

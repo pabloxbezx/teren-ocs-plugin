@@ -16,6 +16,8 @@ mod povrchy;
 mod spravce;
 mod styly;
 mod uchopy;
+#[cfg(feature = "ukazka")]
+pub mod ukazka;
 mod vykres;
 
 #[doc(hidden)]
