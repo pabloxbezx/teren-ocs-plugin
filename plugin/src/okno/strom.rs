@@ -493,7 +493,7 @@ impl Okno {
                 spravce::posli(Akce::SmazStyl(st.id.clone()));
             }
         } else if ui.button(RichText::new(tr("Smazat styl")).color(CERVENA)).clicked() {
-            spravce::posli(Akce::SmazStyl(st.id.clone()));
+            super::smazat(trf!("Styl „{}“ je smazaný.", st.jmeno), Akce::SmazStyl(st.id.clone()));
         }
     }
 
@@ -512,7 +512,7 @@ impl Okno {
                 spravce::posli(Akce::SmazStyl(st.id.clone()));
             }
         } else if ui.button(RichText::new(tr("Smazat styl")).color(CERVENA)).clicked() {
-            spravce::posli(Akce::SmazStyl(st.id.clone()));
+            super::smazat(trf!("Styl „{}“ je smazaný.", st.jmeno), Akce::SmazStyl(st.id.clone()));
         }
     }
 }

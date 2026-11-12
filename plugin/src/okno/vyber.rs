@@ -282,7 +282,7 @@ impl Okno {
                 self.otevri_v_tabulce(stav, &[b.handle]);
             }
             if ui.button(RichText::new(tr("Smazat bod")).color(CERVENA)).clicked() {
-                spravce::posli(Akce::BodySmazat(vec![b.handle]));
+                super::smazat(super::pocet_smazanych(1), Akce::BodySmazat(vec![b.handle]));
             }
         });
     }
@@ -364,7 +364,7 @@ impl Okno {
                 self.otevri_v_tabulce(stav, &h);
             }
             if ui.button(RichText::new(trf!("Smazat ({})", h.len())).color(CERVENA)).clicked() {
-                spravce::posli(Akce::BodySmazat(h.clone()));
+                super::smazat(super::pocet_smazanych(h.len()), Akce::BodySmazat(h.clone()));
             }
         });
     }
@@ -403,7 +403,7 @@ impl Okno {
                 self.vyber_uzel(Uzel::Povrch(id.clone()));
             }
             if ui.button(RichText::new(tr("Smazat")).color(CERVENA)).clicked() {
-                spravce::posli(Akce::Smazat(id.clone()));
+                super::smazat(trf!("Povrch „{}“ je smazaný.", p.jmeno), Akce::Smazat(id.clone()));
             }
         });
         if self.vyber_povrch_id != p.id {

@@ -1247,3 +1247,10 @@ přepočítává se automaticky	rebuilds automatically
 skrytý – styl Nezobrazovat	hidden – style Do not display
 dvojklik = nastavit jako aktivní	double-click = set as active
 Upozornění	Warnings
+Skupina „{}“ je smazaná (body ve výkrese zůstaly).	Group "{}" was deleted (the points stay in the drawing).
+Povrch „{}“ je smazaný.	Surface "{}" was deleted.
+Styl „{}“ je smazaný.	Style "{}" was deleted.
+Bod je smazaný.	The point was deleted.
+{} body jsou smazané.	{} points were deleted.
+{} bodů je smazaných.	{} points were deleted.
+Vrátíte to Ctrl+Z ve výkrese.	Undo it with Ctrl+Z in the drawing.

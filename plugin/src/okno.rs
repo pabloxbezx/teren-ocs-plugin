@@ -366,6 +366,55 @@ const CERVENA: Color32 = Color32::from_rgb(235, 90, 80);
 const SEDA: Color32 = Color32::from_rgb(150, 155, 160);
 const MODRA: Color32 = Color32::from_rgb(110, 170, 240);
 
+/// Poslední smazání: text hlášky a kdy se stalo.
+fn hlaska_smazani() -> &'static Mutex<Option<(String, std::time::Instant)>> {
+    static H: OnceLock<Mutex<Option<(String, std::time::Instant)>>> = OnceLock::new();
+    H.get_or_init(|| Mutex::new(None))
+}
+
+/// Pošle mazací akci a ukáže hlášku s radou, jak ji vrátit.
+fn smazat(text: String, akce: Akce) {
+    spravce::posli(akce);
+    *hlaska_smazani().lock().unwrap_or_else(|e| e.into_inner()) = Some((text, std::time::Instant::now()));
+}
+
+fn pocet_smazanych(n: usize) -> String {
+    match n {
+        1 => tr("Bod je smazaný.").to_string(),
+        2..=4 => trf!("{} body jsou smazané.", n),
+        _ => trf!("{} bodů je smazaných.", n),
+    }
+}
+
+/// Hláška po smazání (vpravo dole, 8 s): co se smazalo a jak to vrátit.
+fn ukaz_hlasku_smazani(ctx: &egui::Context) {
+    let mut g = hlaska_smazani().lock().unwrap_or_else(|e| e.into_inner());
+    let Some((text, kdy)) = g.as_ref() else { return };
+    if kdy.elapsed() > std::time::Duration::from_secs(8) {
+        *g = None;
+        return;
+    }
+    let mut zavrit = false;
+    egui::Area::new(egui::Id::new("hlaska_smazani"))
+        .anchor(Align2::RIGHT_BOTTOM, egui::vec2(-12.0, -34.0))
+        .order(egui::Order::Foreground)
+        .show(ctx, |ui| {
+            egui::Frame::popup(ui.style()).show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new(text).strong());
+                    ui.label(RichText::new(tr("Vrátíte to Ctrl+Z ve výkrese.")).color(SEDA));
+                    if ui.small_button("✕").clicked() {
+                        zavrit = true;
+                    }
+                });
+            });
+        });
+    if zavrit {
+        *g = None;
+    }
+    ctx.request_repaint_after(std::time::Duration::from_millis(500));
+}
+
 fn interval_text(i: f64, h: f64) -> String {
     format!("{} / {} m", cislo_cz(i), cislo_cz(h))
 }
@@ -432,6 +481,7 @@ impl eframe::App for Okno {
                 .on_hover_text(&stav.zprava);
             ui.add_space(2.0);
         });
+        ukaz_hlasku_smazani(ui.ctx());
         if self.rezim == Rezim::Pohled3D {
             self.panel_3d(ui, &stav);
             return;
@@ -809,7 +859,7 @@ impl Okno {
         if !vestavena {
             ui.separator();
             if ui.button(RichText::new(tr("Smazat skupinu")).color(CERVENA)).on_hover_text(tr("body ve výkrese zůstanou")).clicked() {
-                spravce::posli(Akce::SkupinaSmazat(s.id.clone()));
+                smazat(trf!("Skupina „{}“ je smazaná (body ve výkrese zůstaly).", s.jmeno), Akce::SkupinaSmazat(s.id.clone()));
             }
         }
     }
@@ -873,7 +923,7 @@ impl Okno {
             self.vyber_uzel(Uzel::Povrch(id.clone()));
         }
         if ui.button(RichText::new(tr("Smazat povrch")).color(CERVENA)).clicked() {
-            spravce::posli(Akce::Smazat(id.clone()));
+            smazat(trf!("Povrch „{}“ je smazaný.", p.jmeno), Akce::Smazat(id.clone()));
         }
     }
 
@@ -930,7 +980,7 @@ impl Okno {
         }
         ui.separator();
         if ui.button(RichText::new(if n == 1 { tr("Smazat bod") } else { tr("Smazat body") }).color(CERVENA)).clicked() {
-            spravce::posli(Akce::BodySmazat(h.to_vec()));
+            smazat(pocet_smazanych(h.len()), Akce::BodySmazat(h.to_vec()));
         }
     }
 
@@ -1258,7 +1308,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
             }
             ui.separator();
             if ui.button(RichText::new(trf!("Smazat ({})", vybrane.len())).color(CERVENA)).clicked() {
-                spravce::posli(Akce::BodySmazat(vybrane.clone()));
+                smazat(pocet_smazanych(vybrane.len()), Akce::BodySmazat(vybrane.clone()));
                 self.vybrane_body.clear();
             }
         });
@@ -1673,7 +1723,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
             if !vestavena {
                 ui.add_space(4.0);
                 if ui.button(RichText::new(tr("Smazat skupinu")).color(CERVENA)).on_hover_text(tr("body ve výkrese zůstanou")).clicked() {
-                    spravce::posli(Akce::SkupinaSmazat(id.to_string()));
+                    smazat(trf!("Skupina „{}“ je smazaná (body ve výkrese zůstaly).", prehled.skupina.jmeno), Akce::SkupinaSmazat(id.to_string()));
                 }
             }
             ui.separator();
@@ -2304,7 +2354,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
             }
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if ui.button(RichText::new(tr("Smazat povrch")).color(CERVENA)).clicked() {
-                    spravce::posli(Akce::Smazat(id.clone()));
+                    smazat(trf!("Povrch „{}“ je smazaný.", p.jmeno), Akce::Smazat(id.clone()));
                 }
             });
         });
@@ -3230,7 +3280,7 @@ impl Okno {
                     spravce::posli(Akce::SmazStyl(st.id.clone()));
                 }
             } else if ui.button(RichText::new(tr("Smazat styl")).color(CERVENA)).clicked() {
-                spravce::posli(Akce::SmazStyl(st.id.clone()));
+                smazat(trf!("Styl „{}“ je smazaný.", st.jmeno), Akce::SmazStyl(st.id.clone()));
             }
         });
         ui.add_space(4.0);
@@ -3369,7 +3419,7 @@ impl Okno {
                     spravce::posli(Akce::SmazStyl(st.id.clone()));
                 }
             } else if ui.button(RichText::new(tr("Smazat styl")).color(CERVENA)).clicked() {
-                spravce::posli(Akce::SmazStyl(st.id.clone()));
+                smazat(trf!("Styl „{}“ je smazaný.", st.jmeno), Akce::SmazStyl(st.id.clone()));
             }
         });
         let pouziva: Vec<&str> =
