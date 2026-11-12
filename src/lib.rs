@@ -5,6 +5,7 @@
 pub mod body;
 pub mod duplicity;
 pub mod dxf;
+pub mod formaty;
 pub mod kodovani;
 pub mod kontrola;
 pub mod landxml;
@@ -13,6 +14,7 @@ pub mod povrch;
 pub mod rozpoznani;
 pub mod skupiny;
 pub mod vrstevnice;
+pub mod z_vykresu;
 
 /// Dekóduje text ve Windows-1250 (běžné u exportů z CAD a geodetických programů).
 pub fn dekoduj_cp1250(bajty: &[u8]) -> String {

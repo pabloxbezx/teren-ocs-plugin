@@ -1062,3 +1062,10 @@ formát '{}' míchá souřadnice výkresu (N, E) a S-JTSK (Y, X)	format '{}' mix
 chybí hodnota {}	missing value {}
 automaticky	automatic
 tečka	point
+text	text
+v souboru LandXML nejsou body CgPoint	the LandXML file contains no CgPoint points
+v souboru JobXML nejsou redukované souřadnice bodů	the JobXML file contains no reduced point coordinates
+v souboru GSI nejsou souřadnice bodů (slova 81, 82)	the GSI file contains no point coordinates (words 81, 82)
+sešit nejde otevřít: {}	the workbook cannot be opened: {}
+sešit nemá žádný list	the workbook has no sheet
+list {} nejde přečíst: {}	sheet {} cannot be read: {}

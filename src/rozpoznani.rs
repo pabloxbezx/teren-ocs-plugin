@@ -295,9 +295,18 @@ pub fn rozpoznej(text: &str) -> Vec<Kandidat> {
             }
         }
     }
+    // oddělovač, který je skoro na každém řádku (tabulátor, středník), má
+    // při shodě přednost před mezerou
+    let datove: Vec<&str> = radky_dat(text, Oddelovac::Mezera, 0).take(200).map(|(_, l)| l).collect();
+    let vsude = |c: char| !datove.is_empty() && datove.iter().filter(|l| l.contains(c)).count() * 10 >= datove.len() * 8;
+    let prednost = |o: Oddelovac| match o {
+        Oddelovac::Tabulator if vsude('\t') => 0,
+        Oddelovac::Strednik if vsude(';') => 0,
+        o => 1 + ODDELOVACE.iter().position(|&x| x == o).unwrap_or(9),
+    };
     let poradi = |k: &Kandidat| {
         (
-            ODDELOVACE.iter().position(|&o| o == k.oddelovac).unwrap_or(9),
+            prednost(k.oddelovac),
             match k.puvod {
                 Puvod::Zahlavi => 0,
                 Puvod::Vzor => 1 + FORMATY.iter().position(|&f| f == k.format).unwrap_or(9),
