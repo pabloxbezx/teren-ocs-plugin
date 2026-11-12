@@ -57,8 +57,11 @@ impl Kandidat {
     }
     fn skore(&self) -> (i64, i64, i64) {
         let celkem = (self.pocet + self.chyby).max(1) as i64;
+        // bod s nesmyslnou výškou se nepočítá jako načtený (jinak by vzor,
+        // který kontroluje méně sloupců, vyhrál u souboru s chybnými řádky)
+        let dobre = self.pocet.saturating_sub(self.podezrele_z) as i64;
         (
-            (self.pocet as i64 * 1000) / celkem,
+            (dobre * 1000) / celkem,
             (self.v_cr as i64 * 1000) / (self.pocet.max(1) as i64),
             -((self.podezrele_z as i64 * 1000) / (self.pocet.max(1) as i64)),
         )
