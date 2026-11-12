@@ -1213,7 +1213,7 @@ impl TerenPlugin {
                 let h = cogo::body_z_vyberu(&doc, &vyber);
                 let vse = cogo::body(&doc);
                 let vybrane: Vec<&cogo::BodVykresu> = vse.iter().filter(|b| h.contains(&b.handle)).collect();
-                host.update_panel(panel::ID, panel::hodnoty(&vybrane));
+                host.update_panel(panel::ID, panel::hodnoty(&vybrane, panel::text_povrchu(&doc)));
             }
             "TER_VYSKA" => {
                 let mut v = PresHost(host);

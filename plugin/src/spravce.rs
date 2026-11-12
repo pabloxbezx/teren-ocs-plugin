@@ -692,7 +692,8 @@ impl Pracovnik {
                 s.vyber_jine = 0;
             });
             if let Some(mut k) = kanal(tab) {
-                k.panel(crate::panel::hodnoty(&[]));
+                let povrch = k.dokument().map(|d| crate::panel::text_povrchu(&d)).unwrap_or_default();
+                k.panel(crate::panel::hodnoty(&[], povrch));
             }
             return;
         }
@@ -700,11 +701,11 @@ impl Pracovnik {
         registruj_quad(&mut k);
         let Ok(doc) = k.dokument() else { return };
         let body = cogo::body_z_vyberu(&doc, &h);
-        // panel Bod Terénu
+        // panel Vlastnosti bodu
         {
             let vse = cogo::body(&doc);
             let vybrane: Vec<&BodVykresu> = vse.iter().filter(|b| body.contains(&b.handle)).collect();
-            k.panel(crate::panel::hodnoty(&vybrane));
+            k.panel(crate::panel::hodnoty(&vybrane, crate::panel::text_povrchu(&doc)));
         }
         // bod drží pohromadě: klik na značku nebo popis vybere i bod a ostatní popisy
         if !body.is_empty() && !self.bezi(tab) {
@@ -769,10 +770,17 @@ impl Pracovnik {
                     oznac_povrchy(&mut k, &doc, true);
                 }
             }
-            if !okno && !self.ma_auto.get(&tab).copied().unwrap_or(true) {
+            let panel = crate::panel::otevren();
+            if !okno && !panel && !self.ma_auto.get(&tab).copied().unwrap_or(true) {
                 continue;
             }
             self.auto_prepocet(tab, &mut k);
+            // panel Vlastnosti bodu: stav aktivního povrchu po změně výkresu
+            if panel {
+                if let Ok(doc) = k.dokument() {
+                    k.panel(crate::panel::jen_povrch(&doc));
+                }
+            }
             if okno {
                 self.obnov(&mut k);
             }

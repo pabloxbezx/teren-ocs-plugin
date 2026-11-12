@@ -1243,7 +1243,7 @@ symboly	symbols
 Nástroje	Tools
 Najde body, jejichž výška vybočuje z okolí	Finds points whose height stands out from their surroundings
 ★ aktivní povrch (s ním pracují nástroje Úpravy a Nový bod na povrchu)	★ active surface (used by the Edits tools and New point on surface)
-přepočítává se automaticky	rebuilds automatically
+přepočítává se automaticky	recalculates automatically
 skrytý – styl Nezobrazovat	hidden – style Do not display
 dvojklik = nastavit jako aktivní	double-click = set as active
 Upozornění	Warnings
@@ -1287,7 +1287,7 @@ styl bodů	point style
 Zobrazit v tabulce bodů	Show in the point table
 Nové jméno	New name
 ● zastaralý	● out of date
-zdroje se od přepočtu změnily – klikněte Přepočítat	the sources changed since the last rebuild – click Rebuild
+zdroje se od přepočtu změnily – klikněte Přepočítat	the sources changed since the last recalculation – click Recalculate
 ● aktuální	● up to date
 ★ aktivní	★ active
 s aktivním povrchem pracují nástroje Úpravy a Nový bod na povrchu	the Edits tools and New point on surface work with the active surface
@@ -1297,13 +1297,13 @@ výška	elevation
 plocha 2D	2D area
 plocha 3D {:.1} m²	3D area {:.1} m²
 ★ Nastavit jako aktivní	★ Set as active
-přepočítávat automaticky	rebuild automatically
-po každé změně bodů, skupin nebo spojnic se povrch přepočítá sám	the surface rebuilds itself after every change of points, groups or breaklines
+přepočítávat automaticky	recalculate automatically
+po každé změně bodů, skupin nebo spojnic se povrch přepočítá sám	the surface recalculates itself after every change of points, groups or breaklines
 Další akce: styl, vrstevnice, přejmenovat, export, smazat	More actions: style, contours, rename, export, delete
 Přehled	Overview
 Zdroje ({})	Sources ({})
 Export	Export
-⚠ {} upozornění z přepočtu	⚠ {} warnings from the rebuild
+⚠ {} upozornění z přepočtu	⚠ {} warnings from the recalculation
 Zobrazit	Show
 Povrch nebere body ze žádné skupiny.	The surface takes points from no group.
 {} bodů ze skupin {} (vyloučeno podle kódu {})	{} points from groups {} (excluded by code {})
@@ -1332,3 +1332,8 @@ Přečíslovat…	Renumber…
 klik = řadit; dvojklik do buňky (nebo F2) = upravit	click = sort; double-click a cell (or F2) = edit
 značka bodu podle stylu	point marker by style
 klik = řadit	click = sort
+# Prospektor 1.0.7 – panel v doku
+Otevřít Prospektor	Open Prospector
+{} · ⚠ zastaralý	{} · ⚠ out of date
+{} · ● aktuální	{} · ● up to date
+žádný – vytvořte Nový povrch	none – create a New surface

@@ -1,5 +1,6 @@
-//! Panel „Bod Terénu“ v doku Open CAD Studia (API v7): vlastnosti vybraných
-//! bodů – číslo, výška, kód, styl – a přepínač posunu bodů úchopem.
+//! Panel „Vlastnosti bodu“ v doku Open CAD Studia (API v7): vlastnosti vybraných
+//! bodů – číslo, výška, kód, styl –, přepínač posunu bodů úchopem a aktivní
+//! povrch s jeho stavem (aby nemusel být otevřený Prospektor).
 //!
 //! Panel je deklarativní (pole, výběr, tlačítka); hodnoty plní pracovní
 //! vlákno podle výběru, změny polí chodí jako upozornění `PanelAction`.
@@ -8,7 +9,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 
 use ocs_plugin_api::dialog::{DialogControl, DialogValue, PanelDef};
-use ocs_plugin_api::host::Handle;
+use ocs_plugin_api::host::{Document, Handle};
 use teren::preklad::tr;
 use teren::trf;
 
@@ -34,6 +35,13 @@ struct Stav {
 
 static STAV: Mutex<Option<Stav>> = Mutex::new(None);
 
+/// Panel byl v této relaci otevřen (má smysl ho průběžně obnovovat).
+static OTEVREN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+pub fn otevren() -> bool {
+    OTEVREN.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 fn stav<R>(f: impl FnOnce(&mut Stav) -> R) -> R {
     let mut g = STAV.lock().unwrap_or_else(|e| e.into_inner());
     f(g.get_or_insert_with(Stav::default))
@@ -41,6 +49,7 @@ fn stav<R>(f: impl FnOnce(&mut Stav) -> R) -> R {
 
 /// Definice panelu se seznamem stylů (id, jméno).
 pub fn definice(styly: &[(String, String)]) -> PanelDef {
+    OTEVREN.store(true, std::sync::atomic::Ordering::Relaxed);
     stav(|s| {
         s.styly = styly.iter().map(|(id, _)| id.clone()).collect();
         s.styl = 0;
@@ -73,11 +82,41 @@ pub fn definice(styly: &[(String, String)]) -> PanelDef {
             text: tr("Vyberte bod ve výkrese (klik na značku nebo popis). Více bodům najednou se uloží jen změněná pole; číslo jen u jednoho bodu.").into(),
             align_h: None,
         })
-        .with_control(tlacitko("prospektor", tr("Prospektor"), Some("TER_PROSPEKTOR")))
+        .with_control(DialogControl::Fields {
+            id: "aktivni_povrch".into(),
+            title: Some(tr("Aktivní povrch").into()),
+            controls: vec![
+                text("povrch", tr("Povrch")),
+                DialogControl::Row {
+                    controls: vec![
+                        tlacitko("prepocitat", tr("Přepočítat"), Some("TER_PREPOCITAT")),
+                        tlacitko("pohled3d", tr("Prohlédnout ve 3D"), Some("TER_3D")),
+                    ],
+                    align_h: None,
+                    align_v: None,
+                },
+            ],
+            collapsed: false,
+        })
+        .with_control(tlacitko("prospektor", tr("Otevřít Prospektor"), Some("TER_PROSPEKTOR")))
 }
 
-/// Hodnoty panelu pro vybrané body (a zapamatuje si je).
-pub fn hodnoty(body: &[&BodVykresu]) -> HashMap<String, DialogValue> {
+/// Aktivní povrch a jeho stav pro panel („Stávající terén · ● aktuální“).
+pub fn text_povrchu(doc: &Document) -> String {
+    match crate::povrchy::aktivni(doc) {
+        Ok(z) if crate::povrchy::zastaraly(doc, &z) => trf!("{} · ⚠ zastaralý", z.jmeno),
+        Ok(z) => trf!("{} · ● aktuální", z.jmeno),
+        Err(_) => tr("žádný – vytvořte Nový povrch").to_string(),
+    }
+}
+
+/// Jen řádek aktivního povrchu (po změně výkresu; pole bodů zůstanou).
+pub fn jen_povrch(doc: &Document) -> HashMap<String, DialogValue> {
+    HashMap::from([("povrch".to_string(), DialogValue::Text(text_povrchu(doc)))])
+}
+
+/// Hodnoty panelu pro vybrané body (a zapamatuje si je) a text aktivního povrchu.
+pub fn hodnoty(body: &[&BodVykresu], povrch: String) -> HashMap<String, DialogValue> {
     let mut u: HashMap<String, String> = HashMap::new();
     let vyber = match body {
         [] => tr("nic – vyberte bod").to_string(),
@@ -101,6 +140,7 @@ pub fn hodnoty(body: &[&BodVykresu]) -> HashMap<String, DialogValue> {
     out.insert("vyber".into(), DialogValue::Text(vyber));
     out.insert("styl".into(), DialogValue::Choice { index: 0, text: tr("(beze změny)").into() });
     out.insert("uchopy".into(), DialogValue::Bool(crate::uchopy::zapnuto()));
+    out.insert("povrch".into(), DialogValue::Text(povrch));
     out
 }
 
