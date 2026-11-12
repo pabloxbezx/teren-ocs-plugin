@@ -288,6 +288,8 @@ struct Okno {
     /// Filtry tabulky bodů.
     filtr_skupina: Option<String>,
     filtr_kody: HashSet<String>,
+    /// Filtr výšky (od, do) – rozepsaný text.
+    filtr_z: (String, String),
     skryte_sloupce: HashSet<&'static str>,
     vyber_povrch_id: String,
     /// Rozpracovaný vlastní krok vrstevnic (povrch, vedlejší, hlavní).
@@ -333,7 +335,6 @@ struct Okno {
     posledni_dalsi: u64,
     precislovat_od: u64,
     precislovat_krok: u64,
-    cilova_skupina: String,
     // skupina
     edit_skupina: Option<SkupinaBodu>,
     skupina_zmenena: bool,
@@ -361,7 +362,6 @@ struct Okno {
     kody_stylu: (String, String),
     edit_styl_povrchu: Option<StylPovrchu>,
     styl_zmenen: bool,
-    styl_pro_body: String,
     /// Poloha a velikost okna k uložení (a kdy se naposledy změnila).
     geometrie: Option<([f32; 4], std::time::Instant)>,
     ulozena_geometrie: Option<[f32; 4]>,
@@ -386,6 +386,18 @@ fn hlaska_smazani() -> &'static Mutex<Option<(String, std::time::Instant)>> {
 fn smazat(text: String, akce: Akce) {
     spravce::posli(akce);
     *hlaska_smazani().lock().unwrap_or_else(|e| e.into_inner()) = Some((text, std::time::Instant::now()));
+}
+
+fn pocet_bodu_text(n: usize) -> String {
+    match n {
+        1 => tr("1 bod").to_string(),
+        2..=4 => trf!("{} body", n),
+        _ => trf!("{} bodů", cislo_z_poctu(n)),
+    }
+}
+
+fn cislo_z_poctu(n: usize) -> String {
+    cislo_cz(n as f64)
 }
 
 fn pocet_smazanych(n: usize) -> String {
@@ -1276,32 +1288,76 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
     // ── Body ─────────────────────────────────────────────────────────────────
 
     fn detail_body(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        nadpis(ui, tr("Body"));
-        egui::CollapsingHeader::new(tr("Nové body")).id_salt("nove_body").default_open(false).show(ui, |ui| {
-            nastaveni_novych_bodu(ui, stav);
+        // ── karta ──
+        let skryte = stav.styl_bodu.values().filter(|(id, _)| stav.styly_bodu.iter().any(|s| &s.id == id && s.skryt)).count();
+        karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_seznam")), tr("Body"), |ui| {
+            karta::pilulka(ui, &trf!("{} bodů", cislo_cz(stav.body.len() as f64)), SEDA);
+            if skryte > 0 {
+                karta::pilulka(ui, &trf!("{} skrytých", skryte), SEDA).on_hover_text(tr("body se stylem Nezobrazovat"));
+            }
         });
-        egui::CollapsingHeader::new(tr("Import bodů – formát")).id_salt("import_fmt").default_open(false).show(ui, |ui| {
-            nastaveni_importu(ui);
+        ui.add_space(4.0);
+        ui.horizontal_wrapped(|ui| {
+            if ui.button(tr("Import bodů…")).clicked() {
+                self.nahled_importu = Some(import_nahled::NahledImportu::novy(""));
+            }
+            if ui.button(tr("Překreslit body")).on_hover_text(tr("znovu vykreslí značky a popisy všech bodů podle stylů a měřítka")).clicked() {
+                spravce::posli(Akce::ObnovitPopisy);
+            }
+            if ui.button(tr("Zkontrolovat zaměření")).clicked() {
+                spravce::posli(Akce::Kontrola);
+                self.vyber_uzel(Uzel::Kontrola);
+            }
+            ui.menu_button("⋯", |ui| {
+                if ui.button(tr("Nastavení nových bodů a importu…")).clicked() {
+                    self.kat_nastaveni = 2;
+                    self.vyber_uzel(Uzel::Nastaveni);
+                    ui.close();
+                }
+            });
         });
+        ui.add_space(4.0);
+        ui.separator();
+
+        // ── filtry ──
         self.filtry_bodu(ui, stav);
         let filtr_skupiny = self
             .filtr_skupina
             .as_ref()
             .and_then(|id| stav.skupiny.iter().find(|g| &g.skupina.id == id))
             .map(|g| g.skupina.filtr());
+        let cislo_z = |t: &str| t.trim().replace(',', ".").parse::<f64>().ok().filter(|z| z.is_finite());
+        let (z_od, z_do) = (cislo_z(&self.filtr_z.0), cislo_z(&self.filtr_z.1));
         let body: Vec<&BodVykresu> = stav
             .body
             .iter()
             .filter(|b| bod_odpovida(b, &self.hledat))
             .filter(|b| filtr_skupiny.as_ref().is_none_or(|f| f.obsahuje(&b.bod, &b.zdroj)))
             .filter(|b| self.filtr_kody.is_empty() || self.filtr_kody.contains(&b.bod.kod().to_uppercase()))
+            .filter(|b| z_od.is_none_or(|z| b.bod.z >= z) && z_do.is_none_or(|z| b.bod.z <= z))
             .collect();
-        self.akce_bodu(ui, stav, &body);
+        let filtr = self.filtr_skupina.is_some() || !self.filtr_kody.is_empty() || z_od.is_some() || z_do.is_some() || !self.hledat.is_empty();
+        let vybrane: Vec<Handle> = body.iter().map(|b| b.handle).filter(|h| self.vybrane_body.contains(h)).collect();
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(trf!("Zobrazeno {} z {}", cislo_z_poctu(body.len()), cislo_z_poctu(stav.body.len()))).color(SEDA));
+            if filtr && ui.small_button(tr("zrušit filtr")).clicked() {
+                self.filtr_kody.clear();
+                self.filtr_skupina = None;
+                self.filtr_z = Default::default();
+                self.hledat.clear();
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(RichText::new(tr("dvojklik nebo F2 = upravit buňku · Enter = další řádek")).small().color(SEDA));
+            });
+        });
+
+        // ── lišta výběru (pevná výška, aby tabulka neposkakovala) ──
+        self.lista_vyberu(ui, stav, &body, &vybrane);
         ui.separator();
         self.tabulka_bodu(ui, stav, &body);
     }
 
-    /// Filtry tabulky bodů: skupina, kódy, sloupce.
+    /// Filtry tabulky bodů: skupina, kódy, výška, sloupce.
     fn filtry_bodu(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
         ui.horizontal_wrapped(|ui| {
             ui.label(RichText::new(tr("Skupina")).color(SEDA));
@@ -1334,7 +1390,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                 }
             }
             kody.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
-            let ukazat = 10;
+            let ukazat = 8;
             for (k, n) in kody.iter().take(ukazat) {
                 let zap = self.filtr_kody.contains(k);
                 if ui.selectable_label(zap, k).on_hover_text(trf!("{} bodů", n)).clicked() {
@@ -1361,11 +1417,25 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                     });
                 });
             }
-            if (!self.filtr_kody.is_empty() || self.filtr_skupina.is_some()) && ui.small_button(tr("zrušit filtr")).clicked() {
-                self.filtr_kody.clear();
-                self.filtr_skupina = None;
-            }
             ui.add_space(8.0);
+            let vyska = if self.filtr_z.0.trim().is_empty() && self.filtr_z.1.trim().is_empty() {
+                tr("Výška ⏷").to_string()
+            } else {
+                trf!("Výška {} – {} ⏷", self.filtr_z.0.trim(), self.filtr_z.1.trim())
+            };
+            ui.menu_button(vyska, |ui| {
+                ui.label(RichText::new(tr("Jen body s výškou")).color(SEDA));
+                ui.horizontal(|ui| {
+                    ui.label(tr("od"));
+                    ui.add(egui::TextEdit::singleline(&mut self.filtr_z.0).desired_width(70.0).hint_text("312.0"));
+                    ui.label(tr("do"));
+                    ui.add(egui::TextEdit::singleline(&mut self.filtr_z.1).desired_width(70.0).hint_text("315.5"));
+                    ui.label("m");
+                });
+                if ui.small_button(tr("zrušit")).clicked() {
+                    self.filtr_z = Default::default();
+                }
+            });
             ui.menu_button(tr("Sloupce ⏷"), |ui| {
                 for s in SKRYVATELNE_SLOUPCE {
                     let mut vid = !self.skryte_sloupce.contains(s);
@@ -1381,117 +1451,128 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         });
     }
 
-    /// Akce s vybranými body.
-    fn akce_bodu(&mut self, ui: &mut egui::Ui, stav: &StavSpravce, viditelne: &[&BodVykresu]) {
-        let vybrane: Vec<Handle> = viditelne.iter().map(|b| b.handle).filter(|h| self.vybrane_body.contains(h)).collect();
-        ui.horizontal_wrapped(|ui| {
-            ui.label(trf!("Vybráno {} z {}", vybrane.len(), viditelne.len()));
+    /// Lišta nad tabulkou: co jde udělat s vybranými body (bez výběru nápověda).
+    fn lista_vyberu(&mut self, ui: &mut egui::Ui, stav: &StavSpravce, viditelne: &[&BodVykresu], vybrane: &[Handle]) {
+        let vybrane: Vec<Handle> = vybrane.to_vec();
+        let n = vybrane.len();
+        let vyska = 30.0;
+        let sirka = ui.available_width();
+        let (rect, _) = ui.allocate_exact_size(egui::vec2(sirka, vyska), Sense::hover());
+        if n > 0 {
+            ui.painter().rect_filled(rect, 5.0, ui.visuals().selection.bg_fill.gamma_multiply(0.45));
+        }
+        let mut child = ui.new_child(egui::UiBuilder::new().max_rect(rect.shrink2(egui::vec2(6.0, 0.0))).layout(egui::Layout::left_to_right(egui::Align::Center)));
+        let ui = &mut child;
+        if n == 0 {
+            ui.label(RichText::new(tr("Vyberte body kliknutím (Shift = rozsah, Ctrl = přidat)")).color(SEDA));
             if ui.small_button(tr("Vybrat vše")).clicked() {
                 self.vybrane_body = viditelne.iter().map(|b| b.handle).collect();
                 self.nacti_edit_bodu(stav);
             }
-            if ui.small_button(tr("Zrušit výběr")).clicked() {
+            if ui.small_button(tr("Najít v Prospektoru")).on_hover_text(tr("převezme body vybrané ve výkrese")).clicked() {
+                self.vynutit_skok = true;
+                spravce::posli(Akce::VyberZVykresu);
+            }
+            return;
+        }
+        ui.label(RichText::new(pocet_bodu_text(n)).strong());
+        if ui.button(tr("Ukázat")).on_hover_text(tr("přiblíží výkres na vybrané body")).clicked() {
+            ukazat_body(stav, &vybrane);
+        }
+        ui.menu_button(tr("Výška ⏷"), |ui| {
+            ui.horizontal(|ui| {
+                ui.add(egui::TextEdit::singleline(&mut self.hrom_vyska).hint_text(tr("např. 0.15")).desired_width(80.0));
+                ui.label("m");
+            });
+            let z = self.hrom_vyska.trim().replace(',', ".").parse::<f64>().ok().filter(|z| z.is_finite());
+            ui.horizontal(|ui| {
+                if ui.add_enabled(z.is_some(), egui::Button::new(tr("Nastavit"))).on_hover_text(tr("všem vybraným bodům tuto výšku")).clicked() {
+                    spravce::posli(Akce::BodyHromadne(vybrane.clone(), z.map(|z| (z, false)), None));
+                    ui.close();
+                }
+                if ui
+                    .add_enabled(z.is_some(), egui::Button::new(tr("Přičíst")))
+                    .on_hover_text(tr("k výšce vybraných bodů přičíst (záporné = odečíst)"))
+                    .clicked()
+                {
+                    spravce::posli(Akce::BodyHromadne(vybrane.clone(), z.map(|z| (z, true)), None));
+                    ui.close();
+                }
+            });
+        });
+        ui.menu_button(tr("Kód ⏷"), |ui| {
+            ui.add(egui::TextEdit::singleline(&mut self.hrom_kod).hint_text(tr("nový kód")).desired_width(110.0));
+            if ui.button(tr("Nastavit kód")).on_hover_text(tr("všem vybraným bodům tento kód (popis)")).clicked() {
+                spravce::posli(Akce::BodyHromadne(vybrane.clone(), None, Some(self.hrom_kod.trim().to_string())));
+                ui.close();
+            }
+        });
+        ui.menu_button(tr("Styl ⏷"), |ui| {
+            if ui.button(tr("podle skupiny / kódu")).clicked() {
+                spravce::posli(Akce::StylBodu(vybrane.clone(), String::new()));
+                ui.close();
+            }
+            ui.separator();
+            egui::ScrollArea::vertical().max_height(320.0).show(ui, |ui| {
+                for st in &stav.styly_bodu {
+                    if ui.button(&st.jmeno).clicked() {
+                        spravce::posli(Akce::StylBodu(vybrane.clone(), st.id.clone()));
+                        ui.close();
+                    }
+                }
+            });
+        });
+        ui.menu_button(tr("Skupina ⏷"), |ui| {
+            if ui.button(tr("Nová skupina z vybraných")).clicked() {
+                spravce::posli(Akce::SkupinaNova(vybrane.clone()));
+                ui.close();
+            }
+            let skupiny: Vec<_> = stav.skupiny.iter().filter(|s| s.skupina.id != VSECHNY).collect();
+            if !skupiny.is_empty() {
+                ui.separator();
+                ui.label(RichText::new(tr("Přidat do skupiny")).small().color(SEDA));
+                for g in &skupiny {
+                    if ui.button(&g.skupina.jmeno).clicked() {
+                        spravce::posli(Akce::SkupinaBody(g.skupina.id.clone(), vybrane.clone(), true));
+                        ui.close();
+                    }
+                }
+                ui.menu_button(tr("Odebrat ze skupiny"), |ui| {
+                    for g in &skupiny {
+                        if ui.button(&g.skupina.jmeno).clicked() {
+                            spravce::posli(Akce::SkupinaBody(g.skupina.id.clone(), vybrane.clone(), false));
+                            ui.close();
+                        }
+                    }
+                });
+            }
+        });
+        ui.menu_button(tr("Přečíslovat…"), |ui| {
+            ui.horizontal(|ui| {
+                ui.label(tr("od"));
+                ui.add(egui::DragValue::new(&mut self.precislovat_od).range(0..=u64::MAX / 2));
+                ui.label(tr("krok"));
+                ui.add(egui::DragValue::new(&mut self.precislovat_krok).range(1..=1000));
+            });
+            if ui.button(tr("Přečíslovat")).on_hover_text(tr("v pořadí tabulky")).clicked() {
+                spravce::posli(Akce::BodyPrecislovat(vybrane.clone(), self.precislovat_od, self.precislovat_krok.max(1)));
+                ui.close();
+            }
+        });
+        let odsunute = stav.body.iter().any(|b| b.posun.is_some() && vybrane.contains(&b.handle));
+        if odsunute
+            && ui.button(tr("Popisy na místo")).on_hover_text(tr("ručně odsunuté popisy vrátit na výchozí místo")).clicked()
+        {
+            spravce::posli(Akce::PopisyNaMisto(vybrane.clone()));
+        }
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            if ui.small_button("✕").on_hover_text(tr("Zrušit výběr")).clicked() {
                 self.vybrane_body.clear();
                 self.nacti_edit_bodu(stav);
             }
-            if ui.small_button(tr("Najít v Prospektoru")).clicked() {
-                spravce::posli(Akce::VyberZVykresu);
-            }
-        });
-        // řádky akcí jsou vidět vždy (bez výběru zašedlé), aby tabulka pod
-        // nimi neposkakovala – jinak by se dvojklik do buňky netrefil
-        ui.add_enabled_ui(!vybrane.is_empty(), |ui| self.akce_vybranych(ui, stav, &vybrane));
-    }
-
-    fn akce_vybranych(&mut self, ui: &mut egui::Ui, stav: &StavSpravce, vybrane: &[Handle]) {
-        let vybrane: Vec<Handle> = vybrane.to_vec();
-        ui.horizontal_wrapped(|ui| {
-            if ui.button(tr("Ukázat")).clicked() {
-                ukazat_body(stav, &vybrane);
-            }
-            let odsunute = stav.body.iter().any(|b| b.posun.is_some() && vybrane.contains(&b.handle));
-            if ui
-                .add_enabled(odsunute, egui::Button::new(tr("Popisy na místo")))
-                .on_hover_text(tr("ručně odsunuté popisy vrátit na výchozí místo"))
-                .clicked()
-            {
-                spravce::posli(Akce::PopisyNaMisto(vybrane.clone()));
-            }
-            ui.separator();
-            ui.label(tr("Přečíslovat od"));
-            ui.add(egui::DragValue::new(&mut self.precislovat_od).range(0..=u64::MAX / 2));
-            ui.label(tr("krok"));
-            ui.add(egui::DragValue::new(&mut self.precislovat_krok).range(1..=1000));
-            if ui.button(tr("Přečíslovat")).on_hover_text(tr("v pořadí tabulky")).clicked() {
-                spravce::posli(Akce::BodyPrecislovat(vybrane.clone(), self.precislovat_od, self.precislovat_krok.max(1)));
-            }
-            ui.separator();
-            if ui.button(RichText::new(trf!("Smazat ({})", vybrane.len())).color(CERVENA)).clicked() {
-                smazat(pocet_smazanych(vybrane.len()), Akce::BodySmazat(vybrane.clone()));
+            if ui.button(RichText::new(tr("Smazat")).color(CERVENA)).clicked() {
+                smazat(pocet_smazanych(n), Akce::BodySmazat(vybrane.clone()));
                 self.vybrane_body.clear();
-            }
-        });
-        ui.horizontal_wrapped(|ui| {
-            ui.label(tr("Výška vybraných"));
-            ui.add(egui::TextEdit::singleline(&mut self.hrom_vyska).hint_text(tr("např. 0.15")).desired_width(70.0));
-            let z = self.hrom_vyska.trim().replace(',', ".").parse::<f64>().ok().filter(|z| z.is_finite());
-            if ui.add_enabled(z.is_some(), egui::Button::new(tr("Nastavit"))).on_hover_text(tr("všem vybraným bodům tuto výšku")).clicked() {
-                spravce::posli(Akce::BodyHromadne(vybrane.clone(), z.map(|z| (z, false)), None));
-            }
-            if ui.add_enabled(z.is_some(), egui::Button::new(tr("Přičíst"))).on_hover_text(tr("k výšce vybraných bodů přičíst (záporné = odečíst)")).clicked() {
-                spravce::posli(Akce::BodyHromadne(vybrane.clone(), z.map(|z| (z, true)), None));
-            }
-            ui.separator();
-            ui.label(tr("Kód"));
-            ui.add(egui::TextEdit::singleline(&mut self.hrom_kod).desired_width(90.0));
-            if ui.button(tr("Nastavit kód")).on_hover_text(tr("všem vybraným bodům tento kód (popis)")).clicked() {
-                spravce::posli(Akce::BodyHromadne(vybrane.clone(), None, Some(self.hrom_kod.trim().to_string())));
-            }
-        });
-        ui.horizontal_wrapped(|ui| {
-            ui.label(tr("Styl vybraných"));
-            if !self.styl_pro_body.is_empty() && !stav.styly_bodu.iter().any(|s| s.id == self.styl_pro_body) {
-                self.styl_pro_body.clear();
-            }
-            let jmeno = if self.styl_pro_body.is_empty() {
-                tr("podle skupiny / kódu").to_string()
-            } else {
-                stav.styly_bodu.iter().find(|s| s.id == self.styl_pro_body).map_or(String::new(), |s| s.jmeno.clone())
-            };
-            egui::ComboBox::from_id_salt("styl_bodu_vyber").selected_text(jmeno).width(200.0).show_ui(ui, |ui| {
-                ui.selectable_value(&mut self.styl_pro_body, String::new(), tr("podle skupiny / kódu"));
-                for st in &stav.styly_bodu {
-                    ui.selectable_value(&mut self.styl_pro_body, st.id.clone(), &st.jmeno);
-                }
-            });
-            if ui.button(tr("Použít")).clicked() {
-                spravce::posli(Akce::StylBodu(vybrane.clone(), self.styl_pro_body.clone()));
-            }
-        });
-        ui.horizontal_wrapped(|ui| {
-            if ui.button(tr("Nová skupina z vybraných")).clicked() {
-                spravce::posli(Akce::SkupinaNova(vybrane.clone()));
-            }
-            ui.label(tr("nebo do skupiny"));
-            let skupiny: Vec<_> = stav.skupiny.iter().filter(|s| s.skupina.id != VSECHNY).collect();
-            if !skupiny.iter().any(|s| s.skupina.id == self.cilova_skupina) {
-                self.cilova_skupina = skupiny.first().map(|s| s.skupina.id.clone()).unwrap_or_default();
-            }
-            let jmeno = skupiny
-                .iter()
-                .find(|s| s.skupina.id == self.cilova_skupina)
-                .map_or("–".to_string(), |s| s.skupina.jmeno.clone());
-            egui::ComboBox::from_id_salt("cil_skupina").selected_text(jmeno).width(150.0).show_ui(ui, |ui| {
-                for s in &skupiny {
-                    ui.selectable_value(&mut self.cilova_skupina, s.skupina.id.clone(), &s.skupina.jmeno);
-                }
-            });
-            let ok = !self.cilova_skupina.is_empty();
-            if ui.add_enabled(ok, egui::Button::new(tr("Přidat"))).clicked() {
-                spravce::posli(Akce::SkupinaBody(self.cilova_skupina.clone(), vybrane.clone(), true));
-            }
-            if ui.add_enabled(ok, egui::Button::new(tr("Odebrat"))).clicked() {
-                spravce::posli(Akce::SkupinaBody(self.cilova_skupina.clone(), vybrane.clone(), false));
             }
         });
     }
@@ -1528,6 +1609,17 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         ];
         let sloupce: Vec<(Razeni, &str, f32)> =
             vsechny.into_iter().filter(|(_, n, _)| !self.skryte_sloupce.iter().any(|s| tr(s) == *n)).collect();
+        // F2 = upravit první upravitelnou buňku vybraného bodu
+        if self.edit_bunka.is_none()
+            && self.vybrane_body.len() == 1
+            && ui.memory(|m| m.focused().is_none())
+            && ui.input(|i| i.key_pressed(egui::Key::F2))
+        {
+            let h = *self.vybrane_body.iter().next().unwrap();
+            if let (Some(b), Some(sl)) = (poradi.iter().find(|b| b.handle == h), sloupce.iter().find(|c| upravitelny(c.0))) {
+                self.edit_bunka = Some(EditBunky { h, sloupec: sl.0, text: text_bunky(&b.bod, sl.0), fokus: true });
+            }
+        }
         let vyska = 20.0;
         let font = FontId::proportional(13.0);
         let sirka: f32 = sloupce.iter().map(|c| c.2).sum();
@@ -1537,6 +1629,13 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         for &(r, nazev, w) in &sloupce {
             let bunka = egui::Rect::from_min_size(egui::pos2(x, rect.top()), egui::vec2(w, vyska));
             let resp = ui.interact(bunka, ui.id().with(("hlavicka", nazev)), Sense::click());
+            let resp = if upravitelny(r) {
+                resp.on_hover_text(tr("klik = řadit; dvojklik do buňky (nebo F2) = upravit"))
+            } else if nazev.is_empty() {
+                resp.on_hover_text(tr("značka bodu podle stylu"))
+            } else {
+                resp.on_hover_text(tr("klik = řadit"))
+            };
             let sipka = if self.razeni == r { if self.sestupne { " ⏷" } else { " ⏶" } } else { "" };
             let barva = if resp.hovered() { MODRA } else { ui.visuals().strong_text_color() };
             ui.painter().text(bunka.left_center() + egui::vec2(4.0, 0.0), Align2::LEFT_CENTER, format!("{nazev}{sipka}"), font.clone(), barva);

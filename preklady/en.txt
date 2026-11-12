@@ -1308,3 +1308,27 @@ Zobrazit	Show
 Povrch nebere body ze žádné skupiny.	The surface takes points from no group.
 {} bodů ze skupin {} (vyloučeno podle kódu {})	{} points from groups {} (excluded by code {})
 Zobrazení a výpočet	Display and computation
+# Prospektor 1.0.7 – tabulka bodů
+Import bodů…	Import points…
+znovu vykreslí značky a popisy všech bodů podle stylů a měřítka	redraws the markers and labels of all points according to styles and scale
+Nastavení nových bodů a importu…	Settings for new points and import…
+Zobrazeno {} z {}	Showing {} of {}
+dvojklik nebo F2 = upravit buňku · Enter = další řádek	double-click or F2 = edit cell · Enter = next row
+Výška ⏷	Elevation ⏷
+Výška {} – {} ⏷	Elevation {} – {} ⏷
+Jen body s výškou	Only points with elevation
+do	to
+zrušit	clear
+Vyberte body kliknutím (Shift = rozsah, Ctrl = přidat)	Select points by clicking (Shift = range, Ctrl = add)
+převezme body vybrané ve výkrese	takes the points selected in the drawing
+přiblíží výkres na vybrané body	zooms the drawing to the selected points
+Kód ⏷	Code ⏷
+nový kód	new code
+Styl ⏷	Style ⏷
+Skupina ⏷	Group ⏷
+Přidat do skupiny	Add to group
+Odebrat ze skupiny	Remove from group
+Přečíslovat…	Renumber…
+klik = řadit; dvojklik do buňky (nebo F2) = upravit	click = sort; double-click a cell (or F2) = edit
+značka bodu podle stylu	point marker by style
+klik = řadit	click = sort
