@@ -62,7 +62,7 @@ pub(super) fn combo_stylu_bodu(ui: &mut egui::Ui, salt: &str, stav: &StavSpravce
             ikona_stylu(ui, st, 20.0);
         }
         egui::ComboBox::from_id_salt(salt).selected_text(text).width(200.0).show_ui(ui, |ui| {
-            if ui.selectable_label(false, RichText::new(tr("podle kódu / skupiny")).italics()).clicked() {
+            if ui.selectable_label(false, RichText::new(tr("podle skupiny / kódu")).italics()).clicked() {
                 volba = Some(String::new());
             }
             for st in &stav.styly_bodu {
@@ -172,10 +172,10 @@ impl Okno {
             ui.label(RichText::new(tr("Číslo")).color(SEDA));
             ui.add(egui::TextEdit::singleline(cislo).desired_width(160.0));
             ui.end_row();
-            ui.label(RichText::new(tr("Kód / popis")).color(SEDA));
+            ui.label(RichText::new(tr("Kód")).color(SEDA));
             ui.add(egui::TextEdit::singleline(popis).desired_width(160.0));
             ui.end_row();
-            ui.label(RichText::new(tr("Výška")).color(SEDA));
+            ui.label(RichText::new(tr("Výška Z")).color(SEDA));
             ui.add(egui::DragValue::new(z).speed(0.01).max_decimals(3).suffix(" m"));
             ui.end_row();
             ui.label(RichText::new("Y / X").color(SEDA));
@@ -395,11 +395,11 @@ impl Okno {
             if ui.button(RichText::new(tr("⟳ Přepočítat")).strong()).clicked() {
                 spravce::posli(Akce::Prepocitat(vec![id.clone()]));
             }
-            if ui.button(RichText::new(tr("Prohlédnout 3D")).strong()).clicked() {
+            if ui.button(RichText::new(tr("Prohlédnout ve 3D")).strong()).clicked() {
                 self.pohled.otevri(vec![id.clone()]);
                 self.rezim = Rezim::Pohled3D;
             }
-            if !p.aktivni && ui.button(tr("Nastavit aktivní")).clicked() {
+            if !p.aktivni && ui.button(tr("Nastavit jako aktivní")).clicked() {
                 spravce::posli(Akce::Aktivovat(id.clone()));
             }
             if ui.button(tr("Ve stromu")).clicked() {

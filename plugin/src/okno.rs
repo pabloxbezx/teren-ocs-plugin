@@ -188,9 +188,9 @@ impl Cast {
     fn nazev(self) -> &'static str {
         match self {
             Cast::Hranice => tr("Hranice a díry"),
-            Cast::Spojnice => tr("Spojnice – lomové hrany"),
+            Cast::Spojnice => tr("Spojnice"),
             Cast::Objekty => tr("Objekty výkresu"),
-            Cast::Upravy => tr("Ruční úpravy trojúhelníků"),
+            Cast::Upravy => tr("Úpravy trojúhelníků"),
             Cast::Skupiny => tr("Skupiny bodů"),
         }
     }
@@ -675,7 +675,7 @@ impl Okno {
                             spravce::posli(Akce::Kontrola);
                             self.vyber_uzel(Uzel::Kontrola);
                         }
-                        if ui.button(tr("Překreslit popisy bodů")).clicked() {
+                        if ui.button(tr("Překreslit body")).clicked() {
                             spravce::posli(Akce::ObnovitPopisy);
                         }
                     });
@@ -720,7 +720,7 @@ impl Okno {
                             if ui.button(tr("Nový povrch – průvodce…")).clicked() {
                                 self.pruvodce = Some(pruvodce::Pruvodce::novy(stav));
                             }
-                            if ui.button(tr("Nový povrch ze zaměření")).clicked() {
+                            if ui.button(tr("Stávající terén (z bodů)")).clicked() {
                                 spravce::posli(Akce::NovyPovrchPas("Stavajici".into(), tr("Stávající terén").into(), true));
                             }
                             if ui
@@ -1369,7 +1369,7 @@ impl Okno {
 
     fn tlacitka_vyberu(&mut self, ui: &mut egui::Ui) {
         if ui
-            .button(tr("Najít výběr z výkresu"))
+            .button(tr("Najít v Prospektoru"))
             .on_hover_text(tr("Vyberte ve výkrese bod, čáru nebo trojúhelník povrchu – Prospektor na něj skočí"))
             .clicked()
         {
@@ -1507,7 +1507,7 @@ impl Okno {
                 self.vybrane_body.clear();
                 self.nacti_edit_bodu(stav);
             }
-            if ui.small_button(tr("Převzít výběr z výkresu")).clicked() {
+            if ui.small_button(tr("Najít v Prospektoru")).clicked() {
                 spravce::posli(Akce::VyberZVykresu);
             }
         });
@@ -1567,12 +1567,12 @@ impl Okno {
                 self.styl_pro_body.clear();
             }
             let jmeno = if self.styl_pro_body.is_empty() {
-                tr("podle skupiny").to_string()
+                tr("podle skupiny / kódu").to_string()
             } else {
                 stav.styly_bodu.iter().find(|s| s.id == self.styl_pro_body).map_or(String::new(), |s| s.jmeno.clone())
             };
             egui::ComboBox::from_id_salt("styl_bodu_vyber").selected_text(jmeno).width(200.0).show_ui(ui, |ui| {
-                ui.selectable_value(&mut self.styl_pro_body, String::new(), tr("podle skupiny"));
+                ui.selectable_value(&mut self.styl_pro_body, String::new(), tr("podle skupiny / kódu"));
                 for st in &stav.styly_bodu {
                     ui.selectable_value(&mut self.styl_pro_body, st.id.clone(), &st.jmeno);
                 }
@@ -3736,7 +3736,7 @@ fn nastaveni_novych_bodu(ui: &mut egui::Ui, stav: &StavSpravce) {
     ui.horizontal(|ui| {
         ui.label(trf!("Další číslo: {}", stav.dalsi_cislo));
         ui.add_space(12.0);
-        ui.label(tr("Kód / popis"));
+        ui.label(tr("Kód"));
         zmena |= ui.add(egui::TextEdit::singleline(&mut n.kod_bodu).desired_width(100.0)).changed();
         ui.add_space(12.0);
         let mut ma = n.vyska_bodu_nova.is_some();

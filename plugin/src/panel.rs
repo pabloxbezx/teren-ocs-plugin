@@ -55,7 +55,7 @@ pub fn definice(styly: &[(String, String)]) -> PanelDef {
         align_h: None,
         width: None,
     };
-    PanelDef::new(ID, tr("Bod Terénu"))
+    PanelDef::new(ID, tr("Vlastnosti bodu"))
         .with_command(PRIKAZ)
         .with_width(260.0)
         .with_control(text("vyber", tr("Vybráno")))

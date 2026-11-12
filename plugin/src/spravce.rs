@@ -1343,7 +1343,7 @@ impl Pracovnik {
                 let n = cogo::uprav_body(k, &doc, &zmeny, tr("Styl bodů"))?;
                 k.hotovo();
                 let jmeno = if styl.is_empty() {
-                    tr("podle skupiny").to_string()
+                    tr("podle skupiny / kódu").to_string()
                 } else {
                     styly::styly_bodu(&doc).into_iter().find(|s| s.id == styl).map_or(styl.clone(), |s| format!("„{}“", s.jmeno))
                 };
