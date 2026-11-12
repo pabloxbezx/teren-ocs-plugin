@@ -1279,3 +1279,32 @@ Velikost okna	Window size
 úzký pruh se stromem nahoře a podrobnostmi pod ním – nezakrývá výkres	narrow strip with the tree on top and details below – does not cover the drawing
 ▣ Široké	▣ Wide
 strom vlevo, podrobnosti vpravo	tree on the left, details on the right
+# Prospektor 1.0.7 – karty
+vestavěná	built-in
+skupina se všemi body výkresu – nedá se měnit ani smazat	group with all points of the drawing – cannot be changed or deleted
+používají povrchy	used by surfaces
+styl bodů	point style
+Zobrazit v tabulce bodů	Show in the point table
+Nové jméno	New name
+● zastaralý	● out of date
+zdroje se od přepočtu změnily – klikněte Přepočítat	the sources changed since the last rebuild – click Rebuild
+● aktuální	● up to date
+★ aktivní	★ active
+s aktivním povrchem pracují nástroje Úpravy a Nový bod na povrchu	the Edits tools and New point on surface work with the active surface
+styl Nezobrazovat – povrch se počítá, ale nekreslí	style Do not display – the surface is computed but not drawn
+trojúhelníků	triangles
+výška	elevation
+plocha 2D	2D area
+plocha 3D {:.1} m²	3D area {:.1} m²
+★ Nastavit jako aktivní	★ Set as active
+přepočítávat automaticky	rebuild automatically
+po každé změně bodů, skupin nebo spojnic se povrch přepočítá sám	the surface rebuilds itself after every change of points, groups or breaklines
+Další akce: styl, vrstevnice, přejmenovat, export, smazat	More actions: style, contours, rename, export, delete
+Přehled	Overview
+Zdroje ({})	Sources ({})
+Export	Export
+⚠ {} upozornění z přepočtu	⚠ {} warnings from the rebuild
+Zobrazit	Show
+Povrch nebere body ze žádné skupiny.	The surface takes points from no group.
+{} bodů ze skupin {} (vyloučeno podle kódu {})	{} points from groups {} (excluded by code {})
+Zobrazení a výpočet	Display and computation

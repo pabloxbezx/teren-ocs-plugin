@@ -22,6 +22,7 @@ use crate::cogo::BodVykresu;
 use crate::nastaveni;
 use crate::povrchy::{cislo_cz, DruhPolozky, TypObjektu, HRANY, INTERVALY, TYPY_OBJEKTU};
 mod import_nahled;
+mod karta;
 mod napoveda;
 mod pruvodce;
 mod pohled3d;
@@ -291,8 +292,10 @@ struct Okno {
     vyber_povrch_id: String,
     /// Rozpracovaný vlastní krok vrstevnic (povrch, vedlejší, hlavní).
     vlastni_krok: Option<(String, f64, f64)>,
-    /// Po „Přejmenovat…“ z nabídky dát fokus poli se jménem povrchu.
+    /// Na kartě povrchu se přejmenovává (pole místo nadpisu).
     prejmenovat: bool,
+    /// Záložka karty povrchu (Přehled / Export).
+    zalozka_povrchu: karta::ZalozkaPovrchu,
     /// Export povrchu: (id povrchu, cesta, DXF místo LandXML).
     export_povrchu: (String, String, bool),
     /// Náhled importu bodů.
@@ -528,6 +531,8 @@ impl Okno {
             self.styl_zmenen = false;
             self.export.cesta.clear();
             self.nove_jmeno_povrchu.clear();
+            self.zalozka_povrchu = karta::ZalozkaPovrchu::Prehled;
+            self.prejmenovat = false;
             self.verze = 0;
         }
     }
@@ -1048,6 +1053,7 @@ impl Okno {
         }
         if ui.button(tr("Export povrchu…")).on_hover_text(tr("LandXML nebo DXF s 3D plochami")).clicked() {
             self.vyber_uzel(Uzel::Povrch(id.clone()));
+            self.zalozka_povrchu = karta::ZalozkaPovrchu::Export;
         }
         if ui.button(RichText::new(tr("Smazat povrch")).color(CERVENA)).clicked() {
             smazat(trf!("Povrch „{}“ je smazaný.", p.jmeno), Akce::Smazat(id.clone()));
@@ -1128,21 +1134,7 @@ impl Okno {
                     ui.label(RichText::new(tr("Povrch už ve výkrese není.")).color(SEDA));
                     return;
                 };
-                egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| match self.uzel.clone() {
-                    Uzel::Povrch(_) => self.detail_povrch(ui, stav, &p),
-                    Uzel::Upozorneni(_) => detail_upozorneni(ui, &p),
-                    Uzel::Definice(_, c) => {
-                        nadpis(ui, &format!("{} – {}", p.jmeno, c.nazev()));
-                        match c {
-                            Cast::Hranice => self.polozky(ui, &p, &[DruhPolozky::Hranice, DruhPolozky::Dira]),
-                            Cast::Spojnice => self.polozky(ui, &p, &[DruhPolozky::Spojnice]),
-                            Cast::Objekty => self.detail_objekty(ui, &p),
-                            Cast::Upravy => detail_upravy(ui, &p),
-                            Cast::Skupiny => self.detail_skupiny_povrchu(ui, stav, &p),
-                        }
-                    }
-                    _ => {}
-                });
+                self.karta_povrchu(ui, stav, &p);
             }
             Uzel::Kontrola => kontrola(ui, stav),
             Uzel::Nastaveni => {
@@ -1797,14 +1789,41 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         }
         let vestavena = id == VSECHNY;
         egui::ScrollArea::vertical().id_salt(tr("skupina")).auto_shrink([false, false]).show(ui, |ui| {
-            nadpis(ui, &prehled.skupina.jmeno);
-            ui.horizontal(|ui| {
-                ui.label(trf!("{} bodů", prehled.pocet));
-                if !prehled.povrchy.is_empty() {
-                    ui.label(RichText::new(trf!("– používá {}", prehled.povrchy.join(", "))).color(SEDA));
+            karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_skupina_bodu")), &prehled.skupina.jmeno, |ui| {
+                if vestavena {
+                    karta::pilulka(ui, tr("vestavěná"), SEDA).on_hover_text(tr("skupina se všemi body výkresu – nedá se měnit ani smazat"));
                 }
             });
             ui.add_space(4.0);
+            ui.horizontal_wrapped(|ui| {
+                karta::kpi(ui, &cislo_cz(prehled.pocet as f64), tr("bodů"));
+                let pouziva = if prehled.povrchy.is_empty() { "–".to_string() } else { prehled.povrchy.join(", ") };
+                karta::kpi(ui, &pouziva, tr("používají povrchy"));
+                let styl = if prehled.skupina.styl.is_empty() {
+                    tr("podle kódu").to_string()
+                } else {
+                    stav.styly_bodu.iter().find(|x| x.id == prehled.skupina.styl).map_or(prehled.skupina.styl.clone(), |x| x.jmeno.clone())
+                };
+                karta::kpi(ui, &styl, tr("styl bodů"));
+            });
+            ui.add_space(4.0);
+            ui.horizontal_wrapped(|ui| {
+                if ui.button(tr("Vybrat body ve výkrese")).clicked() {
+                    let f = prehled.skupina.filtr();
+                    let h: Vec<Handle> = stav.body.iter().filter(|b| f.obsahuje(&b.bod, &b.zdroj)).map(|b| b.handle).collect();
+                    ukazat_body(stav, &h);
+                }
+                if ui.button(tr("Nový povrch ze skupiny")).clicked() {
+                    spravce::posli(Akce::PovrchZeSkupiny(id.to_string(), None, false));
+                }
+                if ui.button(tr("Zobrazit v tabulce bodů")).clicked() {
+                    self.filtr_skupina = if vestavena { None } else { Some(id.to_string()) };
+                    self.vyber_uzel(Uzel::Body);
+                }
+                ui.menu_button("⋯", |ui| self.menu_skupiny(ui, stav, &prehled.skupina));
+            });
+            ui.add_space(4.0);
+            ui.separator();
             let siroke = ui.available_width() >= 780.0;
             let levy = |ui: &mut egui::Ui, me: &mut Self| {
                 if vestavena {
@@ -2441,102 +2460,6 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                 }
             });
         });
-    }
-
-    fn detail_povrch(&mut self, ui: &mut egui::Ui, stav: &StavSpravce, p: &PrehledPovrchu) {
-        let id = p.id.clone();
-        let nastav = |z: Zmena| spravce::posli(Akce::Nastav(vec![id.clone()], z));
-        nadpis(ui, &p.jmeno);
-        ui.horizontal(|ui| {
-            ui.label(tr("Jméno"));
-            let r = ui.add(egui::TextEdit::singleline(&mut self.jmeno).desired_width(220.0));
-            if self.prejmenovat {
-                self.prejmenovat = false;
-                r.request_focus();
-            }
-            if (r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) || ui.button(tr("Přejmenovat")).clicked())
-                && self.jmeno.trim() != p.jmeno
-            {
-                nastav(Zmena::Jmeno(self.jmeno.clone()));
-            }
-        });
-        ui.horizontal(|ui| {
-            if p.aktivni {
-                ui.label(RichText::new(tr("▶ aktivní povrch")).color(ZELENA));
-            } else if ui.button(tr("Nastavit jako aktivní")).clicked() {
-                spravce::posli(Akce::Aktivovat(id.clone()));
-            }
-            if p.zastaraly {
-                ui.label(RichText::new(tr("zastaralý – zdroje se od přepočtu změnily")).color(ORANZOVA));
-            }
-        });
-        ui.add_space(4.0);
-        ui.horizontal(|ui| {
-            if ui.button(tr("Přepočítat")).clicked() {
-                spravce::posli(Akce::Prepocitat(vec![id.clone()]));
-            }
-            let mut auto = p.auto;
-            if ui.checkbox(&mut auto, tr("Automaticky přepočítávat")).changed() {
-                nastav(Zmena::Auto(auto));
-            }
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button(RichText::new(tr("Smazat povrch")).color(CERVENA)).clicked() {
-                    smazat(trf!("Povrch „{}“ je smazaný.", p.jmeno), Akce::Smazat(id.clone()));
-                }
-            });
-        });
-
-        ui.separator();
-        self.nastaveni_povrchu(ui, stav, p);
-
-        ui.separator();
-        self.export_povrchu(ui, stav, p);
-
-        ui.separator();
-        let s = &p.stat;
-        ui.label(RichText::new(tr("Statistika")).strong());
-        egui::Grid::new("stat").num_columns(2).spacing([12.0, 2.0]).show(ui, |ui| {
-            ui.label(tr("Body"));
-            let skupiny: Vec<String> = p.skupiny.iter().filter(|g| g.zapnuto).map(|g| g.jmeno.clone()).collect();
-            let mut t = if skupiny.is_empty() {
-                tr("žádná skupina bodů").to_string()
-            } else {
-                trf!("{} ze skupin {} (vyloučeno podle kódu {})", p.pocet_bodu, skupiny.join(", "), p.vylouceno_bodu)
-            };
-            let z_objektu: usize =
-                p.polozky.iter().filter(|x| x.zapnuto && matches!(x.druh, DruhPolozky::Objekt(_))).map(|x| x.vrcholu).sum();
-            if z_objektu > 0 {
-                t.push_str(&trf!(", {} z objektů výkresu", z_objektu));
-            }
-            ui.label(t);
-            ui.end_row();
-            ui.label(tr("Trojúhelníky"));
-            ui.label(s.trojuhelniku.to_string());
-            ui.end_row();
-            ui.label(tr("Výška"));
-            ui.label(format!("{:.2} – {:.2} m n. m.", s.z_min, s.z_max));
-            ui.end_row();
-            ui.label(tr("Plocha"));
-            ui.label(format!("2D {:.1} m²,  3D {:.1} m²", s.plocha_2d, s.plocha_3d));
-            ui.end_row();
-        });
-        ui.separator();
-        ui.label(RichText::new(tr("Z čeho se povrch počítá")).strong());
-        let pocet = |f: &dyn Fn(&DruhPolozky) -> bool| p.polozky.iter().filter(|x| f(&x.druh)).count();
-        for (c, n) in [
-            (Cast::Skupiny, p.skupiny.len()),
-            (Cast::Hranice, pocet(&|d| matches!(d, DruhPolozky::Hranice | DruhPolozky::Dira))),
-            (Cast::Spojnice, pocet(&|d| matches!(d, DruhPolozky::Spojnice))),
-            (Cast::Objekty, pocet(&|d| matches!(d, DruhPolozky::Objekt(_)))),
-            (Cast::Upravy, p.upravy.len()),
-        ] {
-            if ui.link(format!("{} ({n})", c.nazev())).clicked() {
-                self.vyber_uzel(Uzel::Definice(id.clone(), c));
-            }
-        }
-        if p.upozorneni() > 0 && ui.link(RichText::new(trf!("⚠ Upozornění ({})", p.upozorneni())).color(ORANZOVA)).clicked() {
-            self.vyber_uzel(Uzel::Upozorneni(id.clone()));
-        }
     }
 
     /// Styl, vrstevnice, max. hrana a vyloučené kódy povrchu.
