@@ -75,6 +75,8 @@ pub struct Nastaveni {
     pub rezim_vykres: bool,
     /// Neukazovat postup „Jak na to“.
     pub postup_skryt: bool,
+    /// Okno Prospektoru zůstává nad Open CAD Studiem.
+    pub okno_navrchu: bool,
     /// Povrch nejde vybrat kliknutím (klik projde na body pod ním).
     pub povrch_nevybirat: bool,
     /// Před importem bodů ukázat náhled souboru (formát, sloupce, první body).
@@ -116,6 +118,7 @@ impl Default for Nastaveni {
             sledovat_vyber: true,
             rezim_vykres: false,
             postup_skryt: false,
+            okno_navrchu: false,
             povrch_nevybirat: true,
             nahled_importu: true,
             odsazeni_popisku: true,
@@ -195,6 +198,7 @@ fn nacti() -> Nastaveni {
             "sledovat_vyber" => n.sledovat_vyber = v != "0",
             "rezim_vykres" => n.rezim_vykres = v == "1",
             "postup_skryt" => n.postup_skryt = v == "1",
+            "okno_navrchu" => n.okno_navrchu = v == "1",
             // od 1.0.4 nový klíč s výchozím „ano“ (starý „povrch_nevybirat“ se ignoruje)
             "povrch_propustit" => n.povrch_nevybirat = v != "0",
             "nahled_importu" => n.nahled_importu = v != "0",
@@ -257,6 +261,8 @@ fn uloz(n: &Nastaveni) {
         text.push_str(&format!("posledni_import = {}
 ", s.zapis())); // i18n:ne
     }
+    text.push_str(&format!("okno_navrchu = {}
+", n.okno_navrchu as u8)); // i18n:ne
     text.push_str(&format!("import_duplicity = {}
 import_priblizit = {}
 ", n.import_duplicity, n.import_priblizit as u8)); // i18n:ne

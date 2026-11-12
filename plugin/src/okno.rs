@@ -137,6 +137,9 @@ fn spust() -> eframe::Result {
     if let Some([x, y, w, h]) = nastaveni::akt().okno {
         viewport = viewport.with_position([x, y]).with_inner_size([w, h]);
     }
+    if nastaveni::akt().okno_navrchu {
+        viewport = viewport.with_window_level(egui::WindowLevel::AlwaysOnTop);
+    }
     let mut moznosti = eframe::NativeOptions {
         viewport,
         run_and_return: true,
@@ -300,6 +303,10 @@ struct Okno {
     napoveda: Option<String>,
     /// Rozepsané vyloučené kódy v Nastavení.
     nast_kody: Option<String>,
+    /// Otevřená kategorie Nastavení.
+    kat_nastaveni: u8,
+    /// Čeká se na potvrzení „Obnovit výchozí“.
+    potvrdit_vychozi: bool,
     uzel: Uzel,
     /// Příští skok provést i z uzlu Vybráno (uživatel klikl Najít v Prospektoru).
     vynutit_skok: bool,
@@ -413,6 +420,13 @@ fn ukaz_hlasku_smazani(ctx: &egui::Context) {
         *g = None;
     }
     ctx.request_repaint_after(std::time::Duration::from_millis(500));
+}
+
+/// Úzké (kompaktní) nebo široké okno; výška zůstává.
+fn zmen_velikost(ctx: &egui::Context, uzke: bool) {
+    let vyska = ctx.input(|i| i.viewport().inner_rect.map_or(600.0, |r| r.height())).max(420.0);
+    let sirka = if uzke { 380.0 } else { 900.0 };
+    ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(sirka, vyska)));
 }
 
 fn interval_text(i: f64, h: f64) -> String {
@@ -656,174 +670,63 @@ impl Okno {
     // ── Nastavení ────────────────────────────────────────────────────────────
 
     fn detail_nastaveni(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        nadpis(ui, tr("Nastavení"));
-        let n = nastaveni::akt();
-        let sekce = |ui: &mut egui::Ui, t: &str| {
-            ui.add_space(10.0);
-            ui.label(RichText::new(t.to_uppercase()).small().strong().color(SEDA));
-            ui.add_space(2.0);
-        };
-
-        sekce(ui, "Jazyk / Language");
-        ui.horizontal_wrapped(|ui| {
-            let volby = [("auto", "automaticky / automatic"), ("cs", "Čeština"), ("en", "English")];
-            let akt = volby.iter().find(|v| v.0 == n.jazyk).map_or(volby[0].1, |v| v.1);
-            egui::ComboBox::from_id_salt("nast_jazyk").selected_text(akt).width(200.0).show_ui(ui, |ui| {
-                for (k, t) in volby {
-                    if ui.selectable_label(n.jazyk == k, t).clicked() && n.jazyk != k {
-                        nastaveni::zmen(|x| x.jazyk = k.to_string());
-                    }
+        ui.horizontal(|ui| {
+            nadpis(ui, tr("Nastavení"));
+            ui.label(RichText::new(tr("platí pro všechny výkresy (uloženo v profilu uživatele)")).color(SEDA));
+        });
+        let kategorie = [
+            (0u8, tr("Obecné")),
+            (1, tr("Výkres a měřítko")),
+            (2, tr("Body a import")),
+            (3, tr("Povrchy")),
+            (4, tr("Kontrola zaměření")),
+            (5, tr("Okno Prospektoru")),
+        ];
+        let siroke = ui.available_width() >= 560.0;
+        let menu = |ui: &mut egui::Ui, kat: &mut u8| {
+            for (k, t) in kategorie {
+                if ui.selectable_label(*kat == k, t).clicked() {
+                    *kat = k;
                 }
+            }
+        };
+        let mut kat = self.kat_nastaveni;
+        if siroke {
+            ui.horizontal_top(|ui| {
+                ui.allocate_ui_with_layout(egui::vec2(170.0, 0.0), egui::Layout::top_down_justified(egui::Align::Min), |ui| {
+                    ui.set_width(170.0);
+                    ui.add_space(4.0);
+                    menu(ui, &mut kat);
+                    ui.add_space(16.0);
+                    self.obnovit_vychozi(ui);
+                });
+                ui.separator();
+                ui.vertical(|ui| {
+                    ui.add_space(4.0);
+                    self.kategorie_nastaveni(ui, stav, kat);
+                });
             });
-        });
-        if nastaveni::akt().jazyk != n.jazyk || jazyk_zmenen(&n.jazyk) {
-            ui.label(
-                RichText::new("Projeví se po novém spuštění Open CAD Studia. / Takes effect after Open CAD Studio is restarted.")
-                    .small()
-                    .color(ORANZOVA),
-            );
+        } else {
+            ui.horizontal_wrapped(|ui| menu(ui, &mut kat));
+            ui.separator();
+            self.kategorie_nastaveni(ui, stav, kat);
+            ui.add_space(14.0);
+            self.obnovit_vychozi(ui);
         }
+        self.kat_nastaveni = kat;
+    }
 
-        sekce(ui, tr("Výkres a měřítko"));
-        ui.horizontal_wrapped(|ui| {
-            ui.label(tr("Měřítko"));
-            egui::ComboBox::from_id_salt("nast_meritko").selected_text(format!("1:{}", stav.meritko.round())).width(90.0).show_ui(
-                ui,
-                |ui| {
-                    for m in [100u32, 200, 250, 500, 1000, 2000] {
-                        if ui.selectable_label((stav.meritko - m as f64).abs() < 0.5, format!("1:{m}")).clicked() {
-                            spravce::posli(Akce::Meritko(m));
-                        }
-                    }
-                },
-            );
-            ui.label(
-                RichText::new(tr("velikost značek a popisů; měřítko poznámek ve stavovém řádku (jiné než 1:1) má přednost"))
-                    .small()
-                    .color(SEDA),
-            );
-        });
-        let mut ods = n.odsazeni_popisku;
-        if ui
-            .checkbox(&mut ods, tr("překrývající se popisy bodů odsunout (s vodicí čarou)"))
-            .on_hover_text(tr("popisy bodů blízko u sebe se posunou, aby se nepřekrývaly; projeví se po překreslení bodů"))
-            .changed()
-        {
-            nastaveni::zmen(|x| x.odsazeni_popisku = ods);
-            spravce::posli(Akce::ObnovitPopisy);
+    fn obnovit_vychozi(&mut self, ui: &mut egui::Ui) {
+        if !self.potvrdit_vychozi {
+            if ui.button(tr("Obnovit výchozí…")).on_hover_text(tr("vrátí všechna nastavení na výchozí hodnoty")).clicked() {
+                self.potvrdit_vychozi = true;
+            }
+            return;
         }
-        let mut jen = n.posun_jen_popis;
-        if ui
-            .checkbox(&mut jen, tr("posunutím popisu bodu posunout jen popis"))
-            .on_hover_text(tr("jinak se posune celý bod (i s výškou a povrchem); posunutím značky se bod posune vždy"))
-            .changed()
-        {
-            nastaveni::zmen(|x| x.posun_jen_popis = jen);
-        }
+        ui.label(RichText::new(tr("Vrátit všechna nastavení na výchozí?")).color(ORANZOVA));
         ui.horizontal(|ui| {
-            ui.label(tr("Značky a popisy bodů"));
-            if ui.button(tr("Překreslit body")).on_hover_text(tr("znovu vykreslí značky a popisy všech bodů")).clicked() {
-                spravce::posli(Akce::ObnovitPopisy);
-            }
-        });
-
-        sekce(ui, tr("Import a nové body"));
-        let mut nahled = n.nahled_importu;
-        if ui.checkbox(&mut nahled, tr("před importem ukázat náhled souboru (formát, sloupce, první body)")).changed() {
-            nastaveni::zmen(|x| x.nahled_importu = nahled);
-        }
-        nastaveni_importu(ui);
-        ui.add_space(4.0);
-        nastaveni_novych_bodu(ui, stav);
-
-        sekce(ui, tr("Šablona výkresu"));
-        ui.horizontal_wrapped(|ui| {
-            if ui
-                .button(tr("Připravit výkres ze šablony"))
-                .on_hover_text(tr("hladiny Terénu, značka bodu podle stylu, měřítko a styly ze šablony – jedním kliknutím"))
-                .clicked()
-            {
-                spravce::posli(Akce::PripravVykres);
-            }
-            if ui.button(tr("Uložit tento výkres jako šablonu")).on_hover_text(tr("styly bodů a povrchů a měřítko")).clicked() {
-                spravce::posli(Akce::SablonaUloz);
-            }
-        });
-        ui.label(
-            RichText::new(match crate::styly::meritko_sablony() {
-                Some(m) => trf!("šablona je uložená v profilu uživatele (měřítko 1:{}); totéž je na pásu karet: Připravit výkres", m),
-                None if crate::styly::sablona_existuje() => tr("šablona je uložená v profilu uživatele").to_string(),
-                None => tr("šablona zatím není uložená – bez ní se připraví jen hladiny a značky bodů").to_string(),
-            })
-            .small()
-            .color(SEDA),
-        );
-
-        sekce(ui, tr("Povrchy"));
-        egui::Grid::new("nast_povrchy").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
-            ui.label(tr("Nový povrch bez kódů"));
-            let mut kody = self.nast_kody.clone().unwrap_or_else(|| n.vyloucene_kody.join(", "));
-            let r = ui.add(egui::TextEdit::singleline(&mut kody).hint_text(tr("např. STR")).desired_width(160.0)).on_hover_text(
-                tr("body s těmito kódy se do nového povrchu neberou (stromy, sloupy…); u hotového povrchu se mění v jeho nastavení"),
-            );
-            if r.changed() {
-                self.nast_kody = Some(kody.clone());
-            }
-            if r.lost_focus() {
-                nastaveni::zmen(|x| x.vyloucene_kody = kody_z_textu(&kody));
-                self.nast_kody = None;
-            }
-            ui.end_row();
-            ui.label(tr("Přichycení spojnic na bod"));
-            let mut tol = n.tolerance_bodu;
-            if ui
-                .add(egui::DragValue::new(&mut tol).range(0.01..=5.0).speed(0.01).max_decimals(2).suffix(" m"))
-                .on_hover_text(tr("vrchol spojnice blíž k bodu zaměření než tato vzdálenost převezme výšku bodu"))
-                .changed()
-            {
-                nastaveni::zmen(|x| x.tolerance_bodu = tol);
-            }
-            ui.end_row();
-            ui.label(tr("Výběr kliknutím"));
-            zaskrtnuti_nevybirat(ui);
-            ui.end_row();
-        });
-
-        sekce(ui, tr("Kontrola zaměření"));
-        ui.horizontal(|ui| {
-            ui.label(tr("Práh odchylky"));
-            let mut prah = n.prah_kontroly;
-            if ui
-                .add(egui::DragValue::new(&mut prah).range(0.1..=10.0).speed(0.05).suffix(" m").max_decimals(2))
-                .on_hover_text(tr("bod, jehož výška se od okolí liší víc, se označí jako podezřelý"))
-                .changed()
-            {
-                nastaveni::zmen(|x| x.prah_kontroly = prah);
-            }
-        });
-
-        sekce(ui, tr("Prospektor"));
-        let mut sl = spravce::sledovat_vyber();
-        if ui.checkbox(&mut sl, tr("sledovat výběr ve výkrese")).changed() {
-            spravce::nastav_sledovani(sl);
-            nastaveni::zmen(|x| x.sledovat_vyber = sl);
-        }
-        let mut vyber = !n.rezim_vykres;
-        if ui
-            .checkbox(&mut vyber, tr("po otevření ukázat Vybráno ve výkrese"))
-            .on_hover_text(tr("jinak se otevře přehled výkresu"))
-            .changed()
-        {
-            nastaveni::zmen(|x| x.rezim_vykres = !vyber);
-        }
-        let mut postup = !n.postup_skryt;
-        if ui.checkbox(&mut postup, tr("ukazovat postup „Jak na to“")).changed() {
-            nastaveni::zmen(|x| x.postup_skryt = !postup);
-        }
-
-        ui.add_space(14.0);
-        ui.horizontal_wrapped(|ui| {
-            if ui.button(tr("Obnovit výchozí nastavení")).clicked() {
+            if ui.button(tr("Ano, obnovit")).clicked() {
+                let n = nastaveni::akt();
                 let okno = n.okno;
                 let vychozi = nastaveni::Nastaveni::default();
                 spravce::nastav_sledovani(vychozi.sledovat_vyber);
@@ -831,10 +734,234 @@ impl Okno {
                     spravce::posli(Akce::PovrchyNevybirat(vychozi.povrch_nevybirat));
                 }
                 nastaveni::zmen(|x| *x = nastaveni::Nastaveni { okno, ..vychozi });
+                ui.ctx().send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
                 self.nast_kody = None;
+                self.potvrdit_vychozi = false;
             }
-            ui.label(RichText::new(tr("Nastavení platí pro všechny výkresy (uloženo v profilu uživatele).")).small().color(SEDA));
+            if ui.button(tr("Ne")).clicked() {
+                self.potvrdit_vychozi = false;
+            }
         });
+    }
+
+    fn kategorie_nastaveni(&mut self, ui: &mut egui::Ui, stav: &StavSpravce, kat: u8) {
+        let n = nastaveni::akt();
+        let mrizka = |id: &str| egui::Grid::new(id).num_columns(2).spacing([14.0, 8.0]).min_col_width(190.0);
+        match kat {
+            0 => {
+                mrizka("nast_obecne").show(ui, |ui| {
+                    ui.label("Jazyk / Language");
+                    let volby = [("auto", "automaticky / automatic"), ("cs", "Čeština"), ("en", "English")];
+                    let akt = volby.iter().find(|v| v.0 == n.jazyk).map_or(volby[0].1, |v| v.1);
+                    egui::ComboBox::from_id_salt("nast_jazyk")
+                        .selected_text(akt)
+                        .width(200.0)
+                        .show_ui(ui, |ui| {
+                            for (k, t) in volby {
+                                if ui.selectable_label(n.jazyk == k, t).clicked() && n.jazyk != k {
+                                    nastaveni::zmen(|x| x.jazyk = k.to_string());
+                                }
+                            }
+                        })
+                        .response
+                        .on_hover_text("Projeví se po novém spuštění Open CAD Studia. / Takes effect after Open CAD Studio is restarted.");
+                    ui.end_row();
+                    ui.label(tr("Sledovat výběr ve výkrese"));
+                    let mut sl = spravce::sledovat_vyber();
+                    if ui
+                        .checkbox(&mut sl, "")
+                        .on_hover_text(tr("Prospektor sám ukáže bod nebo povrch, na který kliknete ve výkrese"))
+                        .changed()
+                    {
+                        spravce::nastav_sledovani(sl);
+                        nastaveni::zmen(|x| x.sledovat_vyber = sl);
+                    }
+                    ui.end_row();
+                    ui.label(tr("Ukazovat postup „Jak na to“"));
+                    let mut postup = !n.postup_skryt;
+                    if ui.checkbox(&mut postup, "").on_hover_text(tr("na přehledu výkresu (klik na název výkresu nahoře)")).changed() {
+                        nastaveni::zmen(|x| x.postup_skryt = !postup);
+                    }
+                    ui.end_row();
+                });
+                if nastaveni::akt().jazyk != n.jazyk || jazyk_zmenen(&n.jazyk) {
+                    ui.label(
+                        RichText::new("Projeví se po novém spuštění Open CAD Studia. / Takes effect after Open CAD Studio is restarted.")
+                            .color(ORANZOVA),
+                    );
+                }
+            }
+            1 => {
+                mrizka("nast_vykres").show(ui, |ui| {
+                    ui.label(tr("Měřítko"));
+                    egui::ComboBox::from_id_salt("nast_meritko")
+                        .selected_text(format!("1:{}", stav.meritko.round()))
+                        .width(90.0)
+                        .show_ui(ui, |ui| {
+                            for m in [100u32, 200, 250, 500, 1000, 2000] {
+                                if ui.selectable_label((stav.meritko - m as f64).abs() < 0.5, format!("1:{m}")).clicked() {
+                                    spravce::posli(Akce::Meritko(m));
+                                }
+                            }
+                        })
+                        .response
+                        .on_hover_text(tr("velikost značek a popisů; měřítko poznámek ve stavovém řádku (jiné než 1:1) má přednost"));
+                    ui.end_row();
+                    ui.label(tr("Odsunout překrývající se popisy"));
+                    let mut ods = n.odsazeni_popisku;
+                    if ui
+                        .checkbox(&mut ods, "")
+                        .on_hover_text(tr("popisy bodů blízko u sebe se posunou, aby se nepřekrývaly; projeví se po překreslení bodů"))
+                        .changed()
+                    {
+                        nastaveni::zmen(|x| x.odsazeni_popisku = ods);
+                        spravce::posli(Akce::ObnovitPopisy);
+                    }
+                    ui.end_row();
+                    ui.label(tr("Posunutím popisu posunout jen popis"));
+                    let mut jen = n.posun_jen_popis;
+                    if ui
+                        .checkbox(&mut jen, "")
+                        .on_hover_text(tr("jinak se posune celý bod (i s výškou a povrchem); posunutím značky se bod posune vždy"))
+                        .changed()
+                    {
+                        nastaveni::zmen(|x| x.posun_jen_popis = jen);
+                    }
+                    ui.end_row();
+                    ui.label(tr("Značky a popisy bodů"));
+                    if ui.button(tr("Překreslit body")).on_hover_text(tr("znovu vykreslí značky a popisy všech bodů")).clicked() {
+                        spravce::posli(Akce::ObnovitPopisy);
+                    }
+                    ui.end_row();
+                    ui.label(tr("Šablona výkresu"));
+                    ui.horizontal_wrapped(|ui| {
+                        if ui
+                            .button(tr("Připravit výkres ze šablony"))
+                            .on_hover_text(tr("hladiny Terénu, značka bodu podle stylu, měřítko a styly ze šablony – jedním kliknutím"))
+                            .clicked()
+                        {
+                            spravce::posli(Akce::PripravVykres);
+                        }
+                        if ui.button(tr("Uložit tento výkres jako šablonu")).on_hover_text(tr("styly bodů a povrchů a měřítko")).clicked() {
+                            spravce::posli(Akce::SablonaUloz);
+                        }
+                    });
+                    ui.end_row();
+                    ui.label("");
+                    ui.label(
+                        RichText::new(match crate::styly::meritko_sablony() {
+                            Some(m) => trf!("šablona je uložená v profilu uživatele (měřítko 1:{}); totéž je na pásu karet: Připravit výkres", m),
+                            None if crate::styly::sablona_existuje() => tr("šablona je uložená v profilu uživatele").to_string(),
+                            None => tr("šablona zatím není uložená – bez ní se připraví jen hladiny a značky bodů").to_string(),
+                        })
+                        .small()
+                        .color(SEDA),
+                    );
+                    ui.end_row();
+                });
+            }
+            2 => {
+                mrizka("nast_import").show(ui, |ui| {
+                    ui.label(tr("Náhled před importem"));
+                    let mut nahled = n.nahled_importu;
+                    if ui.checkbox(&mut nahled, "").on_hover_text(tr("před importem ukázat náhled souboru (formát, sloupce, první body)")).changed() {
+                        nastaveni::zmen(|x| x.nahled_importu = nahled);
+                    }
+                    ui.end_row();
+                });
+                ui.add_space(6.0);
+                nastaveni_importu(ui);
+                ui.add_space(10.0);
+                ui.label(RichText::new(tr("Nové body")).strong());
+                nastaveni_novych_bodu(ui, stav);
+            }
+            3 => {
+                mrizka("nast_povrchy").show(ui, |ui| {
+                    ui.label(tr("Nový povrch bez kódů"));
+                    let mut kody = self.nast_kody.clone().unwrap_or_else(|| n.vyloucene_kody.join(", "));
+                    let r = ui.add(egui::TextEdit::singleline(&mut kody).hint_text(tr("např. STR")).desired_width(160.0)).on_hover_text(
+                        tr("body s těmito kódy se do nového povrchu neberou (stromy, sloupy…); u hotového povrchu se mění v jeho nastavení"),
+                    );
+                    if r.changed() {
+                        self.nast_kody = Some(kody.clone());
+                    }
+                    if r.lost_focus() {
+                        nastaveni::zmen(|x| x.vyloucene_kody = kody_z_textu(&kody));
+                        self.nast_kody = None;
+                    }
+                    ui.end_row();
+                    ui.label(tr("Přichycení spojnic na bod"));
+                    let mut tol = n.tolerance_bodu;
+                    if ui
+                        .add(egui::DragValue::new(&mut tol).range(0.01..=5.0).speed(0.01).max_decimals(2).suffix(" m"))
+                        .on_hover_text(tr("vrchol spojnice blíž k bodu zaměření než tato vzdálenost převezme výšku bodu"))
+                        .changed()
+                    {
+                        nastaveni::zmen(|x| x.tolerance_bodu = tol);
+                    }
+                    ui.end_row();
+                    ui.label(tr("Výběr kliknutím"));
+                    zaskrtnuti_nevybirat(ui);
+                    ui.end_row();
+                });
+            }
+            4 => {
+                mrizka("nast_kontrola").show(ui, |ui| {
+                    ui.label(tr("Práh odchylky"));
+                    let mut prah = n.prah_kontroly;
+                    if ui
+                        .add(egui::DragValue::new(&mut prah).range(0.1..=10.0).speed(0.05).suffix(" m").max_decimals(2))
+                        .on_hover_text(tr("bod, jehož výška se od okolí liší víc, se označí jako podezřelý"))
+                        .changed()
+                    {
+                        nastaveni::zmen(|x| x.prah_kontroly = prah);
+                    }
+                    ui.end_row();
+                });
+            }
+            _ => {
+                mrizka("nast_okno").show(ui, |ui| {
+                    ui.label(tr("Po otevření ukázat"));
+                    let mut vyber = !n.rezim_vykres;
+                    egui::ComboBox::from_id_salt("nast_po_otevreni")
+                        .selected_text(if vyber { tr("Vybráno ve výkrese") } else { tr("přehled výkresu") })
+                        .width(200.0)
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(&mut vyber, true, tr("Vybráno ve výkrese"));
+                            ui.selectable_value(&mut vyber, false, tr("přehled výkresu"));
+                        });
+                    if vyber == n.rezim_vykres {
+                        nastaveni::zmen(|x| x.rezim_vykres = !vyber);
+                    }
+                    ui.end_row();
+                    ui.label(tr("Vždy navrchu"));
+                    let mut navrchu = n.okno_navrchu;
+                    if ui.checkbox(&mut navrchu, "").on_hover_text(tr("okno Prospektoru zůstane nad Open CAD Studiem")).changed() {
+                        nastaveni::zmen(|x| x.okno_navrchu = navrchu);
+                        ui.ctx().send_viewport_cmd(egui::ViewportCommand::WindowLevel(if navrchu {
+                            egui::WindowLevel::AlwaysOnTop
+                        } else {
+                            egui::WindowLevel::Normal
+                        }));
+                    }
+                    ui.end_row();
+                    ui.label(tr("Velikost okna"));
+                    ui.horizontal(|ui| {
+                        if ui
+                            .button(tr("▭ Úzké"))
+                            .on_hover_text(tr("úzký pruh se stromem nahoře a podrobnostmi pod ním – nezakrývá výkres"))
+                            .clicked()
+                        {
+                            zmen_velikost(ui.ctx(), true);
+                        }
+                        if ui.button(tr("▣ Široké")).on_hover_text(tr("strom vlevo, podrobnosti vpravo")).clicked() {
+                            zmen_velikost(ui.ctx(), false);
+                        }
+                    });
+                    ui.end_row();
+                });
+            }
+        }
     }
 
     // ── Kontextové nabídky (pravé tlačítko) ─────────────────────────────────
@@ -3516,13 +3643,10 @@ fn nastaveni_novych_bodu(ui: &mut egui::Ui, stav: &StavSpravce) {
             zmena |= ui.add(egui::DragValue::new(z).speed(0.05).max_decimals(3).suffix(" m")).changed();
         }
     });
-    ui.label(
-        RichText::new(
-            tr("Body se vytvářejí tlačítkem Nový bod (ruční / na povrchu) a Nový povrch > Z naklikaných bodů. \
-             Výška: zadané x,y,z, jinak předvolená, jinak z aktivního povrchu."),
-        )
-        .small()
-        .color(SEDA),
+    info(
+        ui,
+        tr("Body se vytvářejí tlačítkem Nový bod (ruční / na povrchu) a Nový povrch > Z naklikaných bodů. \
+         Výška: zadané x,y,z, jinak předvolená, jinak z aktivního povrchu."),
     );
     if zmena {
         nastaveni::zmen(|x| {
@@ -3571,11 +3695,12 @@ fn nastaveni_importu(ui: &mut egui::Ui) {
             });
         });
     });
-    ui.label(
-        RichText::new(tr("Platí pro tlačítko Import bodů. Automaticky se formát i oddělovač rozpoznají ze souboru."))
-            .small()
-            .color(SEDA),
-    );
+    info(ui, tr("Platí pro tlačítko Import bodů. Automaticky se formát i oddělovač rozpoznají ze souboru."));
+}
+
+/// Malé „ⓘ“ s vysvětlením v tooltipu (místo šedého textu pod volbou).
+fn info(ui: &mut egui::Ui, text: &str) {
+    ui.label(RichText::new("ⓘ").color(SEDA)).on_hover_text(text);
 }
 
 /// Volba: povrch nejde vybrat kliknutím (klik projde na body pod ním).

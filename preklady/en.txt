@@ -1254,3 +1254,28 @@ Bod je smazaný.	The point was deleted.
 {} body jsou smazané.	{} points were deleted.
 {} bodů je smazaných.	{} points were deleted.
 Vrátíte to Ctrl+Z ve výkrese.	Undo it with Ctrl+Z in the drawing.
+# Prospektor 1.0.7 – nastavení
+platí pro všechny výkresy (uloženo v profilu uživatele)	applies to all drawings (stored in the user profile)
+Obecné	General
+Body a import	Points and import
+Okno Prospektoru	Prospector window
+Obnovit výchozí…	Restore defaults…
+vrátí všechna nastavení na výchozí hodnoty	resets all settings to their default values
+Vrátit všechna nastavení na výchozí?	Reset all settings to defaults?
+Ano, obnovit	Yes, restore
+Ne	No
+Sledovat výběr ve výkrese	Follow selection in the drawing
+Ukazovat postup „Jak na to“	Show the "How to" steps
+na přehledu výkresu (klik na název výkresu nahoře)	on the drawing overview (click the drawing name at the top)
+Odsunout překrývající se popisy	Move overlapping labels apart
+Posunutím popisu posunout jen popis	Moving a label moves only the label
+Náhled před importem	Preview before import
+Po otevření ukázat	On opening, show
+přehled výkresu	drawing overview
+Vždy navrchu	Always on top
+okno Prospektoru zůstane nad Open CAD Studiem	the Prospector window stays above Open CAD Studio
+Velikost okna	Window size
+▭ Úzké	▭ Narrow
+úzký pruh se stromem nahoře a podrobnostmi pod ním – nezakrývá výkres	narrow strip with the tree on top and details below – does not cover the drawing
+▣ Široké	▣ Wide
+strom vlevo, podrobnosti vpravo	tree on the left, details on the right
