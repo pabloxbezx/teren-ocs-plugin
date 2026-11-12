@@ -25,6 +25,7 @@ mod import_nahled;
 mod napoveda;
 mod pruvodce;
 mod pohled3d;
+mod strom;
 mod vyber;
 
 use crate::styly::{self, Barva, StylBodu, StylPovrchu, BARVY, POPISKY, POPISY_VRSTEVNIC, ZNACKY};
@@ -160,8 +161,9 @@ fn spust() -> eframe::Result {
         Box::new(|cc| {
             *kontext().lock().unwrap_or_else(|e| e.into_inner()) = Some(cc.egui_ctx.clone());
             nastav_vzhled(&cc.egui_ctx);
-            let rezim = if nastaveni::akt().rezim_vykres { Rezim::Vykres } else { Rezim::Vyber };
-            Ok(Box::new(Okno { rezim, ..Default::default() }))
+            egui_extras::install_image_loaders(&cc.egui_ctx);
+            let uzel = if nastaveni::akt().rezim_vykres { Uzel::Vykres } else { Uzel::Vyber };
+            Ok(Box::new(Okno { uzel, ..Default::default() }))
         }),
     )
 }
@@ -200,6 +202,8 @@ impl Cast {
 enum Uzel {
     #[default]
     Vykres,
+    /// Co je vybrané ve výkrese (dřív režim Výběr).
+    Vyber,
     Body,
     Skupiny,
     Skupina(String),
@@ -208,7 +212,6 @@ enum Uzel {
     Definice(String, Cast),
     Upozorneni(String),
     Kontrola,
-    Styly,
     StylyBodu,
     StylBodu(String),
     StylyPovrchu,
@@ -265,10 +268,8 @@ impl Default for Export {
 
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
 enum Rezim {
-    /// Vlastnosti toho, co je vybrané ve výkrese.
+    /// Strom výkresu a podrobnosti.
     #[default]
-    Vyber,
-    /// Strom celého výkresu.
     Vykres,
     /// Prohlížeč povrchu 3D.
     Pohled3D,
@@ -278,7 +279,7 @@ enum Rezim {
 struct Okno {
     rezim: Rezim,
     pohled: pohled3d::Pohled3D,
-    /// Úprava bodu v režimu Výběr: (bod, číslo, kód/popis, výška).
+    /// Úprava bodu v uzlu Vybráno ve výkrese: (bod, číslo, kód/popis, výška).
     vyber_edit: Option<(Handle, String, String, f64)>,
     /// Filtry tabulky bodů.
     filtr_skupina: Option<String>,
@@ -300,6 +301,8 @@ struct Okno {
     /// Rozepsané vyloučené kódy v Nastavení.
     nast_kody: Option<String>,
     uzel: Uzel,
+    /// Příští skok provést i z uzlu Vybráno (uživatel klikl Najít v Prospektoru).
+    vynutit_skok: bool,
     hledat: String,
     verze: u64,
     skok: u64,
@@ -382,15 +385,6 @@ fn bod_odpovida(b: &BodVykresu, hledat: &str) -> bool {
     hledat.is_empty() || shoda(&b.bod.cislo, hledat) || shoda(&b.bod.popis, hledat) || shoda(&b.zdroj, hledat)
 }
 
-/// Položka stromu (bez rozbalování).
-fn list(ui: &mut egui::Ui, vybrano: bool, text: RichText) -> egui::Response {
-    ui.horizontal(|ui| {
-        ui.add_space(ui.spacing().indent);
-        ui.selectable_label(vybrano, text)
-    })
-    .inner
-}
-
 impl eframe::App for Okno {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let stav = spravce::stav();
@@ -425,64 +419,21 @@ impl eframe::App for Okno {
 
         egui::Panel::top("horni").show(ui, |ui| {
             ui.add_space(4.0);
-            let uzke = ui.available_width() < 700.0;
-            ui.horizontal(|ui| {
-                for (r, t) in [(Rezim::Vyber, tr("Výběr")), (Rezim::Vykres, tr("Výkres")), (Rezim::Pohled3D, "3D")] {
-                    if ui.selectable_label(self.rezim == r, RichText::new(t).strong()).clicked() && self.rezim != r {
-                        self.rezim = r;
-                        if r != Rezim::Pohled3D {
-                            nastaveni::zmen(|n| n.rezim_vykres = r == Rezim::Vykres);
-                        }
-                    }
-                }
-                ui.separator();
-                if self.rezim == Rezim::Vykres {
-                    ui.label("🔍");
-                    let w = if uzke { (ui.available_width() - 60.0).max(100.0) } else { 220.0 };
-                    ui.add(egui::TextEdit::singleline(&mut self.hledat).hint_text(tr("hledat body, skupiny, povrchy")).desired_width(w));
-                    if !self.hledat.is_empty() && ui.small_button("x").clicked() {
-                        self.hledat.clear();
-                    }
-                    if !uzke {
-                        self.tlacitka_vyberu(ui);
-                    }
-                }
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    if ui.button("⟳").on_hover_text(tr("Obnovit")).clicked() {
-                        spravce::posli(Akce::Obnovit);
-                    }
-                    if ui.selectable_label(self.napoveda.is_some(), " ? ").on_hover_text(tr("Nápověda (F1)")).clicked() {
-                        self.napoveda = if self.napoveda.is_some() { None } else { Some(self.tema_napovedy()) };
-                    }
-                    if stav.pracuji {
-                        ui.spinner();
-                    }
-                    if !uzke {
-                        ui.add(egui::Label::new(RichText::new(&stav.vykres).color(SEDA).small()).truncate());
-                    }
-                });
-            });
-            if uzke && self.rezim == Rezim::Vykres {
-                ui.horizontal(|ui| self.tlacitka_vyberu(ui));
-            }
+            self.hlavicka(ui, &stav);
             ui.add_space(2.0);
             self.radek_aktivniho(ui, &stav);
             ui.add_space(3.0);
         });
         egui::Panel::bottom("dolni").show(ui, |ui| {
             ui.add_space(2.0);
-            let barva = if stav.zprava.starts_with(tr("Chyba")) { CERVENA } else { SEDA };
-            ui.label(RichText::new(if stav.zprava.is_empty() { " " } else { &stav.zprava }).color(barva));
+            let chyba = stav.zprava.starts_with(tr("Chyba"));
+            let barva = if chyba { CERVENA } else { SEDA };
+            ui.add(egui::Label::new(RichText::new(if stav.zprava.is_empty() { " " } else { &stav.zprava }).color(barva)).truncate())
+                .on_hover_text(&stav.zprava);
             ui.add_space(2.0);
         });
         if self.rezim == Rezim::Pohled3D {
             self.panel_3d(ui, &stav);
-            return;
-        }
-        if self.rezim == Rezim::Vyber {
-            egui::CentralPanel::default_margins().show(ui, |ui| {
-                egui::ScrollArea::vertical().id_salt("vyber_s").auto_shrink([false, false]).show(ui, |ui| self.panel_vyberu(ui, &stav));
-            });
             return;
         }
         // úzké okno: strom nahoře, podrobnosti pod ním
@@ -523,6 +474,11 @@ impl Okno {
             return;
         }
         self.skok = *n;
+        let vynutit = std::mem::take(&mut self.vynutit_skok);
+        if self.uzel == Uzel::Vyber && !vynutit && matches!(skok, Skok::Povrch(_) | Skok::Polozka(..) | Skok::Body(_)) {
+            // sledování výběru: uzel Vybráno ve výkrese ukazuje výběr sám
+            return;
+        }
         let otevri = |id: egui::Id| {
             let mut s = CollapsingState::load_with_default_open(ctx, id, true);
             s.set_open(true);
@@ -634,321 +590,12 @@ impl Okno {
         self.edit_puvodni = bod.map(|b| b.bod.clone());
     }
 
-    // ── Strom ────────────────────────────────────────────────────────────────
-
-    fn strom(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        ui.add_space(4.0);
-        let nazev = std::path::Path::new(&stav.vykres)
-            .file_name()
-            .map(|n| n.to_string_lossy().into_owned())
-            .unwrap_or_else(|| stav.vykres.clone());
-        let hledat = self.hledat.clone();
-        let h = &hledat;
-        let pocet_bodu = stav.body.iter().filter(|b| bod_odpovida(b, h)).count();
-        let skupiny: Vec<_> = stav.skupiny.iter().filter(|s| shoda(&s.skupina.jmeno, h) || h.is_empty()).cloned().collect();
-        let povrchy: Vec<_> = stav.povrchy.iter().filter(|p| shoda(&p.jmeno, h)).cloned().collect();
-
-        CollapsingState::load_with_default_open(ui.ctx(), egui::Id::new("u_vykres"), true)
-            .show_header(ui, |ui| {
-                if ui.selectable_label(self.uzel == Uzel::Vykres, RichText::new(format!("🗋 {nazev}")).strong()).clicked() {
-                    self.vyber_uzel(Uzel::Vykres);
-                }
-            })
-            .body(|ui| {
-                let t = if h.is_empty() { trf!("📍 Body ({})", pocet_bodu) } else { trf!("📍 Body ({} nalezeno)", pocet_bodu) };
-                let skryte = stav
-                    .styl_bodu
-                    .values()
-                    .filter(|(id, _)| stav.styly_bodu.iter().any(|s| &s.id == id && s.skryt))
-                    .count();
-                ui.horizontal(|ui| {
-                    let r = list(ui, self.uzel == Uzel::Body, RichText::new(t));
-                    if r.clicked() {
-                        self.vyber_uzel(Uzel::Body);
-                    }
-                    r.context_menu(|ui| {
-                        if ui.button(tr("Importovat body ze souboru…")).clicked() {
-                            self.nahled_importu = Some(import_nahled::NahledImportu::novy(""));
-                        }
-                        ui.separator();
-                        if ui.button(tr("Zkontrolovat zaměření")).clicked() {
-                            spravce::posli(Akce::Kontrola);
-                            self.vyber_uzel(Uzel::Kontrola);
-                        }
-                        if ui.button(tr("Překreslit body")).clicked() {
-                            spravce::posli(Akce::ObnovitPopisy);
-                        }
-                    });
-                    if skryte > 0 {
-                        ui.label(RichText::new(trf!("{} skrytých", skryte)).small().color(SEDA))
-                            .on_hover_text(tr("body se stylem Nezobrazovat"));
-                    }
-                });
-                CollapsingState::load_with_default_open(ui.ctx(), egui::Id::new("u_skupiny"), true)
-                    .show_header(ui, |ui| {
-                        let r = ui.selectable_label(self.uzel == Uzel::Skupiny, trf!("📂 Skupiny bodů ({})", stav.skupiny.len()));
-                        if r.clicked() {
-                            self.vyber_uzel(Uzel::Skupiny);
-                        }
-                        r.context_menu(|ui| {
-                            if ui.button(tr("Nová skupina")).clicked() {
-                                spravce::posli(Akce::SkupinaNova(Vec::new()));
-                            }
-                        });
-                    })
-                    .body(|ui| {
-                        for s in &skupiny {
-                            let u = Uzel::Skupina(s.skupina.id.clone());
-                            let mut t = RichText::new(format!("{} ({})", s.skupina.jmeno, s.pocet));
-                            if s.skupina.id == VSECHNY {
-                                t = t.italics();
-                            }
-                            let r = list(ui, self.uzel == u, t);
-                            if r.clicked() {
-                                self.vyber_uzel(u.clone());
-                            }
-                            r.context_menu(|ui| self.menu_skupiny(ui, stav, &s.skupina));
-                        }
-                    });
-                CollapsingState::load_with_default_open(ui.ctx(), egui::Id::new("u_povrchy"), true)
-                    .show_header(ui, |ui| {
-                        let r = ui.selectable_label(self.uzel == Uzel::Povrchy, trf!("🗺 Povrchy ({})", stav.povrchy.len()));
-                        if r.clicked() {
-                            self.vyber_uzel(Uzel::Povrchy);
-                        }
-                        r.context_menu(|ui| {
-                            if ui.button(tr("Nový povrch – průvodce…")).clicked() {
-                                self.pruvodce = Some(pruvodce::Pruvodce::novy(stav));
-                            }
-                            if ui.button(tr("Stávající terén (z bodů)")).clicked() {
-                                spravce::posli(Akce::NovyPovrchPas("Stavajici".into(), tr("Stávající terén").into(), true));
-                            }
-                            if ui
-                                .button(tr("Návrh z vybraných 3D čar"))
-                                .on_hover_text(tr("nejdřív vyberte ve výkrese 3D čáry (hrany, paty a koruny svahů)"))
-                                .clicked()
-                            {
-                                spravce::posli(Akce::NovyPovrchPas("Navrh".into(), tr("Návrh").into(), false));
-                            }
-                            ui.separator();
-                            if ui.add_enabled(!stav.povrchy.is_empty(), egui::Button::new(tr("Přepočítat všechny"))).clicked() {
-                                spravce::posli(Akce::Prepocitat(stav.povrchy.iter().map(|p| p.id.clone()).collect()));
-                            }
-                        });
-                    })
-                    .body(|ui| {
-                        if povrchy.is_empty() {
-                            ui.label(RichText::new(if stav.pripojeno { tr("žádný povrch") } else { tr("načítám…") }).color(SEDA).small());
-                        }
-                        for p in &povrchy {
-                            self.uzel_povrchu(ui, stav, p);
-                        }
-                    });
-                CollapsingState::load_with_default_open(ui.ctx(), egui::Id::new("u_styly"), false)
-                    .show_header(ui, |ui| {
-                        if ui.selectable_label(self.uzel == Uzel::Styly, tr("🎨 Styly")).clicked() {
-                            self.vyber_uzel(Uzel::Styly);
-                        }
-                    })
-                    .body(|ui| {
-                        CollapsingState::load_with_default_open(ui.ctx(), egui::Id::new("u_styly_bodu"), false)
-                            .show_header(ui, |ui| {
-                                if ui
-                                    .selectable_label(self.uzel == Uzel::StylyBodu, trf!("Styly bodů ({})", stav.styly_bodu.len()))
-                                    .clicked()
-                                {
-                                    self.vyber_uzel(Uzel::StylyBodu);
-                                }
-                            })
-                            .body(|ui| {
-                                let pocty = pocty_stylu(stav);
-                                for (nadpis_skupiny, symboly) in [("popisy", false), ("symboly", true)] {
-                                    ui.label(RichText::new(nadpis_skupiny).small().color(SEDA));
-                                    for st in stav.styly_bodu.iter().filter(|s| s.znacka.je_symbol() == symboly) {
-                                        let u = Uzel::StylBodu(st.id.clone());
-                                        let n = pocty.get(&st.id).copied().unwrap_or(0);
-                                        ui.horizontal(|ui| {
-                                            ikona_stylu(ui, st, 16.0);
-                                            let mut t = RichText::new(&st.jmeno);
-                                            if n == 0 {
-                                                t = t.color(SEDA);
-                                            }
-                                            let r = ui.selectable_label(self.uzel == u, t);
-                                            if r.clicked() {
-                                                self.vyber_uzel(u.clone());
-                                            }
-                                            r.context_menu(|ui| {
-                                                if ui.button(tr("Upravit styl")).clicked() {
-                                                    self.vyber_uzel(u.clone());
-                                                }
-                                                if ui.button(tr("Kopírovat jako nový")).clicked() {
-                                                    let mut n = st.clone();
-                                                    n.id = String::new();
-                                                    n.jmeno = trf!("{} (kopie)", st.jmeno);
-                                                    spravce::posli(Akce::UlozStylBodu(n));
-                                                }
-                                                if st.je_vestaveny() {
-                                                    if stav.ulozene_styly.contains(&st.id) && ui.button(tr("Vrátit původní nastavení")).clicked() {
-                                                        spravce::posli(Akce::SmazStyl(st.id.clone()));
-                                                    }
-                                                } else if ui.button(RichText::new(tr("Smazat styl")).color(CERVENA)).clicked() {
-                                                    spravce::posli(Akce::SmazStyl(st.id.clone()));
-                                                }
-                                            });
-                                            if n > 0 {
-                                                ui.label(RichText::new(n.to_string()).small().color(SEDA));
-                                            }
-                                        });
-                                    }
-                                }
-                            });
-                        CollapsingState::load_with_default_open(ui.ctx(), egui::Id::new("u_styly_povrchu"), false)
-                            .show_header(ui, |ui| {
-                                if ui
-                                    .selectable_label(
-                                        self.uzel == Uzel::StylyPovrchu,
-                                        trf!("Styly povrchů ({})", stav.styly_povrchu.len()),
-                                    )
-                                    .clicked()
-                                {
-                                    self.vyber_uzel(Uzel::StylyPovrchu);
-                                }
-                            })
-                            .body(|ui| {
-                                for st in &stav.styly_povrchu {
-                                    let u = Uzel::StylPovrchu(st.id.clone());
-                                    let n = stav.povrchy.iter().filter(|p| p.styl.eq_ignore_ascii_case(&st.id)).count();
-                                    ui.horizontal(|ui| {
-                                        ikona_stylu_povrchu(ui, st, 16.0);
-                                        let mut t = RichText::new(&st.jmeno);
-                                        if n == 0 {
-                                            t = t.color(SEDA);
-                                        }
-                                        let r = ui.selectable_label(self.uzel == u, t);
-                                        if r.clicked() {
-                                            self.vyber_uzel(u.clone());
-                                        }
-                                        r.context_menu(|ui| {
-                                            if ui.button(tr("Upravit styl")).clicked() {
-                                                self.vyber_uzel(u.clone());
-                                            }
-                                            if ui.button(tr("Kopírovat jako nový")).clicked() {
-                                                let mut n = st.clone();
-                                                n.id = String::new();
-                                                n.jmeno = trf!("{} (kopie)", st.jmeno);
-                                                spravce::posli(Akce::UlozStylPovrchu(n));
-                                            }
-                                            if st.je_vestaveny() {
-                                                if stav.ulozene_styly.contains(&st.id) && ui.button(tr("Vrátit původní nastavení")).clicked() {
-                                                    spravce::posli(Akce::SmazStyl(st.id.clone()));
-                                                }
-                                            } else if ui.button(RichText::new(tr("Smazat styl")).color(CERVENA)).clicked() {
-                                                spravce::posli(Akce::SmazStyl(st.id.clone()));
-                                            }
-                                        });
-                                        if n > 0 {
-                                            ui.label(RichText::new(n.to_string()).small().color(SEDA));
-                                        }
-                                    });
-                                }
-                            });
-                    });
-                let n = stav.kontrola.as_ref().map(|k| k.len());
-                let t = match n {
-                    Some(n) if n > 0 => RichText::new(trf!("⚠ Kontrola zaměření ({})", n)).color(ORANZOVA),
-                    _ => RichText::new(tr("✔ Kontrola zaměření")),
-                };
-                if list(ui, self.uzel == Uzel::Kontrola, t).clicked() {
-                    self.vyber_uzel(Uzel::Kontrola);
-                }
-                if list(ui, self.uzel == Uzel::Nastaveni, RichText::new(tr("⚙ Nastavení"))).clicked() {
-                    self.vyber_uzel(Uzel::Nastaveni);
-                }
-            });
-    }
-
-    fn uzel_povrchu(&mut self, ui: &mut egui::Ui, stav: &StavSpravce, p: &PrehledPovrchu) {
-        let id = p.id.clone();
-        if self.rozbalit.as_ref() == Some(&id) {
-            self.rozbalit = None;
-            for klic in [egui::Id::new(("u_povrch", id.as_str())), egui::Id::new(("u_definice", id.as_str()))] {
-                let mut s = CollapsingState::load_with_default_open(ui.ctx(), klic, true);
-                s.set_open(true);
-                s.store(ui.ctx());
-            }
-        }
-        CollapsingState::load_with_default_open(ui.ctx(), egui::Id::new(("u_povrch", id.as_str())), false)
-            .show_header(ui, |ui| {
-                let skryty = p.styl.eq_ignore_ascii_case(styly::SKRYT);
-                let mut t = RichText::new(format!("{}{}", if p.aktivni { "▶ " } else { "" }, p.jmeno));
-                if p.aktivni {
-                    t = t.strong();
-                }
-                if skryty {
-                    t = t.color(SEDA);
-                }
-                let r = ui.selectable_label(self.uzel == Uzel::Povrch(id.clone()), t);
-                if r.clicked() {
-                    self.vyber_uzel(Uzel::Povrch(id.clone()));
-                }
-                if r.double_clicked() {
-                    spravce::posli(Akce::Aktivovat(id.clone()));
-                }
-                r.context_menu(|ui| self.menu_povrchu(ui, stav, p));
-                if p.zastaraly {
-                    ui.label(RichText::new("⚠").color(ORANZOVA)).on_hover_text(tr("zastaralý – zdroje se od přepočtu změnily"));
-                } else {
-                    ui.label(RichText::new("✔").small().color(ZELENA)).on_hover_text(tr("aktuální"));
-                }
-                if skryty {
-                    ui.label(RichText::new(tr("skrytý")).small().color(SEDA)).on_hover_text(tr("styl Nezobrazovat"));
-                }
-                if p.auto {
-                    ui.label(RichText::new("⟳").color(ZELENA)).on_hover_text(tr("automatický přepočet"));
-                }
-                if p.upozorneni() > 0 {
-                    ui.label(RichText::new(trf!("{} upoz.", p.upozorneni())).small().color(ORANZOVA))
-                        .on_hover_text(tr("upozornění z přepočtu"));
-                }
-            })
-            .body(|ui| {
-                CollapsingState::load_with_default_open(ui.ctx(), egui::Id::new(("u_definice", id.as_str())), true)
-                    .show_header(ui, |ui| {
-                        ui.label(tr("Z čeho se povrch počítá"));
-                    })
-                    .body(|ui| {
-                        let pocet = |f: &dyn Fn(&DruhPolozky) -> bool| p.polozky.iter().filter(|x| f(&x.druh)).count();
-                        let casti = [
-                            (Cast::Hranice, pocet(&|d| matches!(d, DruhPolozky::Hranice | DruhPolozky::Dira))),
-                            (Cast::Spojnice, pocet(&|d| matches!(d, DruhPolozky::Spojnice))),
-                            (Cast::Objekty, pocet(&|d| matches!(d, DruhPolozky::Objekt(_)))),
-                            (Cast::Upravy, p.upravy.len()),
-                            (Cast::Skupiny, p.skupiny.len()),
-                        ];
-                        for (c, n) in casti {
-                            let u = Uzel::Definice(id.clone(), c);
-                            let barva = if n == 0 { SEDA } else { ui.visuals().text_color() };
-                            if list(ui, self.uzel == u, RichText::new(format!("{} ({n})", c.nazev())).color(barva)).clicked() {
-                                self.vyber_uzel(u);
-                            }
-                        }
-                    });
-                let n = p.upozorneni();
-                if n > 0 {
-                    let u = Uzel::Upozorneni(id.clone());
-                    if list(ui, self.uzel == u, RichText::new(trf!("⚠ Upozornění ({})", n)).color(ORANZOVA)).clicked() {
-                        self.vyber_uzel(u);
-                    }
-                }
-            });
-    }
-
     /// Téma nápovědy podle toho, co je v Prospektoru otevřené.
     fn tema_napovedy(&self) -> String {
         match (&self.rezim, &self.uzel) {
             (Rezim::Pohled3D, _) => "3d",
             (_, Uzel::Skupiny | Uzel::Skupina(_)) => "skupiny",
-            (_, Uzel::Styly | Uzel::StylyBodu | Uzel::StylBodu(_) | Uzel::StylyPovrchu | Uzel::StylPovrchu(_)) => "styly",
+            (_, Uzel::StylyBodu | Uzel::StylBodu(_) | Uzel::StylyPovrchu | Uzel::StylPovrchu(_)) => "styly",
             (_, Uzel::Definice(_, Cast::Upravy)) => "upravy",
             (_, Uzel::Povrch(_) | Uzel::Povrchy | Uzel::Definice(..) | Uzel::Body) => "teren",
             _ => "prospektor",
@@ -1112,7 +759,11 @@ impl Okno {
             nastaveni::zmen(|x| x.sledovat_vyber = sl);
         }
         let mut vyber = !n.rezim_vykres;
-        if ui.checkbox(&mut vyber, tr("otevírat v režimu Výběr")).changed() {
+        if ui
+            .checkbox(&mut vyber, tr("po otevření ukázat Vybráno ve výkrese"))
+            .on_hover_text(tr("jinak se otevře přehled výkresu"))
+            .changed()
+        {
             nastaveni::zmen(|x| x.rezim_vykres = !vyber);
         }
         let mut postup = !n.postup_skryt;
@@ -1288,6 +939,9 @@ impl Okno {
     fn detail(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
         match self.uzel.clone() {
             Uzel::Vykres => self.detail_vykres(ui, stav),
+            Uzel::Vyber => {
+                egui::ScrollArea::vertical().id_salt("vyber_s").auto_shrink([false, false]).show(ui, |ui| self.panel_vyberu(ui, stav));
+            }
             Uzel::Body => self.detail_body(ui, stav),
             Uzel::Skupiny => self.detail_skupiny(ui, stav),
             Uzel::Skupina(id) => self.detail_skupina(ui, stav, &id),
@@ -1317,7 +971,7 @@ impl Okno {
             Uzel::Nastaveni => {
                 egui::ScrollArea::vertical().id_salt("nast_s").auto_shrink([false, false]).show(ui, |ui| self.detail_nastaveni(ui, stav));
             }
-            Uzel::Styly | Uzel::StylyBodu | Uzel::StylyPovrchu => {
+            Uzel::StylyBodu | Uzel::StylyPovrchu => {
                 egui::ScrollArea::vertical().id_salt("styly_s").auto_shrink([false, false]).show(ui, |ui| self.detail_styly(ui, stav));
             }
             Uzel::StylBodu(id) => {
@@ -1367,22 +1021,86 @@ impl Okno {
         }
     }
 
-    fn tlacitka_vyberu(&mut self, ui: &mut egui::Ui) {
-        if ui
-            .button(tr("Najít v Prospektoru"))
-            .on_hover_text(tr("Vyberte ve výkrese bod, čáru nebo trojúhelník povrchu – Prospektor na něj skočí"))
-            .clicked()
-        {
-            spravce::posli(Akce::VyberZVykresu);
+    /// Horní lišta: výkres, hledání, výběr z výkresu, nápověda.
+    fn hlavicka(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
+        let uzke = ui.available_width() < 700.0;
+        ui.horizontal(|ui| {
+            if self.rezim == Rezim::Pohled3D {
+                if ui.button(tr("← Zpět do stromu")).clicked() {
+                    self.rezim = Rezim::Vykres;
+                }
+                ui.label(RichText::new(tr("Prohlížeč 3D")).strong());
+            } else {
+                strom::kresli_ikonu(
+                    ui,
+                    &strom::Ikona::Svg(strom::ik!("ter_prospektor")),
+                    ui.cursor().left_center() + egui::vec2(8.0, 0.0),
+                    false,
+                );
+                ui.add_space(18.0);
+                let nazev = std::path::Path::new(&stav.vykres)
+                    .file_name()
+                    .map(|n| n.to_string_lossy().into_owned())
+                    .unwrap_or_else(|| stav.vykres.clone());
+                let r = ui
+                    .selectable_label(self.uzel == Uzel::Vykres, RichText::new(&nazev).strong())
+                    .on_hover_text(trf!("{}
+klik = přehled výkresu a postup „Jak na to“", stav.vykres));
+                if r.clicked() {
+                    self.vyber_uzel(Uzel::Vykres);
+                }
+                if !uzke {
+                    ui.label(RichText::new(format!("1:{}", cislo_cz(stav.meritko))).color(SEDA))
+                        .on_hover_text(tr("měřítko výkresu (velikost značek a popisů)"));
+                    ui.add_space(8.0);
+                    self.pole_hledani(ui, 220.0);
+                }
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.button("⟳").on_hover_text(tr("Načíst výkres znovu")).clicked() {
+                    spravce::posli(Akce::Obnovit);
+                }
+                if ui.selectable_label(self.napoveda.is_some(), " ? ").on_hover_text(tr("Nápověda k tomu, co je otevřené (F1)")).clicked() {
+                    self.napoveda = if self.napoveda.is_some() { None } else { Some(self.tema_napovedy()) };
+                }
+                if self.rezim != Rezim::Pohled3D {
+                    let mut sl = spravce::sledovat_vyber();
+                    if ui
+                        .selectable_label(sl, if uzke { "◎" } else { tr("◎ Sledovat výběr") })
+                        .on_hover_text(tr("Zapnuto: Prospektor sám ukáže bod nebo povrch, na který kliknete ve výkrese"))
+                        .clicked()
+                    {
+                        sl = !sl;
+                        spravce::nastav_sledovani(sl);
+                        nastaveni::zmen(|n| n.sledovat_vyber = sl);
+                    }
+                    if ui
+                        .button(tr("Najít v Prospektoru"))
+                        .on_hover_text(tr("Vyberte ve výkrese bod, čáru nebo trojúhelník povrchu – Prospektor na něj skočí"))
+                        .clicked()
+                    {
+                        self.vynutit_skok = true;
+                        spravce::posli(Akce::VyberZVykresu);
+                    }
+                }
+                if stav.pracuji {
+                    ui.spinner();
+                }
+            });
+        });
+        if uzke && self.rezim != Rezim::Pohled3D {
+            ui.horizontal(|ui| self.pole_hledani(ui, (ui.available_width() - 40.0).max(100.0)));
         }
-        let mut sl = spravce::sledovat_vyber();
-        if ui
-            .checkbox(&mut sl, tr("sledovat výběr"))
-            .on_hover_text(tr("Prospektor sám ukáže bod nebo povrch, na který kliknete ve výkrese"))
-            .changed()
-        {
-            spravce::nastav_sledovani(sl);
-            nastaveni::zmen(|n| n.sledovat_vyber = sl);
+    }
+
+    fn pole_hledani(&mut self, ui: &mut egui::Ui, sirka: f32) {
+        ui.add(
+            egui::TextEdit::singleline(&mut self.hledat)
+                .hint_text(tr("🔍 Hledat body, skupiny, povrchy"))
+                .desired_width(sirka),
+        );
+        if !self.hledat.is_empty() && ui.small_button("✕").on_hover_text(tr("Zrušit hledání")).clicked() {
+            self.hledat.clear();
         }
     }
 

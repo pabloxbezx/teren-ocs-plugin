@@ -133,10 +133,6 @@ impl Okno {
             ui.label(tr("Klikněte ve výkrese na bod (značku nebo popis) nebo na povrch – tady se ukážou jeho vlastnosti a styl."));
             ui.add_space(8.0);
             zaskrtnuti_nevybirat(ui);
-            ui.add_space(10.0);
-            if ui.button(tr("Otevřít strom výkresu")).clicked() {
-                self.rezim = Rezim::Vykres;
-            }
         }
     }
 

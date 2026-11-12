@@ -190,7 +190,7 @@ impl Okno {
                                 });
                                 ui.label(tr("Bez hranice povrch sahá k nejvzdálenějším bodům. Ořízněte ho uzavřenou křivkou: vyberte ji a klikněte Hranice (Díra vynechá vnitřek)."));
                                 ui.add_space(8.0);
-                                ui.label(RichText::new(tr("Obojí najdete i v Prospektoru u povrchu › Z čeho se povrch počítá.")).color(SEDA));
+                                ui.label(RichText::new(tr("Obojí najdete i v Prospektoru ve stromu pod povrchem.")).color(SEDA));
                             }
                             _ => {
                                 egui::Grid::new("pruv_zobr").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {

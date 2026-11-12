@@ -691,7 +691,7 @@ Max. délka hrany zabrání dlouhým trojúhelníkům přes místa bez bodů (ok
 Spojnice (lomové hrany)	Breaklines
 Po vytvoření je přidáte na záložce Terén: Spojnice přes body (klikáním na body zaměření) nebo Přidat spojnici (vybrané 3D křivky).	After creation add them on the Terén tab: Breakline through points (clicking survey points) or Add breakline (selected 3D polylines).
 Bez hranice povrch sahá k nejvzdálenějším bodům. Ořízněte ho uzavřenou křivkou: vyberte ji a klikněte Hranice (Díra vynechá vnitřek).	Without a boundary the surface reaches the outermost points. Clip it with a closed polyline: select it and click Boundary (Hole leaves out the inside).
-Obojí najdete i v Prospektoru u povrchu › Z čeho se povrch počítá.	Both are also in the Prospector at the surface › What the surface is built from.
+Obojí najdete i v Prospektoru ve stromu pod povrchem.	Both are also in the Prospector tree under the surface.
 Styl i krok jde kdykoli změnit pravým tlačítkem na povrch v Prospektoru.	The style and interval can be changed any time by right-clicking the surface in the Prospector.
 NÁHLED	PREVIEW
 bodů	points
@@ -911,12 +911,12 @@ Terén ze zaměření	Ground from a survey
 2. Vytvořte povrch: Nový povrch › Stávající terén (z bodů), nebo v Prospektoru pravým tlačítkem na Povrchy. Vezme skupinu Zaměření bez kódů STR.	2. Create a surface: New surface › Existing ground (from points), or right-click Surfaces in the Prospector. It takes the Survey group without STR codes.
 3. Doplňte spojnice (lomové hrany): Spojnice přes body – klikejte na body zaměření; nebo vyberte hotové 3D křivky a klikněte Přidat spojnici.	3. Add breaklines: Breakline through points – click survey points; or select existing 3D polylines and click Add breakline.
 4. Ořízněte povrch: nakreslete uzavřenou křivku a klikněte Hranice (díra vynechá vnitřek).	4. Clip the surface: draw a closed polyline and click Boundary (a hole leaves out the inside).
-5. Prohlédněte trojúhelníky (styl Trojúhelníky nebo záložka 3D) a opravte je nástroji ze skupiny Úpravy trojúhelníků.	5. Review the triangles (Triangles style or the 3D tab) and fix them with the tools of the Triangle edits group.
+5. Prohlédněte trojúhelníky (styl Trojúhelníky nebo Prohlédnout ve 3D) a opravte je nástroji ze skupiny Úpravy trojúhelníků.	5. Review the triangles (Triangles style or View in 3D) and fix them with the tools of the Triangle edits group.
 6. Nastavte styl s vrstevnicemi a krok vrstevnic – pravým tlačítkem na povrch › Styl / Vrstevnice po.	6. Set a style with contours and the contour interval – right-click the surface › Style / Contour interval.
 Povrch se přepočítá sám, když je zapnutý automatický přepočet; jinak ukáže ⚠ zastaralý a stačí kliknout Přepočítat.	The surface recalculates itself when automatic recalculation is on; otherwise it shows ⚠ out of date and you just click Recalculate.
 Úprava trojúhelníků	Editing triangles
 Nástroje Otočit hranu, Přidat hranu, Smazat hranu, Smazat trojúhelník, Přidat bod a Odebrat bod pracují s aktivním povrchem. Klikejte do výkresu, změna se projeví hned; Enter nebo Esc nástroj ukončí.	The Swap edge, Add edge, Delete edge, Delete triangle, Add point and Remove point tools work on the active surface. Click in the drawing, the change applies immediately; Enter or Esc ends the tool.
-Každá úprava se uloží k povrchu (strom › Z čeho se povrch počítá › Ruční úpravy trojúhelníků). Tam ji můžete ukázat, vypnout nebo smazat.	Each edit is stored with the surface (tree › What the surface is built from › Manual triangle edits). There you can show, disable or delete it.
+Každá úprava se uloží k povrchu (strom › povrch › Úpravy trojúhelníků). Tam ji můžete ukázat, vypnout nebo smazat.	Each edit is stored with the surface (tree › surface › Triangle edits). There you can show, disable or delete it.
 Hranu, kterou drží spojnice, nejde otočit ani smazat. Bod, který je vrcholem spojnice, zůstane v povrchu, i když ho odeberete – nejdřív upravte spojnici.	An edge held by a breakline cannot be swapped or deleted. A point that is a breakline vertex stays in the surface even if you remove it – edit the breakline first.
 Styly a symboly	Styles and symbols
 Styl bodu určuje značku a popisy. Přiřadí se ručně (pás karet › Styl bodu, nebo pravým tlačítkem na řádek tabulky), jinak podle kódu (např. STR = strom), jinak podle skupiny, jinak Standard.	A point style sets the marker and labels. It is assigned manually (ribbon › Point style, or right-click a table row), otherwise by code (e.g. STR = tree), otherwise by group, otherwise Standard.
@@ -928,12 +928,12 @@ Ručně přidané a odebrané body mají přednost před pravidly – přidáte 
 Náhled vpravo barevně ukazuje, které body do skupiny patří; klik na bod řekne proč.	The preview on the right shows in colour which points belong to the group; clicking a point tells why.
 Povrch se skládá ze skupin. Po uložení změněné skupiny se povrch přepočítá (nebo ukáže, že je zastaralý).	A surface is built from groups. After a changed group is saved the surface is recalculated (or shows it is out of date).
 Ovládání	Controls
-Výběr – ukazuje, co máte vybrané ve výkrese (bod, povrch, čáru) a co s tím jde dělat.	Selection – shows what is selected in the drawing (point, surface, line) and what you can do with it.
-Výkres – strom všeho, co plugin ve výkrese má: body, skupiny, povrchy, styly, nastavení.	Drawing – a tree of everything the plugin has in the drawing: points, groups, surfaces, styles, settings.
-3D – prohlížeč povrchů.	3D – surface viewer.
+Vlevo je strom všeho, co plugin ve výkrese má: body, skupiny, povrchy (pod každým jeho zdroje), styly, kontrola zaměření a nastavení. Vpravo jsou podrobnosti vybrané položky.	On the left is a tree of everything the plugin has in the drawing: points, groups, surfaces (each with its sources underneath), styles, survey check and settings. On the right are the details of the selected item.
+Vybráno ve výkrese (nahoře ve stromu) ukazuje, co máte vybrané ve výkrese, a co s tím jde dělat. Tečka u povrchu: zelená = aktuální, oranžová = zastaralý; ★ = aktivní povrch.	Selected in drawing (top of the tree) shows what is selected in the drawing and what you can do with it. Dot at a surface: green = up to date, orange = out of date; ★ = active surface.
+Prohlédnout ve 3D (u povrchu) otevře prohlížeč povrchů; zpět do stromu vede tlačítko vlevo nahoře.	View in 3D (at a surface) opens the surface viewer; the button at the top left goes back to the tree.
 Pravé tlačítko na uzlu stromu nebo na řádku tabulky otevře nabídku akcí.	Right-clicking a tree node or a table row opens a menu of actions.
 Dvojklik na povrch ho nastaví jako aktivní, dvojklik na bod v tabulce ho ukáže ve výkrese.	Double-clicking a surface makes it active, double-clicking a point in the table shows it in the drawing.
-Ukázat v Prospektoru (pás karet) skočí na objekt vybraný ve výkrese. F1 otevře tuto nápovědu.	Show in Prospector (ribbon) jumps to the object selected in the drawing. F1 opens this help.
+Najít v Prospektoru (pás karet i horní lišta) skočí na objekt vybraný ve výkrese; ◎ Sledovat výběr to dělá samo. F1 otevře tuto nápovědu.	Find in Prospector (ribbon and top bar) jumps to the object selected in the drawing; ◎ Follow selection does it automatically. F1 opens this help.
 Prohlížeč 3D	3D viewer
 Ovládání jako v SolidWorksu:	Controls as in SolidWorks:
 Prostřední tlačítko – otáčení kolem místa pod kurzorem; levé tlačítko také otáčí.	Middle button – orbit around the point under the cursor; the left button also orbits.
@@ -1210,3 +1210,40 @@ PYXZD – číslo, Y, X, Z, popis (S-JTSK)	PYXZD – number, Y, X, Z, descriptio
 PXYZD – číslo, X, Y, Z, popis (S-JTSK)	PXYZD – number, X, Y, Z, description (S-JTSK)
 YXZ – bez čísla (S-JTSK)	YXZ – without number (S-JTSK)
 Body (TXT, CSV, XYZ, XLSX, XML, GSI)	Points (TXT, CSV, XYZ, XLSX, XML, GSI)
+# Prospektor 1.0.7 – strom a horní lišta
+po otevření ukázat Vybráno ve výkrese	on opening, show Selected in drawing
+jinak se otevře přehled výkresu	otherwise the drawing overview opens
+← Zpět do stromu	← Back to the tree
+{}\nklik = přehled výkresu a postup „Jak na to“	{}\nclick = drawing overview and the "How to" steps
+měřítko výkresu (velikost značek a popisů)	drawing scale (size of markers and labels)
+Načíst výkres znovu	Reload the drawing
+Nápověda k tomu, co je otevřené (F1)	Help for what is open (F1)
+◎ Sledovat výběr	◎ Follow selection
+Zapnuto: Prospektor sám ukáže bod nebo povrch, na který kliknete ve výkrese	On: the Prospector shows the point or surface you click in the drawing
+🔍 Hledat body, skupiny, povrchy	🔍 Search points, groups, surfaces
+Zrušit hledání	Clear search
+body povrchu = zapnuté skupiny bez vyloučených kódů	surface points = enabled groups without excluded codes
+vnější hranice povrchu a díry v něm	outer boundary of the surface and holes in it
+lomové hrany – trojúhelníky je nepřekříží	breaklines – triangles never cross them
+body z objektů výkresu (bloky, body, 3D plochy…)	points from drawing objects (blocks, points, 3D faces…)
+ručně otočené, přidané a smazané hrany a trojúhelníky	manually flipped, added and deleted edges and triangles
+{} body	{} points
+1 povrch	1 surface
+{} povrchy	{} surfaces
+nic	nothing
+Vybráno ve výkrese	Selected in drawing
+Vlastnosti bodu nebo povrchu, který je vybraný ve výkrese	Properties of the point or surface selected in the drawing
+Data	Data
+{} nalezeno	{} found
+{} bodů je skrytých (styl Nezobrazovat)	{} points are hidden (style Do not display)
+zatím žádný povrch	no surface yet
+Vzhled	Appearance
+popisy	labels
+symboly	symbols
+Nástroje	Tools
+Najde body, jejichž výška vybočuje z okolí	Finds points whose height stands out from their surroundings
+★ aktivní povrch (s ním pracují nástroje Úpravy a Nový bod na povrchu)	★ active surface (used by the Edits tools and New point on surface)
+přepočítává se automaticky	rebuilds automatically
+skrytý – styl Nezobrazovat	hidden – style Do not display
+dvojklik = nastavit jako aktivní	double-click = set as active
+Upozornění	Warnings
