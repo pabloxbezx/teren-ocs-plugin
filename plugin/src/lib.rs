@@ -18,6 +18,9 @@ mod styly;
 mod uchopy;
 mod vykres;
 
+#[doc(hidden)]
+pub use okno::ukazka_importu;
+
 use teren::preklad::tr;
 use teren::trf;
 use std::sync::{Mutex, OnceLock};
@@ -151,12 +154,8 @@ impl CadModule for TerenModule {
                             id: "TER_IMPORT",
                             label: tr("Import bodů"),
                             icon: ikona!("ter_body_import"),
-                            event: ModuleEvent::PluginFileDialog {
-                                command: "TER_IMPORT".into(),
-                                title: tr("Import bodů").into(),
-                                filter_name: tr("Body (TXT, CSV, XYZ, XLSX, XML, GSI)").into(),
-                                extensions: ["txt", "csv", "xyz", "xlsx", "xls", "ods", "xml", "jxl", "gsi", "*"].iter().map(|p| p.to_string()).collect(),
-                            },
+                            // okno importu s volbou zdroje (soubor, schránka, výkres…)
+                            event: ModuleEvent::Command("TER_IMPORT".into()),
                         }),
                         RibbonItem::LabeledDropdown {
                             id: "TER_DD_SABLONA",
@@ -969,7 +968,7 @@ impl TerenPlugin {
         match nazev.as_str() {
             "TER_IMPORT" => {
                 if zbytek.is_empty() {
-                    host.push_info(tr("Terén: pro import klikněte na tlačítko Import bodů na záložce Terén."));
+                    okno::otevri_import("");
                     return true;
                 }
                 let n = nastaveni::akt();

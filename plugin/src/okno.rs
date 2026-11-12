@@ -22,6 +22,8 @@ use crate::cogo::BodVykresu;
 use crate::nastaveni;
 use crate::povrchy::{cislo_cz, DruhPolozky, TypObjektu, HRANY, INTERVALY, TYPY_OBJEKTU};
 mod import_nahled;
+#[doc(hidden)]
+pub use import_nahled::ukazka as ukazka_importu;
 mod karta;
 mod napoveda;
 mod pruvodce;
