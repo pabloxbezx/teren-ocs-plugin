@@ -52,12 +52,56 @@ impl Oddelovac {
     }
 }
 
+/// Desetinný oddělovač čísel.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Desetinna {
+    /// Tečka i čárka (čárka jen tam, kde není oddělovačem sloupců).
+    #[default]
+    Auto,
+    Tecka,
+    Carka,
+}
+
+impl Desetinna {
+    pub fn klic(self) -> &'static str {
+        match self {
+            Desetinna::Auto => "auto",
+            Desetinna::Tecka => "tecka",
+            Desetinna::Carka => "carka",
+        }
+    }
+    pub fn z_klice(s: &str) -> Self {
+        match s.trim() {
+            "tecka" | "." => Desetinna::Tecka,
+            "carka" | "," => Desetinna::Carka,
+            _ => Desetinna::Auto,
+        }
+    }
+}
+
+impl Sloupec {
+    /// Písmeno sloupce ve vzoru formátu (`P`, `N`, `E`, `Y`, `X`, `Z`, `D`, `-`).
+    pub fn pismeno(self) -> char {
+        match self {
+            Sloupec::Cislo => 'P',
+            Sloupec::N => 'N',
+            Sloupec::E => 'E',
+            Sloupec::SjtskY => 'Y',
+            Sloupec::SjtskX => 'X',
+            Sloupec::Z => 'Z',
+            Sloupec::Popis => 'D',
+            Sloupec::Preskocit => '-',
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct FormatBodu {
     pub sloupce: Vec<Sloupec>,
     pub oddelovac: Oddelovac,
     /// Počet řádků hlavičky, které se přeskočí.
     pub preskocit_radku: usize,
+    pub desetinna: Desetinna,
 }
 
 impl FormatBodu {
@@ -78,6 +122,15 @@ impl FormatBodu {
             };
             sloupce.push(s);
         }
+        Self::ze_sloupcu(sloupce, oddelovac)
+    }
+
+    /// Vytvoří formát z rolí sloupců (zkontroluje, že dávají smysl).
+    pub fn ze_sloupcu(mut sloupce: Vec<Sloupec>, oddelovac: Oddelovac) -> Result<Self, String> {
+        while sloupce.last() == Some(&Sloupec::Preskocit) {
+            sloupce.pop();
+        }
+        let vzor: String = sloupce.iter().map(|s| s.pismeno()).collect();
         let ma = |s| sloupce.contains(&s);
         let rovina_ne = ma(Sloupec::N) && ma(Sloupec::E);
         let rovina_yx = ma(Sloupec::SjtskY) && ma(Sloupec::SjtskX);
@@ -85,6 +138,9 @@ impl FormatBodu {
             return Err(format!(
                 "formát '{vzor}' musí obsahovat buď N+E (souřadnice výkresu), nebo Y+X (S-JTSK), ne obojí"
             ));
+        }
+        if (ma(Sloupec::N) || ma(Sloupec::E)) && (ma(Sloupec::SjtskY) || ma(Sloupec::SjtskX)) {
+            return Err(trf!("formát '{}' míchá souřadnice výkresu (N, E) a S-JTSK (Y, X)", vzor));
         }
         if !ma(Sloupec::Z) {
             return Err(trf!("formát '{}' neobsahuje výšku Z", vzor));
@@ -94,7 +150,17 @@ impl FormatBodu {
                 return Err(format!("formát '{vzor}' obsahuje sloupec {s:?} vícekrát"));
             }
         }
-        Ok(Self { sloupce, oddelovac, preskocit_radku: 0 })
+        Ok(Self { sloupce, oddelovac, preskocit_radku: 0, desetinna: Desetinna::Auto })
+    }
+
+    /// Vzor formátu (např. `PYXZD`, `P-NEZ`).
+    pub fn vzor(&self) -> String {
+        self.sloupce.iter().map(|s| s.pismeno()).collect()
+    }
+
+    /// Souřadnice jsou S-JTSK (kladné Y, X), ne souřadnice výkresu.
+    pub fn je_sjtsk(&self) -> bool {
+        self.sloupce.contains(&Sloupec::SjtskY)
     }
 }
 
@@ -121,6 +187,8 @@ pub struct ChybaRadku {
     pub radek: usize,
     pub text: String,
     pub duvod: String,
+    /// Index sloupce, ve kterém je chyba (je-li známý).
+    pub sloupec: Option<usize>,
 }
 
 impl fmt::Display for ChybaRadku {
@@ -133,14 +201,16 @@ impl fmt::Display for ChybaRadku {
 pub struct VysledekImportu {
     pub body: Vec<Bod>,
     pub chyby: Vec<ChybaRadku>,
+    /// Číslo řádku souboru (od 1) ke každému bodu v `body`.
+    pub radky: Vec<usize>,
 }
 
 /// Rozdělí řádek na pole podle oddělovače. Je-li popis posledním sloupcem,
-/// zbytek řádku (i s mezerami) připadne popisu.
-fn rozdel<'a>(radek: &'a str, format: &FormatBodu) -> Vec<&'a str> {
-    let n = format.sloupce.len();
-    let posledni_popis = format.sloupce.last() == Some(&Sloupec::Popis);
-    match format.oddelovac {
+/// zbytek řádku (i s mezerami) připadne popisu. `n` = počet sloupců formátu
+/// (0 = rozdělit celý řádek).
+pub fn rozdel_radek(radek: &str, oddelovac: Oddelovac, n: usize, posledni_popis: bool) -> Vec<&str> {
+    let posledni_popis = posledni_popis && n > 0;
+    match oddelovac {
         Oddelovac::Mezera => {
             let mut pole = Vec::with_capacity(n);
             let mut zbytek = radek.trim();
@@ -161,25 +231,73 @@ fn rozdel<'a>(radek: &'a str, format: &FormatBodu) -> Vec<&'a str> {
                 Oddelovac::Strednik => ';',
                 _ => '\t',
             };
-            let pole: Vec<&str> = if posledni_popis {
-                radek.splitn(n, znak).collect()
-            } else {
-                radek.split(znak).collect()
-            };
+            let pole: Vec<&str> = if posledni_popis { radek.splitn(n, znak).collect() } else { radek.split(znak).collect() };
             pole.into_iter().map(str::trim).collect()
         }
     }
 }
 
-fn cislo(s: &str, oddelovac: Oddelovac) -> Option<f64> {
-    let s = s.trim();
-    // Desetinná čárka je přípustná, pokud čárka není oddělovačem sloupců.
-    if oddelovac != Oddelovac::Carka && s.contains(',') && !s.contains('.') {
-        s.replace(',', ".").parse().ok()
-    } else {
-        s.parse().ok()
+fn rozdel<'a>(radek: &'a str, format: &FormatBodu) -> Vec<&'a str> {
+    rozdel_radek(radek, format.oddelovac, format.sloupce.len(), format.sloupce.last() == Some(&Sloupec::Popis))
+}
+
+/// Číslice ve skupinách po třech oddělené znakem `sep` (např. `1.043.520`).
+fn tisice(cela: &str, sep: char) -> bool {
+    let cela = cela.strip_prefix(['-', '+']).unwrap_or(cela);
+    let skupiny: Vec<&str> = cela.split(sep).collect();
+    skupiny.len() > 1
+        && (1..=3).contains(&skupiny[0].len())
+        && skupiny.iter().all(|g| g.chars().all(|c| c.is_ascii_digit()))
+        && skupiny[1..].iter().all(|g| g.len() == 3)
+}
+
+/// Převede text na číslo podle desetinného oddělovače. Mezery mezi
+/// číslicemi (tisíce) se vypustí; tisíce s tečkou/čárkou se poznají podle
+/// skupin po třech číslicích.
+pub fn cislo_z_textu(s: &str, oddelovac: Oddelovac, desetinna: Desetinna) -> Option<f64> {
+    let s: String = s.trim().chars().filter(|c| !matches!(c, ' ' | '\u{a0}' | '\u{202f}' | '\'')).collect();
+    if s.is_empty() {
+        return None;
     }
-    .filter(|v: &f64| v.is_finite())
+    let (des, tis) = match desetinna {
+        Desetinna::Tecka => ('.', ','),
+        Desetinna::Carka => (',', '.'),
+        Desetinna::Auto => {
+            let (t, c) = (s.rfind('.'), s.rfind(','));
+            match (t, c) {
+                (Some(t), Some(c)) if c > t => (',', '.'),
+                (Some(_), Some(_)) => ('.', ','),
+                (None, Some(_)) if oddelovac != Oddelovac::Carka && !tisice(&s, ',') => (',', '.'),
+                (None, Some(_)) => ('.', ','),
+                _ => ('.', ','),
+            }
+        }
+    };
+    let (cela, zlomek) = match s.rfind(des) {
+        Some(i) => (&s[..i], Some(&s[i + 1..])),
+        None => (s.as_str(), None),
+    };
+    let (cela, zlomek) = if cela.contains(tis) {
+        if tisice(cela, tis) {
+            (cela.replace(tis, ""), zlomek)
+        } else if zlomek.is_none() && desetinna == Desetinna::Carka &&cela.matches(tis).count() == 1 {
+            // jediný „cizí“ oddělovač, který nejsou tisíce = desetinná tečka/čárka
+            let i = cela.find(tis).unwrap_or(0);
+            (cela[..i].to_string(), Some(&cela[i + 1..]))
+        } else {
+            return None;
+        }
+    } else {
+        (cela.to_string(), zlomek)
+    };
+    let t = match zlomek {
+        Some(z) => format!("{cela}.{z}"),
+        None => cela,
+    };
+    if t.contains(['e', 'E']) || !t.chars().all(|c| c.is_ascii_digit() || matches!(c, '.' | '-' | '+')) {
+        return None;
+    }
+    t.parse::<f64>().ok().filter(|v| v.is_finite())
 }
 
 /// Načte body z textu. Prázdné řádky a řádky začínající `#` nebo `;`
@@ -195,10 +313,7 @@ pub fn nacti_body(text: &str, format: &FormatBodu) -> VysledekImportu {
     for (i, radek) in text.lines().enumerate().skip(format.preskocit_radku) {
         let cislo_radku = i + 1;
         let orez = radek.trim();
-        if orez.is_empty()
-            || orez.starts_with('#')
-            || (orez.starts_with(';') && format.oddelovac != Oddelovac::Strednik)
-        {
+        if orez.is_empty() || orez.starts_with('#') || (orez.starts_with(';') && format.oddelovac != Oddelovac::Strednik) {
             continue;
         }
         let pole = rozdel(radek, format);
@@ -207,16 +322,19 @@ pub fn nacti_body(text: &str, format: &FormatBodu) -> VysledekImportu {
                 radek: cislo_radku,
                 text: radek.to_string(),
                 duvod: trf!("málo sloupců ({} místo alespoň {})", pole.len(), povinnych),
+                sloupec: Some(pole.len()),
             });
             continue;
         }
 
         let mut bod = Bod { cislo: String::new(), x: f64::NAN, y: f64::NAN, z: f64::NAN, popis: String::new() };
         let mut chyba = None;
-        for (sloupec, hodnota) in format.sloupce.iter().zip(pole.iter()) {
-            let mut num = |cil: &mut f64, jmeno: &str, znamenko: f64| match cislo(hodnota, format.oddelovac) {
+        for (j, (sloupec, hodnota)) in format.sloupce.iter().zip(pole.iter()).enumerate() {
+            let mut num = |cil: &mut f64, jmeno: &str, znamenko: f64| match cislo_z_textu(hodnota, format.oddelovac, format.desetinna) {
                 Some(v) => *cil = znamenko * v,
-                None => chyba = Some(trf!("neplatná hodnota {} '{}'", jmeno, hodnota)),
+                None if chyba.is_some() => {}
+                None if hodnota.trim().is_empty() => chyba = Some((trf!("chybí hodnota {}", jmeno), j)),
+                None => chyba = Some((trf!("neplatná hodnota {} '{}'", jmeno, hodnota), j)),
             };
             match sloupec {
                 Sloupec::Cislo => bod.cislo = hodnota.to_string(),
@@ -230,8 +348,11 @@ pub fn nacti_body(text: &str, format: &FormatBodu) -> VysledekImportu {
             }
         }
         match chyba {
-            Some(duvod) => vysledek.chyby.push(ChybaRadku { radek: cislo_radku, text: radek.to_string(), duvod }),
-            None => vysledek.body.push(bod),
+            Some((duvod, j)) => vysledek.chyby.push(ChybaRadku { radek: cislo_radku, text: radek.to_string(), duvod, sloupec: Some(j) }),
+            None => {
+                vysledek.body.push(bod);
+                vysledek.radky.push(cislo_radku);
+            }
         }
     }
     vysledek
@@ -327,6 +448,47 @@ mod testy {
         let v = nacti_body("1;10,5;20,25;300,1;T", &f);
         assert!(v.chyby.is_empty(), "{:?}", v.chyby);
         assert_eq!((v.body[0].x, v.body[0].y, v.body[0].z), (10.5, 20.25, 300.1));
+    }
+
+    #[test]
+    fn cisla_desetinna_a_tisice() {
+        let c = |s, o, d| cislo_z_textu(s, o, d);
+        let (m, st, ca) = (Oddelovac::Mezera, Oddelovac::Strednik, Oddelovac::Carka);
+        assert_eq!(c("312.48", m, Desetinna::Auto), Some(312.48));
+        assert_eq!(c("312,48", st, Desetinna::Auto), Some(312.48));
+        assert_eq!(c("1 043 520,45", st, Desetinna::Auto), Some(1043520.45));
+        assert_eq!(c("1\u{a0}043\u{a0}520,45", st, Desetinna::Carka), Some(1043520.45));
+        assert_eq!(c("1.043.520,45", st, Desetinna::Auto), Some(1043520.45));
+        assert_eq!(c("1,043,520.45", st, Desetinna::Auto), Some(1043520.45));
+        assert_eq!(c("-745 210.12", st, Desetinna::Tecka), Some(-745210.12));
+        // s čárkou jako oddělovačem sloupců se čárka za desetinnou nebere
+        assert_eq!(c("312,48", ca, Desetinna::Auto), None);
+        // volba tečka odmítne desetinnou čárku; u volby čárka projde i tečka
+        assert_eq!(c("312,48", st, Desetinna::Tecka), None);
+        assert_eq!(c("312.48", st, Desetinna::Carka), Some(312.48));
+        assert_eq!(c("1.043", st, Desetinna::Carka), Some(1043.0));
+        for spatne in ["", "7452a8,10", "1e5", "2026-11-03", "1.04.3", "inf", "--1"] {
+            assert_eq!(c(spatne, st, Desetinna::Auto), None, "{spatne}");
+        }
+    }
+
+    #[test]
+    fn chybna_bunka_index_sloupce_a_radky_bodu() {
+        let f = FormatBodu::z_retezce("PYXZD", Oddelovac::Strednik).unwrap();
+        let v = nacti_body("1;745210;1043520;312;T\n2;7452a8;1043520;312;T\n\n3;745210;1043520;;T\n4;745211;1043521;313\n", &f);
+        assert_eq!(v.radky, vec![1, 5]);
+        assert_eq!(v.body.len(), 2);
+        assert_eq!((v.chyby[0].radek, v.chyby[0].sloupec), (2, Some(1)));
+        assert_eq!((v.chyby[1].radek, v.chyby[1].sloupec), (4, Some(3)));
+        assert!(v.chyby[1].duvod.contains("chybí"), "{}", v.chyby[1].duvod);
+    }
+
+    #[test]
+    fn vzor_a_sloupce() {
+        let f = FormatBodu::z_retezce("P-YXZ--", Oddelovac::Mezera).unwrap();
+        assert_eq!(f.vzor(), "P-YXZ");
+        assert!(f.je_sjtsk());
+        assert!(FormatBodu::z_retezce("PYNZ", Oddelovac::Mezera).is_err());
     }
 
     #[test]

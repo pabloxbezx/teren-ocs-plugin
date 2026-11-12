@@ -1058,3 +1058,7 @@ Terén: nejdřív vyberte body ve výkrese (stačí kliknout na značku nebo pop
 Terén: export bodů je v Prospektoru u skupiny bodů (Všechny body nebo jiná skupina) – Export bodů skupiny.	Terén: point export is in the Prospector at a point group (All points or another group) – Export the group's points.
 Terén: povrch „{}“ ve 3D – v okně Prospektoru.	Terén: surface "{}" in 3D – in the Prospector window.
 Body zaměření	Survey points
+formát '{}' míchá souřadnice výkresu (N, E) a S-JTSK (Y, X)	format '{}' mixes drawing coordinates (N, E) and S-JTSK (Y, X)
+chybí hodnota {}	missing value {}
+automaticky	automatic
+tečka	point

@@ -3,7 +3,9 @@
 //! Jádro nezávisí na Open CAD Studiu – plugin bude jen tenká vrstva nad ním.
 
 pub mod body;
+pub mod duplicity;
 pub mod dxf;
+pub mod kodovani;
 pub mod kontrola;
 pub mod landxml;
 pub mod preklad;
