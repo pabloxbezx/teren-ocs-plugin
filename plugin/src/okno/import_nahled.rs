@@ -787,28 +787,21 @@ fn kdy(cesta: &str) -> String {
 
 impl Okno {
     pub(super) fn okno_importu(&mut self, ctx: &egui::Context, stav: &StavSpravce) {
-        kresli(ctx, &mut self.nahled_importu, stav);
+        let bylo = self.nahled_importu.is_some();
+        kresli(ctx, &mut self.nahled_importu, stav, true);
+        // Prospektor otevřený jen kvůli importu se po importu zase zavře
+        if bylo && self.nahled_importu.is_none() && super::PROSPEKTOR_JEN_PRO_IMPORT.swap(false, std::sync::atomic::Ordering::SeqCst) {
+            ctx.send_viewport_cmd_to(egui::ViewportId::ROOT, egui::ViewportCommand::Close);
+        }
     }
 }
 
 /// Vstupy okna (přetažení, schránka, dialog, výkres) a kreslení.
-fn kresli(ctx: &egui::Context, slot: &mut Option<NahledImportu>, stav: &StavSpravce) {
+fn kresli(ctx: &egui::Context, slot: &mut Option<NahledImportu>, stav: &StavSpravce, samostatne: bool) {
     let Some(n) = slot.as_mut() else { return };
-    let pretazene: Vec<String> = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().display().to_string()).filter(|p| !p.is_empty()).collect());
-    if let Some(nove) = NahledImportu::soubory(pretazene) {
-        *n = nove;
-    }
     if let Some(v) = vybrane_soubory().lock().unwrap_or_else(|e| e.into_inner()).take() {
         if let Some(nove) = NahledImportu::soubory(v) {
             *n = nove;
-        }
-    }
-    // Ctrl+V mimo textové pole = tabulka ze schránky
-    if ctx.memory(|m| m.focused().is_none()) {
-        if let Some(t) = ctx.input(|i| i.events.iter().find_map(|e| if let egui::Event::Paste(t) = e { Some(t.clone()) } else { None })) {
-            if !t.trim().is_empty() {
-                n.ze_schranky(t, &stav.zdroje);
-            }
         }
     }
     if let Some(z) = crate::import::vezmi_z_vykresu() {
@@ -822,29 +815,61 @@ fn kresli(ctx: &egui::Context, slot: &mut Option<NahledImportu>, stav: &StavSpra
     let mut otevreno = true;
     let mut hotovo = false;
     let titulek = if n.soubor.is_empty() { tr("Import bodů").to_string() } else { trf!("Import bodů – {}", n.soubor) };
-    let ram = egui::Frame::window(&ctx.global_style()).fill(PANEL).stroke(Stroke::new(1.0, Color32::from_rgb(68, 74, 82))).inner_margin(0.0);
-    let obrazovka = ctx.content_rect();
-    egui::Window::new(titulek)
-        .id(egui::Id::new("teren_import"))
-        .frame(ram)
-        .open(&mut otevreno)
-        .pivot(Align2::CENTER_CENTER)
-        .default_pos(obrazovka.center())
-        .default_size([1120.0_f32.min(obrazovka.width() - 24.0), 700.0_f32.min(obrazovka.height() - 24.0)])
-        .min_size([760.0, 480.0])
-        .max_width(obrazovka.width() - 16.0)
-        .max_height(obrazovka.height() - 16.0)
-        .resizable(true)
-        .collapsible(false)
-        .show(ctx, |ui| {
-            ui.visuals_mut().override_text_color = Some(INK);
-            ui.style_mut().interaction.selectable_labels = false;
-            if !n.ma_zdroj() {
-                egui::Frame::new().inner_margin(14.0).show(ui, |ui| volba_zdroje(ui, n, stav));
-                return;
+    let mut obsah = |ui: &mut egui::Ui| {
+        // vstupy okna importu (u samostatného okna jsou jen v něm)
+        let pretazene: Vec<String> = ui.input(|i| i.raw.dropped_files.iter().map(|f| f.path().display().to_string()).filter(|p| !p.is_empty()).collect());
+        if let Some(nove) = NahledImportu::soubory(pretazene) {
+            *n = nove;
+            n.prepocti(stav);
+        }
+        // Ctrl+V mimo textové pole = tabulka ze schránky
+        if ui.memory(|m| m.focused().is_none()) {
+            if let Some(t) = ui.input(|i| i.events.iter().find_map(|e| if let egui::Event::Paste(t) = e { Some(t.clone()) } else { None })) {
+                if !t.trim().is_empty() {
+                    n.ze_schranky(t, &stav.zdroje);
+                    n.prepocti(stav);
+                }
             }
-            hotovo = nahled(ui, n, stav);
+        }
+        ui.visuals_mut().override_text_color = Some(INK);
+        ui.style_mut().interaction.selectable_labels = false;
+        if !n.ma_zdroj() {
+            egui::Frame::new().inner_margin(14.0).show(ui, |ui| volba_zdroje(ui, n, stav));
+            return;
+        }
+        hotovo = nahled(ui, n, stav);
+    };
+    if samostatne {
+        // vlastní okno systému (mimo Prospektor): jde posunout kamkoli
+        let okno = egui::ViewportBuilder::default()
+            .with_title(titulek)
+            .with_inner_size([1120.0, 720.0])
+            .with_min_inner_size([760.0, 480.0]);
+        ctx.show_viewport_immediate(egui::ViewportId::from_hash_of("teren_import"), okno, |ui, _trida| {
+            let r = ui.max_rect();
+            ui.painter().rect_filled(r, 0.0, PANEL);
+            obsah(ui);
+            if ui.input(|i| i.viewport().close_requested()) {
+                otevreno = false;
+            }
         });
+    } else {
+        let ram = egui::Frame::window(&ctx.global_style()).fill(PANEL).stroke(Stroke::new(1.0, Color32::from_rgb(68, 74, 82))).inner_margin(0.0);
+        let obrazovka = ctx.content_rect();
+        egui::Window::new(titulek)
+            .id(egui::Id::new("teren_import"))
+            .frame(ram)
+            .open(&mut otevreno)
+            .pivot(Align2::CENTER_CENTER)
+            .default_pos(obrazovka.center())
+            .default_size([1120.0_f32.min(obrazovka.width() - 24.0), 700.0_f32.min(obrazovka.height() - 24.0)])
+            .min_size([760.0, 480.0])
+            .max_width(obrazovka.width() - 16.0)
+            .max_height(obrazovka.height() - 16.0)
+            .resizable(true)
+            .collapsible(false)
+            .show(ctx, obsah);
+    }
     if hotovo {
         let mut fronta = std::mem::take(&mut n.fronta);
         if fronta.is_empty() {
@@ -1790,7 +1815,7 @@ pub fn ukazka(cesta: &str, png: &str, sirka: f32, vyska: f32, filtr: &str) -> ef
             if self.slot.is_none() {
                 self.slot = Some(NahledImportu::prazdny());
             }
-            kresli(ctx, &mut self.slot, &self.stav);
+            kresli(ctx, &mut self.slot, &self.stav, std::env::var_os("TEREN_UKAZKA_OKNO").is_some());
             self.snimku += 1;
             for e in ctx.input(|i| i.raw.events.clone()) {
                 if let egui::Event::Screenshot { image, .. } = e {

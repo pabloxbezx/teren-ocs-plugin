@@ -51,8 +51,15 @@ fn pozadavek_importu() -> &'static Mutex<Option<String>> {
 /// Otevře Prospektor s náhledem importu souboru bodů.
 pub fn otevri_import(cesta: &str) {
     *pozadavek_importu().lock().unwrap_or_else(|e| e.into_inner()) = Some(cesta.to_string());
+    let jen_pro_import = !OTEVRENO.load(Ordering::SeqCst);
     otevri();
+    if jen_pro_import {
+        PROSPEKTOR_JEN_PRO_IMPORT.store(true, Ordering::SeqCst);
+    }
 }
+
+/// Prospektor se otevřel jen kvůli oknu importu (po importu se zavře).
+static PROSPEKTOR_JEN_PRO_IMPORT: AtomicBool = AtomicBool::new(false);
 
 /// Otevře Prospektor s průvodcem novým povrchem.
 pub fn otevri_pruvodce() {
@@ -96,6 +103,8 @@ pub fn prekresli() {
 
 /// Otevře okno (nebo ho vytáhne dopředu, pokud už je otevřené).
 pub fn otevri() {
+    // otevření z jiného místa než z importu – Prospektor po importu zůstane
+    PROSPEKTOR_JEN_PRO_IMPORT.store(false, Ordering::SeqCst);
     if OTEVRENO.load(Ordering::SeqCst) {
         if let Some(c) = kontext().lock().unwrap_or_else(|e| e.into_inner()).as_ref() {
             c.send_viewport_cmd(egui::ViewportCommand::Minimized(false));
