@@ -187,6 +187,17 @@ pub(super) struct NahledImportu {
     /// Další soubory k importu (přetažené nebo vybrané najednou).
     fronta: Vec<String>,
     poradi: (usize, usize),
+    /// Vytažení samostatného okna dopředu po otevření.
+    zvednuti: Zvednuti,
+}
+
+/// Okno importu otevírá proces pluginu a Windows mu nedovolí předběhnout
+/// Open CAD Studio – proto se na chvíli dá „vždy navrchu“ a pak zpět.
+#[derive(Clone, Copy)]
+enum Zvednuti {
+    Ceka,
+    Nahore(std::time::Instant),
+    Hotovo,
 }
 
 impl NahledImportu {
@@ -244,6 +255,7 @@ impl NahledImportu {
             nova_sablona: None,
             fronta: Vec::new(),
             poradi: (1, 1),
+            zvednuti: Zvednuti::Ceka,
         }
     }
 
@@ -815,6 +827,7 @@ fn kresli(ctx: &egui::Context, slot: &mut Option<NahledImportu>, stav: &StavSpra
     let mut otevreno = true;
     let mut hotovo = false;
     let titulek = if n.soubor.is_empty() { tr("Import bodů").to_string() } else { trf!("Import bodů – {}", n.soubor) };
+    let mut zvednuti = n.zvednuti;
     let mut obsah = |ui: &mut egui::Ui| {
         // vstupy okna importu (u samostatného okna jsou jen v něm)
         let pretazene: Vec<String> = ui.input(|i| i.raw.dropped_files.iter().map(|f| f.path().display().to_string()).filter(|p| !p.is_empty()).collect());
@@ -843,9 +856,23 @@ fn kresli(ctx: &egui::Context, slot: &mut Option<NahledImportu>, stav: &StavSpra
         // vlastní okno systému (mimo Prospektor): jde posunout kamkoli
         let okno = egui::ViewportBuilder::default()
             .with_title(titulek)
+            .with_active(true)
             .with_inner_size([1120.0, 720.0])
             .with_min_inner_size([760.0, 480.0]);
         ctx.show_viewport_immediate(egui::ViewportId::from_hash_of("teren_import"), okno, |ui, _trida| {
+            match zvednuti {
+                Zvednuti::Ceka => {
+                    ui.ctx().send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
+                    ui.ctx().send_viewport_cmd(egui::ViewportCommand::Focus);
+                    zvednuti = Zvednuti::Nahore(std::time::Instant::now());
+                }
+                Zvednuti::Nahore(t) if t.elapsed() > std::time::Duration::from_millis(1500) => {
+                    ui.ctx().send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
+                    zvednuti = Zvednuti::Hotovo;
+                }
+                Zvednuti::Nahore(_) => ui.ctx().request_repaint_after(std::time::Duration::from_millis(200)),
+                Zvednuti::Hotovo => {}
+            }
             let r = ui.max_rect();
             ui.painter().rect_filled(r, 0.0, PANEL);
             obsah(ui);
@@ -870,6 +897,7 @@ fn kresli(ctx: &egui::Context, slot: &mut Option<NahledImportu>, stav: &StavSpra
             .collapsible(false)
             .show(ctx, obsah);
     }
+    n.zvednuti = zvednuti;
     if hotovo {
         let mut fronta = std::mem::take(&mut n.fronta);
         if fronta.is_empty() {
