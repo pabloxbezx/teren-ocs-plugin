@@ -49,6 +49,19 @@ pub(super) fn pilulka(ui: &mut egui::Ui, text: &str, barva: Color32) -> egui::Re
         .response
 }
 
+/// Tlačítko s ikonou z pásu karet; `hlavni` = modré (na kartě nejvýš jedno).
+pub(super) fn tlacitko(ui: &mut egui::Ui, ikona: Option<egui::ImageSource<'static>>, text: &str, hlavni: bool) -> egui::Response {
+    let t = if hlavni { RichText::new(text).color(Color32::WHITE).strong() } else { RichText::new(text) };
+    let mut b = match ikona {
+        Some(src) => egui::Button::image_and_text(egui::Image::new(src).fit_to_exact_size(egui::vec2(16.0, 16.0)), t),
+        None => egui::Button::new(t),
+    };
+    if hlavni {
+        b = b.fill(Color32::from_rgb(31, 111, 235)).stroke(egui::Stroke::new(1.0, Color32::from_rgb(47, 124, 240)));
+    }
+    ui.add(b)
+}
+
 /// Hlavní číslo s popiskem pod ním.
 pub(super) fn kpi(ui: &mut egui::Ui, hodnota: &str, popis: &str) -> egui::Response {
     egui::Frame::new()
@@ -233,15 +246,13 @@ impl Okno {
         // ── akce ──
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
-            let t = RichText::new(tr("⟳ Přepočítat"));
-            let b = if p.zastaraly { egui::Button::new(t.strong().color(Color32::WHITE)).fill(Color32::from_rgb(31, 111, 235)) } else { egui::Button::new(t) };
-            if ui.add(b).clicked() {
+            if tlacitko(ui, Some(ik!("ter_prepocitat")), tr("Přepočítat"), p.zastaraly).clicked() {
                 spravce::posli(Akce::Prepocitat(vec![id.clone()]));
             }
             if !p.aktivni && ui.button(tr("★ Nastavit jako aktivní")).clicked() {
                 spravce::posli(Akce::Aktivovat(id.clone()));
             }
-            if ui.button(tr("Prohlédnout ve 3D")).clicked() {
+            if tlacitko(ui, Some(ik!("ter_vrstevnice")), tr("Prohlédnout ve 3D"), false).clicked() {
                 self.pohled.otevri(vec![id.clone()]);
                 self.rezim = Rezim::Pohled3D;
             }

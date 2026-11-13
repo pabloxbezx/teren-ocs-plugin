@@ -1287,7 +1287,10 @@ impl Okno {
                 spravce::posli(Akce::ObnovitPopisy);
             }
             if ui
-                .button(tr("Připravit výkres ze šablony"))
+                .add(egui::Button::image_and_text(
+                    egui::Image::new(strom::ik!("ter_sablona")).fit_to_exact_size(egui::vec2(16.0, 16.0)),
+                    tr("Připravit výkres ze šablony"),
+                ))
                 .on_hover_text(tr("hladiny Terénu, značka bodu podle stylu, měřítko a styly ze šablony – jedním kliknutím"))
                 .clicked()
             {
@@ -1443,13 +1446,16 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         });
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
-            if ui.button(tr("Import bodů…")).clicked() {
+            if karta::tlacitko(ui, Some(strom::ik!("ter_body_import")), tr("Import bodů…"), true).clicked() {
                 self.nahled_importu = Some(import_nahled::NahledImportu::novy(""));
             }
-            if ui.button(tr("Překreslit body")).on_hover_text(tr("znovu vykreslí značky a popisy všech bodů podle stylů a měřítka")).clicked() {
+            if karta::tlacitko(ui, Some(strom::ik!("ter_styl_bodu")), tr("Překreslit body"), false)
+                .on_hover_text(tr("znovu vykreslí značky a popisy všech bodů podle stylů a měřítka"))
+                .clicked()
+            {
                 spravce::posli(Akce::ObnovitPopisy);
             }
-            if ui.button(tr("Zkontrolovat zaměření")).clicked() {
+            if karta::tlacitko(ui, Some(strom::ik!("ter_vyska_v_bode")), tr("Zkontrolovat zaměření"), false).clicked() {
                 spravce::posli(Akce::Kontrola);
                 self.vyber_uzel(Uzel::Kontrola);
             }
@@ -1996,7 +2002,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         });
         ui.add_space(4.0);
         ui.horizontal(|ui| {
-            if ui.button(tr("+ Nová skupina")).clicked() {
+            if karta::tlacitko(ui, Some(strom::ik!("ter_skupina_bodu")), tr("+ Nová skupina"), true).clicked() {
                 spravce::posli(Akce::SkupinaNova(Vec::new()));
             }
             info(
@@ -2066,7 +2072,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                     let h: Vec<Handle> = stav.body.iter().filter(|b| f.obsahuje(&b.bod, &b.zdroj)).map(|b| b.handle).collect();
                     ukazat_body(stav, &h);
                 }
-                if ui.button(tr("Nový povrch ze skupiny")).clicked() {
+                if karta::tlacitko(ui, Some(strom::ik!("ter_povrch_z_bodu")), tr("Nový povrch ze skupiny"), false).clicked() {
                     spravce::posli(Akce::PovrchZeSkupiny(id.to_string(), None, false));
                 }
                 if ui.button(tr("Zobrazit v tabulce bodů")).clicked() {
@@ -2625,7 +2631,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         ui.horizontal(|ui| {
             ui.label(tr("Soubor"));
             ui.add(egui::TextEdit::singleline(&mut e.1).desired_width(330.0));
-            if ui.button(tr("Exportovat")).clicked() {
+            if karta::tlacitko(ui, Some(strom::ik!("ter_export_povrchu")), tr("Exportovat"), true).clicked() {
                 spravce::posli(Akce::ExportPovrchu(p.id.clone(), e.1.clone(), !e.2));
             }
         });
@@ -2640,10 +2646,10 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         });
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
-            if ui.button(tr("+ Nový povrch – průvodce…")).clicked() {
+            if karta::tlacitko(ui, Some(strom::ik!("ter_povrch_novy")), tr("Nový povrch – průvodce…"), true).clicked() {
                 self.pruvodce = Some(pruvodce::Pruvodce::novy(stav));
             }
-            if ui.add_enabled(!stav.povrchy.is_empty(), egui::Button::new(tr("Přepočítat všechny"))).clicked() {
+            if !stav.povrchy.is_empty() && karta::tlacitko(ui, Some(strom::ik!("ter_prepocitat")), tr("Přepočítat všechny"), false).clicked() {
                 spravce::posli(Akce::Prepocitat(stav.povrchy.iter().map(|p| p.id.clone()).collect()));
             }
             zaskrtnuti_nevybirat(ui);
@@ -3149,7 +3155,7 @@ fn kontrola(ui: &mut egui::Ui, stav: &StavSpravce) {
             tr("Hledá body zaměření, jejichž výška výrazně vybočuje z okolí (překlep, bod na autě, v jámě…). \
              Podezřelé body se ve výkrese označí kroužkem na hladině TER_KONTROLA."),
         );
-        if ui.button(tr("Zkontrolovat zaměření")).clicked() {
+        if karta::tlacitko(ui, Some(strom::ik!("ter_vyska_v_bode")), tr("Zkontrolovat zaměření"), true).clicked() {
             spravce::posli(Akce::Kontrola);
         }
         if ui.button(tr("Smazat značky kontroly")).on_hover_text(tr("kroužky a odchylky na hladině TER_KONTROLA")).clicked() {
@@ -3350,7 +3356,7 @@ impl Okno {
                  Velikosti jsou v mm na papíře a mění se s měřítkem výkresu. Vestavěné styly jde upravit \
                  (úprava se uloží do výkresu) a kdykoli vrátit k původnímu nastavení."),
             );
-            if ui.button(tr("+ Nový styl bodů")).clicked() {
+            if karta::tlacitko(ui, Some(strom::ik!("ter_styl_bodu")), tr("+ Nový styl bodů"), true).clicked() {
                 let mut st = StylBodu::vestavene().remove(0);
                 st.id = String::new();
                 st.jmeno = tr("Nový styl bodů").into();
