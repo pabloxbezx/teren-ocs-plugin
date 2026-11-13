@@ -402,6 +402,12 @@ struct Okno {
     // skupina
     edit_skupina: Option<SkupinaBodu>,
     skupina_zmenena: bool,
+    /// Kdy se skupina naposledy změnila (ukládá se samo chvilku po úpravě).
+    zmena_skupiny: Option<std::time::Instant>,
+    /// Kdy se upravovaný styl naposledy změnil.
+    zmena_stylu: Option<std::time::Instant>,
+    /// Rozepsaný kód k vyloučení z povrchu.
+    novy_kod_povrchu: String,
     /// Zobrazené (i prázdné) řádky pravidel: zahrnout kód/číslo/soubor, vyloučit kód/číslo.
     skup_ukaz: [bool; 5],
     /// Rozepsané vstupy: kód zahrnout, kód vyloučit, přidaný bod, odebraný bod.
@@ -447,6 +453,28 @@ const MODRA: Color32 = Color32::from_rgb(110, 170, 240);
 fn hlaska_smazani() -> &'static Mutex<Option<(String, std::time::Instant)>> {
     static H: OnceLock<Mutex<Option<(String, std::time::Instant)>>> = OnceLock::new();
     H.get_or_init(|| Mutex::new(None))
+}
+
+/// Hláška vpravo dole s radou „vrátíte to Ctrl+Z ve výkrese“.
+fn hlaska(text: String) {
+    *hlaska_smazani().lock().unwrap_or_else(|e| e.into_inner()) = Some((text, std::time::Instant::now()));
+}
+
+/// Uložit hned po úpravě: až uživatel nepíše (žádné pole nemá fokus),
+/// nebo 1,5 s po poslední změně. `zmena` = změna v tomto snímku.
+fn ulozit_ted(ui: &egui::Ui, cas: &mut Option<std::time::Instant>, zmena: bool) -> bool {
+    let ted = std::time::Instant::now();
+    if zmena {
+        *cas = Some(ted);
+    }
+    let Some(t) = *cas else { return false };
+    let pise = ui.memory(|m| m.focused().is_some());
+    if !pise || ted.duration_since(t).as_millis() > 1500 {
+        *cas = None;
+        return true;
+    }
+    ui.ctx().request_repaint_after(std::time::Duration::from_millis(300));
+    false
 }
 
 /// Pošle mazací akci a ukáže hlášku s radou, jak ji vrátit.
@@ -2387,25 +2415,28 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         }
         ui.label(RichText::new(tr("Ručně přidané a odebrané body mají přednost před pravidly.")).small().color(SEDA));
 
-        if s != puvodni {
+        let zmena = s != puvodni;
+        if zmena {
             self.skupina_zmenena = true;
         }
+        let ulozit_hned = self.skupina_zmenena && ulozit_ted(ui, &mut self.zmena_skupiny, zmena);
         let f = s.filtr();
         let n = stav.body.iter().filter(|b| f.obsahuje(&b.bod, &b.zdroj)).count();
         drop(f);
         let dnes = stav.skupiny.iter().find(|x| x.skupina.id == s.id).map_or(0, |x| x.pocet);
         ui.add_space(6.0);
         ui.horizontal(|ui| {
-            let ulozit = ui.add_enabled(self.skupina_zmenena, egui::Button::new(tr("Uložit skupinu")));
-            if ulozit.clicked() {
+            if ulozit_hned {
                 let mut s = s.clone();
                 for t in [&mut s.cisla, &mut s.bez_cisel, &mut s.pridane, &mut s.odebrane] {
                     *t = SeznamCisel::z_textu(t).text();
                 }
+                hlaska(trf!("Skupina „{}“ uložena.", s.jmeno));
                 spravce::posli(Akce::SkupinaUlozit(s));
                 self.skupina_zmenena = false;
             }
             if self.skupina_zmenena {
+                ui.label(RichText::new(tr("ukládám…")).color(SEDA)).on_hover_text(tr("změna se uloží sama, jakmile dopíšete"));
                 if ui.button(tr("Vrátit změny")).clicked() {
                     self.edit_skupina = None;
                     self.skupina_zmenena = false;
@@ -2873,11 +2904,14 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                 }
             });
             ui.end_row();
-            ui.label(tr("Vyloučit kódy"));
-            ui.horizontal(|ui| {
-                ui.add(egui::TextEdit::singleline(&mut self.kody).hint_text(tr("např. STR, ZK")).desired_width(160.0));
-                if ui.button(tr("Použít")).clicked() && self.kody != p.vyloucene_kody {
-                    nastav(Zmena::Kody(self.kody.clone()));
+            ui.label(tr("Vyloučit kódy")).on_hover_text(tr("body s těmito kódy povrch nepoužije (stromy, sloupy…); změna se uloží hned"));
+            ui.horizontal_wrapped(|ui| {
+                let mut v = kody_z_textu(&p.vyloucene_kody);
+                let pred = v.clone();
+                cipy_kodu(ui, &mut v, &mut self.novy_kod_povrchu, tr("kód"));
+                if v != pred {
+                    nastav(Zmena::Kody(v.join(", ")));
+                    hlaska(trf!("Povrch „{}“: vyloučené kódy uloženy.", p.jmeno));
                 }
             });
             ui.end_row();
@@ -3536,12 +3570,31 @@ impl Okno {
             ui.label(RichText::new(tr("Styl už ve výkrese není.")).color(SEDA));
             return;
         };
-        nadpis(ui, &trf!("Styl bodů – {}", st.jmeno));
+        let vestaveny = st.je_vestaveny();
+        karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_styl_bodu")), &st.jmeno, |ui| {
+            karta::pilulka(ui, if vestaveny { tr("vestavěný") } else { tr("vlastní") }, SEDA);
+        });
+        ui.add_space(6.0);
         if self.kody_stylu.0 != st.id || (self.kody_stylu.1.is_empty() && !st.kody.is_empty() && !self.styl_zmenen) {
             self.kody_stylu = (st.id.clone(), st.kody.join(", "));
         }
         let kody_text = &mut self.kody_stylu.1;
         let mut z = false;
+        let nahled = st.clone();
+        let pouziti = pocty_stylu(stav).get(&st.id).copied().unwrap_or(0);
+        ui.horizontal_top(|ui| {
+            // velký živý náhled vlevo
+            ui.vertical(|ui| {
+                ui.set_width(260.0);
+                nahled_bodu(ui, &nahled, egui::vec2(260.0, 210.0), 11.0);
+                ui.label(
+                    RichText::new(trf!("náhled v měřítku 1:{} · {} bodů ve výkrese", cislo_cz(stav.meritko), czi(pouziti)))
+                        .small()
+                        .color(SEDA),
+                );
+            });
+            ui.add_space(14.0);
+            ui.vertical(|ui| {
         egui::Grid::new("styl_bodu").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
             ui.label(tr("Jméno"));
             z |= ui.add(egui::TextEdit::singleline(&mut st.jmeno).desired_width(260.0)).changed();
@@ -3642,16 +3695,24 @@ impl Okno {
             z |= ui.checkbox(&mut st.skryt, tr("nezobrazovat body (skrýt značku i popis)")).changed();
             ui.end_row();
         });
+            });
+        });
         if z {
             self.styl_zmenen = true;
+            ui.ctx().request_repaint();
         }
-        nahled_bodu(ui, st);
+        let ulozit_hned = self.styl_zmenen && ulozit_ted(ui, &mut self.zmena_stylu, z);
         let st = st.clone();
         let ulozeny = stav.ulozene_styly.contains(&st.id);
+        ui.add_space(6.0);
         ui.horizontal_wrapped(|ui| {
-            if ui.add_enabled(self.styl_zmenen, egui::Button::new(tr("Uložit styl"))).clicked() {
+            if ulozit_hned {
+                hlaska(trf!("Styl „{}“ uložen.", st.jmeno));
                 spravce::posli(Akce::UlozStylBodu(st.clone()));
                 self.styl_zmenen = false;
+            }
+            if self.styl_zmenen {
+                ui.label(RichText::new(tr("ukládám…")).color(SEDA));
             }
             if self.styl_zmenen && ui.button(tr("Vrátit změny")).clicked() {
                 self.edit_styl_bodu = None;
@@ -3781,17 +3842,18 @@ impl Okno {
         if z {
             self.styl_zmenen = true;
         }
+        let ulozit_hned = self.styl_zmenen && ulozit_ted(ui, &mut self.zmena_stylu, z);
         let st = st.clone();
         let ulozeny = stav.ulozene_styly.contains(&st.id);
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
-            if ui
-                .add_enabled(self.styl_zmenen, egui::Button::new(tr("Uložit styl")))
-                .on_hover_text(tr("povrchy s tímto stylem se překreslí"))
-                .clicked()
-            {
+            if ulozit_hned {
+                hlaska(trf!("Styl „{}“ uložen – povrchy s ním se překreslí.", st.jmeno));
                 spravce::posli(Akce::UlozStylPovrchu(st.clone()));
                 self.styl_zmenen = false;
+            }
+            if self.styl_zmenen {
+                ui.label(RichText::new(tr("ukládám…")).color(SEDA));
             }
             if self.styl_zmenen && ui.button(tr("Vrátit změny")).clicked() {
                 self.edit_styl_povrchu = None;
@@ -4097,12 +4159,11 @@ fn ikona_stylu(ui: &mut egui::Ui, st: &StylBodu, velikost: f32) -> egui::Respons
     resp
 }
 
-fn nahled_bodu(ui: &mut egui::Ui, st: &StylBodu) {
-    let px = 7.0_f32;
-    let (rect, _) = ui.allocate_exact_size(egui::vec2(300.0, 110.0), Sense::hover());
+fn nahled_bodu(ui: &mut egui::Ui, st: &StylBodu, velikost: egui::Vec2, px: f32) {
+    let (rect, _) = ui.allocate_exact_size(velikost, Sense::hover());
     let p = ui.painter_at(rect);
-    p.rect_filled(rect, 4.0, Color32::from_rgb(24, 26, 28));
-    let c = egui::pos2(rect.left() + 40.0, rect.center().y);
+    p.rect_filled(rect, 8.0, Color32::from_rgb(18, 20, 22));
+    let c = egui::pos2(rect.left() + velikost.x * 0.32, rect.center().y);
     let barva = |b: Barva| if b == styly::PODLE_HLADINY { Color32::from_rgb(240, 165, 60) } else { rgb_aci(b) };
     let bz = barva(st.barva_znacky);
     let r = (st.velikost as f32 * px / 2.0).max(1.0);
