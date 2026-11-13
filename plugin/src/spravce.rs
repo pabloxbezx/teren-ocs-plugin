@@ -446,6 +446,21 @@ fn kanal(tab: u64) -> Option<PresKanal> {
     k.get(&tab).or_else(|| k.values().next()).map(|a| PresKanal(Box::new(SdilenyKanal(a.clone()))))
 }
 
+/// Zaregistruje quad panel přes kanál výkresu (z vlastního vlákna, aby host
+/// nejdřív dokončil právě doručovanou zprávu).
+pub fn registruj_quad_pres_kanal(panel: ocs_plugin_api::dialog::QuadPanelDef) {
+    let tab = *zamek(&sdilene().aktivni_tab);
+    let Some(k) = kanal(tab.unwrap_or(0)) else { return };
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(300));
+        if let Ok(PluginResponse::QuadPanelsRegistered { ok, .. }) = k.0.request(PluginRequest::RegisterQuadPanels { panels: vec![panel] }) {
+            if ok.first().copied().unwrap_or(false) {
+                crate::QUAD_HOTOVO.store(true, std::sync::atomic::Ordering::SeqCst);
+            }
+        }
+    });
+}
+
 /// Otevře dialog Open CAD Studia pro běžící interaktivní příkaz; odpověď přijde
 /// příkazu (`on_dialog_response`). Posílá se z vlastního vlákna se zpožděním,
 /// aby host nejdřív dostal odpověď na právě zpracovávanou událost příkazu.

@@ -74,6 +74,8 @@ fn tridy() -> &'static ocs_plugin_api::manifest::EntityClasses {
 
 /// Ohlásí kurzorové menu (jednou za běh; při neúspěchu zkusí znovu příště).
 pub(crate) static QUAD_HOTOVO: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+/// Pokus o registraci quad panelu přes kanál po načtení (jen jednou).
+static QUAD_POKUS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 fn registruj_quad(host: &mut dyn HostApi) {
     if QUAD_HOTOVO.load(std::sync::atomic::Ordering::SeqCst) {
@@ -914,9 +916,14 @@ impl BuiltinPlugin for TerenPlugin {
         if let Some(s) = host.plugin_request_sender() {
             spravce::registruj_kanal(host.tab_id(), s);
         }
-        registruj_quad(host);
+        // quad panel se tu ještě registrovat nedá: Open CAD Studio přiřadí
+        // pluginu jméno až po on_load (hlásilo by „plugin "" is not a loaded,
+        // alive plugin“) – registruje se při první zprávě nebo prvním příkazu
     }
     fn on_notification(&mut self, _command_id: Option<u64>, n: HostNotification) {
+        if !QUAD_HOTOVO.load(std::sync::atomic::Ordering::SeqCst) && !QUAD_POKUS.swap(true, std::sync::atomic::Ordering::SeqCst) {
+            spravce::registruj_quad_pres_kanal(quad_panel());
+        }
         match n {
             HostNotification::DrawingChanged { tab_id, .. } | HostNotification::DocumentChangedV4 { tab_id, .. } => {
                 spravce::zmena_vykresu(tab_id)
