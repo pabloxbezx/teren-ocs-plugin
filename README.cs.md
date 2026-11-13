@@ -61,7 +61,7 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.45 | 1.0.2 – 1.0.8 |
+| 2026.45 | 1.0.2 – 1.0.9 |
 | 2026.44 | 1.0.0 – 1.0.1 |
 
 - **Správce pluginů** v Open CAD Studiu: vyhledejte *Terén* a klikněte
@@ -88,6 +88,27 @@ angličtina), projeví se po novém spuštění.
   nejvíc pomůže krátký popis a malý vymyšlený soubor zaměření.
 
 # Co je nového
+
+## Verze 1.0.9
+
+Prospektor podle odsouhlaseného náhledu:
+
+- **Vzhled**: tmavé téma sladěné s Open CAD Studiem, karta s názvem, stavem
+  a hlavními čísly na každé stránce (výkres, body, skupiny, povrchy, styly,
+  kontrola), ikony z pásu karet na hlavních tlačítkách, modře jen hlavní akce.
+- **Aktivní povrch v horní liště** (výběr se stavovou tečkou, u zastaralého ⟳).
+- **Čísla česky**: desetinná čárka a mezera v tisících, v tabulce zarovnaná
+  vpravo (v angličtině „18,240.50“).
+- **Povrchy jako řádky** se stavem; zaškrtnutím víc povrchů se ukáže lišta
+  hromadných úprav. **Skupina** má záložky Pravidla · Body · Export.
+- **Ukládá se samo**: vyloučené kódy povrchu jako štítky, skupina a styly bez
+  tlačítka Uložit; po uložení hláška s radou „vrátíte Ctrl+Z ve výkrese“.
+- **Editor stylu bodu** s velkým živým náhledem.
+- **Prázdný výkres** poradí další krok (Import bodů, Vytvořit stávající terén).
+- **Klávesy**: Ctrl+F hledání, Alt+← zpět; v tabulce bodů šipky, Ctrl+A,
+  Delete, Esc, Enter = ukázat ve výkrese, F2 = upravit buňku.
+- **Kontrola zaměření**: podezřelé body v řádcích se štítkem odchylky,
+  propojené s mapkou.
 
 ## Verze 1.0.8
 

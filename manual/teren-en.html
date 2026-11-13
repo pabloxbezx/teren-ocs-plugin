@@ -22,7 +22,7 @@
 <h2>2. Installation</h2>
 <p><b>Plugin Manager:</b> in Open CAD Studio open the Plugin Manager, find <i>Terén</i> and click Install. After a restart the <b>Terén</b> tab appears.</p>
 <p><b>Manually (Windows):</b> download <code>Teren-windows.zip</code> from the GitHub release, extract it and run <code>nainstalovat.bat</code>. The plugin is copied to <code>%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren</code>.</p>
-<p>Each Terén release is built for one Open CAD Studio release – the Plugin Manager offers the right one; for a manual install pick the release from the table in the README (Terén 1.0.2 – 1.0.8 = Open CAD Studio 2026.45). The interface language (Czech / English) is set in Prospector › Settings.</p>
+<p>Each Terén release is built for one Open CAD Studio release – the Plugin Manager offers the right one; for a manual install pick the release from the table in the README (Terén 1.0.2 – 1.0.9 = Open CAD Studio 2026.45). The interface language (Czech / English) is set in Prospector › Settings.</p>
 
 <h2>3. Interface</h2>
 <img src="img/pas-en.png" class="siroky">
@@ -40,7 +40,7 @@
 <ul>
 <li><b>Tree</b> – at the top <i>Selected in drawing</i> (properties of the selected point or surface), below it points (table), point groups, surfaces (each with its sources underneath), point and surface styles, survey check and settings. Counts and status are on the right: the dot at a surface is green = up to date, orange = out of date, ★ = active surface. Right-click opens a menu of actions.</li>
 <li><b>Card</b> – details start with a card showing the name, status, key numbers and the most common actions; more actions are under <i>⋯</i>. A surface has the tabs Overview, Sources, Export and Warnings.</li>
-<li><b>Top bar</b> – drawing name (click = overview and the "How to" steps), search, <i>Find in Prospector</i>, <i>◎ Follow selection</i> and help. <i>View in 3D</i> at a surface opens the surface viewer.</li>
+<li><b>Top bar</b> – drawing name (click = overview and the "How to" steps), search (Ctrl+F), <i>Find in Prospector</i>, <i>◎ Follow selection</i>, the active surface with a status dot and help. Alt+← goes back to the previous page. <i>View in 3D</i> at a surface opens the surface viewer.</li>
 </ul>
 <img src="img/prospektor-en.png" class="stred">
 <p class="popisek">Prospector – point table</p>
@@ -71,7 +71,7 @@
 <p><b>Point properties</b> opens the panel of the same name in the dock: after selecting a point it shows the number, elevation, code and style. Edit the fields and click <i>Save</i>. With several points selected only the changed fields are saved (the number only for a single point). The <i>Active surface</i> group shows the active surface and its status (up to date / out of date) with <i>Recalculate</i> and <i>View in 3D</i> – the Prospector does not need to be open.</p>
 <p>The <b>cursor menu</b> (quad; turned on in Open CAD Studio with F12 or the QUAD field in the status bar) has a <i>Terén</i> tab for points and surfaces: point properties, move points, add point to surface, recalculate surface, Prospector.</p>
 <h3>Manual points and editing elevation</h3>
-<p><i>New point › Manual point</i>: click in the drawing or enter x,y; a window asks for the elevation (suggested from the surface or the previous point) and the code. <i>Point on surface</i> takes the elevation of the active surface. Change the elevation, number and code of an existing point directly in the point table: double-click a cell, type, Enter saves and moves to the next point (Esc cancels). F2 edits a cell of the selected point. For several selected points at once, set or add an elevation, set a code, style or group, or renumber them from the bar above the table; the filters above it pick points by group, code and elevation.</p>
+<p><i>New point › Manual point</i>: click in the drawing or enter x,y; a window asks for the elevation (suggested from the surface or the previous point) and the code. <i>Point on surface</i> takes the elevation of the active surface. Change the elevation, number and code of an existing point directly in the point table: double-click a cell, type, Enter saves and moves to the next point (Esc cancels). F2 edits a cell of the selected point; arrows move the selection, Ctrl+A selects all, Delete deletes the selected points (Ctrl+Z in the drawing restores them), Esc clears the selection. For several selected points at once, set or add an elevation, set a code, style or group, or renumber them from the bar above the table; the filters above it pick points by group, code and elevation.</p>
 <h3>Point groups</h3>
 <p>A group selects points by rules (code, numbers, import file), with exclusions and manually added / removed points. The preview shows in colour which points belong. A surface is built from groups – a change of a group recalculates the surface or marks it out of date.</p>
 <h3>Survey check</h3>

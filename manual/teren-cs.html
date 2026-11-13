@@ -22,7 +22,7 @@
 <h2>2. Instalace</h2>
 <p><b>Správce pluginů:</b> v Open CAD Studiu otevřete Správce pluginů, vyhledejte <i>Terén</i> a klikněte Instalovat. Po restartu se objeví záložka <b>Terén</b>.</p>
 <p><b>Ručně (Windows):</b> stáhněte <code>Teren-windows.zip</code> z vydání na GitHubu, zip rozbalte a spusťte <code>nainstalovat.bat</code>. Plugin se zkopíruje do <code>%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren</code>.</p>
-<p>Každé vydání Terénu je sestavené pro jednu verzi Open CAD Studia – Správce pluginů nabídne to správné; při ruční instalaci zvolte vydání podle tabulky v README (Terén 1.0.2 – 1.0.8 = Open CAD Studio 2026.45).</p>
+<p>Každé vydání Terénu je sestavené pro jednu verzi Open CAD Studia – Správce pluginů nabídne to správné; při ruční instalaci zvolte vydání podle tabulky v README (Terén 1.0.2 – 1.0.9 = Open CAD Studio 2026.45).</p>
 
 <h2>3. Rozhraní</h2>
 <img src="img/pas.png" class="siroky">
@@ -40,7 +40,7 @@
 <ul>
 <li><b>Strom</b> – nahoře <i>Vybráno ve výkrese</i> (vlastnosti vybraného bodu nebo povrchu), pod ním body (tabulka), skupiny bodů, povrchy (pod každým jeho zdroje), styly bodů a povrchů, kontrola zaměření a nastavení. Vpravo u položek jsou počty a stav: tečka u povrchu zelená = aktuální, oranžová = zastaralý, ★ = aktivní povrch. Pravé tlačítko otevře nabídku akcí.</li>
 <li><b>Karta</b> – podrobnosti začínají kartou s názvem, stavem, hlavními čísly a nejčastějšími akcemi; další akce jsou pod <i>⋯</i>. Povrch má záložky Přehled, Zdroje, Export a Upozornění.</li>
-<li><b>Horní lišta</b> – název výkresu (klik = přehled a postup „Jak na to“), hledání, <i>Najít v Prospektoru</i>, <i>◎ Sledovat výběr</i> a nápověda. <i>Prohlédnout ve 3D</i> u povrchu otevře prohlížeč povrchů.</li>
+<li><b>Horní lišta</b> – název výkresu (klik = přehled a postup „Jak na to“), hledání (Ctrl+F), <i>Najít v Prospektoru</i>, <i>◎ Sledovat výběr</i>, aktivní povrch se stavovou tečkou a nápověda. Alt+← vrátí na předchozí stránku. <i>Prohlédnout ve 3D</i> u povrchu otevře prohlížeč povrchů.</li>
 </ul>
 <img src="img/prospektor.png" class="stred">
 <p class="popisek">Prospektor – tabulka bodů</p>
@@ -71,7 +71,7 @@
 <p><b>Vlastnosti bodu</b> otevře v doku stejnojmenný panel: po výběru bodu ukáže číslo, výšku, kód a styl. Pole přepište a klikněte <i>Uložit</i>. U více vybraných bodů se uloží jen změněná pole (číslo jen u jednoho bodu). Ve skupině <i>Aktivní povrch</i> panel ukazuje aktivní povrch a jeho stav (aktuální / zastaralý) s tlačítky <i>Přepočítat</i> a <i>Prohlédnout ve 3D</i> – Prospektor nemusí být otevřený.</p>
 <p><b>Kurzorové menu</b> (quad; v Open CAD Studiu se zapíná klávesou F12 nebo polem QUAD ve stavovém řádku) má u bodů a povrchů záložku <i>Terén</i>: vlastnosti bodu, posun bodů, přidat bod do povrchu, přepočítat povrch, Prospektor.</p>
 <h3>Ruční body a úprava výšky</h3>
-<p><i>Nový bod › Ruční bod</i>: klikněte do výkresu nebo zadejte x,y; otevře se okno s výškou (návrh z povrchu nebo z předchozího bodu) a kódem. <i>Bod na povrchu</i> vezme výšku z aktivního povrchu. Výšku, číslo a kód existujícího bodu změníte přímo v tabulce bodů: dvojklik na buňku, přepsat, Enter uloží a skočí na další bod (Esc zruší). F2 upraví buňku vybraného bodu. Více vybraným bodům najednou nastavíte nebo přičtete výšku, kód, styl, skupinu nebo je přečíslujete z lišty nad tabulkou; filtry nad ní vyberou body podle skupiny, kódu a výšky.</p>
+<p><i>Nový bod › Ruční bod</i>: klikněte do výkresu nebo zadejte x,y; otevře se okno s výškou (návrh z povrchu nebo z předchozího bodu) a kódem. <i>Bod na povrchu</i> vezme výšku z aktivního povrchu. Výšku, číslo a kód existujícího bodu změníte přímo v tabulce bodů: dvojklik na buňku, přepsat, Enter uloží a skočí na další bod (Esc zruší). F2 upraví buňku vybraného bodu; šipky posouvají výběr, Ctrl+A vybere vše, Delete smaže vybrané body (Ctrl+Z ve výkrese je vrátí), Esc zruší výběr. Více vybraným bodům najednou nastavíte nebo přičtete výšku, kód, styl, skupinu nebo je přečíslujete z lišty nad tabulkou; filtry nad ní vyberou body podle skupiny, kódu a výšky.</p>
 <h3>Skupiny bodů</h3>
 <p>Skupina vybírá body podle pravidel (kód, čísla, soubor importu), s výjimkami a ručně přidanými / odebranými body. Náhled barevně ukazuje, které body do skupiny patří. Povrch se skládá ze skupin – změna skupiny povrch přepočítá nebo označí jako zastaralý.</p>
 <h3>Kontrola zaměření</h3>
