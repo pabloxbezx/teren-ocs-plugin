@@ -1,7 +1,7 @@
 [plugin]
 id = "cz.fluvio.teren"
 name = "Terén"
-version = "1.0.7"
+version = "1.0.8"
 description = "Survey points, TIN surfaces, breaklines, boundaries, contours, 3D viewer, LandXML export (Czech / English)"
 license = "GPL-3.0-only"
 
