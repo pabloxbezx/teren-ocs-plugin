@@ -895,7 +895,7 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
             let (r, odezva) = ui.allocate_exact_size(Vec2::new(levy, 78.0), Sense::click());
             let nad = odezva.hovered() || ctx.input(|i| !i.raw.hovered_files.is_empty());
             carkovany_ramecek(ui, r, if nad { SELLINE } else { Color32::from_rgb(74, 82, 92) });
-            ui.painter().text(r.center() - Vec2::new(0.0, 10.0), Align2::CENTER_CENTER, tr("Přetáhněte sem soubor (nebo více souborů)"), FontId::proportional(14.5), INK);
+            ui.painter().text(r.center() - Vec2::new(0.0, 10.0), Align2::CENTER_CENTER, tr("Přetáhněte sem soubor (nebo více souborů), nebo klikněte a vyberte"), FontId::proportional(14.5), INK);
             ui.painter().text(
                 r.center() + Vec2::new(0.0, 11.0),
                 Align2::CENTER_CENTER,
@@ -953,17 +953,6 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
                 ui.add_space(4.0);
                 ui.label(RichText::new(z).size(12.5).color(WARN));
             }
-            ui.add_space(8.0);
-            ui.horizontal(|ui| {
-                ui.label(RichText::new(tr("nebo cesta k souboru")).size(12.5).color(MUTED));
-                let r = ui.add(egui::TextEdit::singleline(&mut n.cesta_edit).hint_text(r"C:\…\body.txt").desired_width((ui.available_width() - 70.0).max(120.0)));
-                if tlacitko(ui, tr("Načíst")).clicked() || (r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter))) {
-                    let c = n.cesta_edit.trim().trim_matches('"').to_string();
-                    if !c.is_empty() {
-                        n.nacti_soubor(&c);
-                    }
-                }
-            });
         });
         ui.allocate_ui_with_layout(Vec2::new(pravy, 0.0), egui::Layout::top_down(egui::Align::Min), |ui| {
             ui.set_width(pravy);

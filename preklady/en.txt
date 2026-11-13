@@ -1109,7 +1109,7 @@ Ve výkrese zatím nejsou body.	There are no points in the drawing yet.
 Body leží daleko od bodů výkresu – zkontrolujte sloupce a soustavu.	The points are far from the drawing's points – check the columns and coordinate system.
 Body leží u bodů výkresu (šedě).	The points lie near the drawing's points (grey).
 Čtu body z výkresu…	Reading points from the drawing…
-Přetáhněte sem soubor (nebo více souborů)	Drop a file here (or several files)
+Přetáhněte sem soubor (nebo více souborů), nebo klikněte a vyberte	Drop a file here (or several files), or click and choose
 TXT, CSV, XYZ, XLSX, LandXML, JobXML, GSI · nebo stiskněte Ctrl+V pro vložení tabulky ze schránky	TXT, CSV, XYZ, XLSX, LandXML, JobXML, GSI · or press Ctrl+V to paste a table from the clipboard
 cesta k souboru	path to the file
 Soubor vyberete i tlačítkem Import bodů na pásu karet.	You can also choose a file with the Import points button on the ribbon.
@@ -1358,7 +1358,6 @@ Leica GSI, Trimble JobXML, CSV přijímačů	Leica GSI, Trimble JobXML, receiver
 Více souborů…	Several files…
 každý soubor do vlastní skupiny	each file into its own group
 Schránka je prázdná – zkopírujte tabulku (např. v Excelu Ctrl+C) a zkuste to znovu.	The clipboard is empty – copy a table (e.g. Ctrl+C in Excel) and try again.
-nebo cesta k souboru	or path to the file
 Šablona = uložené přiřazení sloupců, oddělovač, kódování, desetinná čárka a záhlaví. Uložíte ji v náhledu souboru.	Template = saved column assignment, delimiter, encoding, decimal separator and header. Save it in the file preview.
 Nad každým sloupcem vyberte, co obsahuje; pod ním je původní název ze záhlaví. Najetím na číslo řádku se ukáže původní text.	Choose above each column what it contains; below is the original header name. Hover over a line number to see the original text.
 Šablona: rozpoznáno automaticky	Template: detected automatically
