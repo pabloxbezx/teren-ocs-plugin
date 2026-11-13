@@ -14,4 +14,7 @@ png = "0.17"
 egui_extras = { version = "0.36.2", default-features = false, features = ["svg"] }
 winit = { version = "0.30", default-features = false, features = ["x11", "rwh_06"] }
 arboard = { version = "3", default-features = false }
+
+# systémový dialog výběru souboru (okno importu); jinde přetažení a cesta
+[target.'cfg(windows)'.dependencies]
 rfd = "0.18.0"

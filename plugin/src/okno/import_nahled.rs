@@ -31,7 +31,6 @@ const LINE2: Color32 = Color32::from_rgb(42, 46, 51);
 const PANEL: Color32 = Color32::from_rgb(30, 33, 37);
 const PANEL2: Color32 = Color32::from_rgb(36, 40, 45);
 const CARD: Color32 = Color32::from_rgb(42, 46, 52);
-const HOVER: Color32 = Color32::from_rgb(48, 53, 60);
 const SEL: Color32 = Color32::from_rgb(29, 44, 60);
 const SELLINE: Color32 = Color32::from_rgb(59, 119, 184);
 const OK: Color32 = Color32::from_rgb(63, 185, 80);
@@ -588,6 +587,10 @@ enum Dialog {
     Vice,
 }
 
+#[cfg(not(windows))]
+fn otevri_dialog(_d: Dialog, _ctx: egui::Context) {}
+
+#[cfg(windows)]
 fn otevri_dialog(d: Dialog, ctx: egui::Context) {
     std::thread::spawn(move || {
         let (nazev, pripony): (&str, &[&str]) = match d {
@@ -625,6 +628,13 @@ macro_rules! obr {
     ($n:literal) => {
         egui::include_image!(concat!("../../assets/", $n, ".svg"))
     };
+}
+
+/// Obsah v daném obdélníku (místo už je zabrané, rodič se neposouvá).
+fn uvnitr<R>(ui: &mut egui::Ui, r: Rect, layout: egui::Layout, f: impl FnOnce(&mut egui::Ui) -> R) -> R {
+    let mut c = ui.new_child(egui::UiBuilder::new().max_rect(r).layout(layout));
+    c.set_clip_rect(r.intersect(ui.clip_rect()));
+    f(&mut c)
 }
 
 fn nadpis(ui: &mut egui::Ui, t: &str) {
@@ -676,6 +686,52 @@ fn cip(ui: &mut egui::Ui, popisek: &str, rucne: Option<bool>, obsah: impl FnOnce
             }
         });
     });
+}
+
+/// Ruční zalamování čipů: složené prvky egui samo nezalomí (řádek by
+/// roztáhl okno), proto se čipy kladou podle šířek z minulého snímku.
+struct Pas {
+    zacatek: Pos2,
+    kurzor: Pos2,
+    prava: f32,
+    vyska_radku: f32,
+    i: usize,
+    sirky: Vec<f32>,
+}
+
+impl Pas {
+    const MEZERA: f32 = 6.0;
+    fn id() -> egui::Id {
+        egui::Id::new("imp_sirky_cipu")
+    }
+    fn novy(ui: &mut egui::Ui) -> Self {
+        let zacatek = ui.cursor().min;
+        let sirky = ui.data(|d| d.get_temp::<Vec<f32>>(Self::id())).unwrap_or_default();
+        Self { zacatek, kurzor: zacatek, prava: zacatek.x + ui.available_width(), vyska_radku: 0.0, i: 0, sirky }
+    }
+    fn cip(&mut self, ui: &mut egui::Ui, popisek: &str, rucne: Option<bool>, obsah: impl FnOnce(&mut egui::Ui)) {
+        let odhad = self.sirky.get(self.i).copied().unwrap_or(120.0);
+        if self.kurzor.x > self.zacatek.x && self.kurzor.x + odhad > self.prava {
+            self.kurzor = Pos2::new(self.zacatek.x, self.kurzor.y + self.vyska_radku + Self::MEZERA);
+            self.vyska_radku = 0.0;
+        }
+        let misto = Rect::from_min_max(self.kurzor, Pos2::new(self.prava.max(self.kurzor.x + odhad), self.kurzor.y + 40.0));
+        let mut c = ui.new_child(egui::UiBuilder::new().max_rect(misto).layout(egui::Layout::left_to_right(egui::Align::Center)));
+        cip(&mut c, popisek, rucne, obsah);
+        let r = c.min_rect();
+        if self.sirky.len() <= self.i {
+            self.sirky.resize(self.i + 1, 120.0);
+        }
+        self.sirky[self.i] = r.width();
+        self.kurzor.x += r.width() + Self::MEZERA;
+        self.vyska_radku = self.vyska_radku.max(r.height());
+        self.i += 1;
+    }
+    fn konec(self, ui: &mut egui::Ui) {
+        let vyska = self.kurzor.y + self.vyska_radku - self.zacatek.y;
+        ui.allocate_space(Vec2::new(self.prava - self.zacatek.x, vyska.max(0.0)));
+        ui.data_mut(|d| d.insert_temp(Self::id(), self.sirky));
+    }
 }
 
 /// Pruh s upozorněním a tlačítkem. Vrací `true` po kliknutí.
@@ -811,7 +867,7 @@ fn karta_zdroje(ui: &mut egui::Ui, sirka: f32, obr: egui::ImageSource<'static>, 
     let nad = odezva.hovered();
     ui.painter().rect_filled(r, 9.0, if nad { Color32::from_rgb(38, 43, 49) } else { PANEL2 });
     ui.painter().rect_stroke(r, 9.0, Stroke::new(1.0, if nad { SELLINE } else { LINE2 }), StrokeKind::Inside);
-    ui.scope_builder(egui::UiBuilder::new().max_rect(r.shrink2(Vec2::new(12.0, 11.0))), |ui| {
+    uvnitr(ui, r.shrink2(Vec2::new(12.0, 11.0)), egui::Layout::top_down(egui::Align::Min), |ui| {
         ui.horizontal_top(|ui| {
             ui.spacing_mut().item_spacing.x = 10.0;
             ikona(ui, obr, 28.0);
@@ -963,16 +1019,20 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
 /// Celý náhled. Vrací `true`, když se má okno zavřít (import nebo zrušení).
 fn nahled(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) -> bool {
     let celkem = ui.available_size();
+    // šířka podle skutečného okna (ořez), ne podle obsahu – jinak by okno rostlo
+    let sirka_okna = ui.clip_rect().width().min(celkem.x);
     let vyska_paticky = 48.0;
     let vyska = (celkem.y - vyska_paticky).max(300.0);
-    let levy = (celkem.x - SIRKA_PRAVEHO).max(420.0);
+    let levy = (sirka_okna - SIRKA_PRAVEHO).max(420.0);
     ui.spacing_mut().item_spacing.y = 0.0;
     ui.horizontal_top(|ui| {
         ui.spacing_mut().item_spacing = Vec2::ZERO;
         // levá část
         ui.allocate_ui_with_layout(Vec2::new(levy, vyska), egui::Layout::top_down(egui::Align::Min), |ui| {
             ui.set_min_size(Vec2::new(levy, vyska));
+            ui.set_max_width(levy);
             egui::Frame::new().inner_margin(egui::Margin { left: 14, right: 14, top: 12, bottom: 8 }).show(ui, |ui| {
+                ui.set_max_width(levy - 28.0);
                 ui.spacing_mut().item_spacing = Vec2::new(8.0, 6.0);
                 radek_zdroje(ui, n);
                 if let Some(e) = &n.chyba {
@@ -1013,7 +1073,9 @@ fn nahled(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) -> bool 
             ui.painter().rect_filled(Rect::from_min_size(r.min, Vec2::new(SIRKA_PRAVEHO - 1.0, vyska)), 0.0, PRAVY_BG);
             ui.set_min_size(Vec2::new(SIRKA_PRAVEHO - 1.0, vyska));
             egui::ScrollArea::vertical().id_salt("imp_pravy").max_height(vyska).auto_shrink([false, false]).show(ui, |ui| {
-                egui::Frame::new().inner_margin(12.0).show(ui, |ui| {
+                // pevná šířka (i s místem pro posuvník), jinak by okno rostlo
+                ui.set_max_width(SIRKA_PRAVEHO - 1.0 - 10.0);
+                egui::Frame::new().inner_margin(egui::Margin { left: 12, right: 6, top: 12, bottom: 12 }).show(ui, |ui| {
                     ui.spacing_mut().item_spacing = Vec2::new(8.0, 6.0);
                     pravy_panel(ui, n, stav);
                 });
@@ -1041,73 +1103,81 @@ fn radek_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu) {
         if n.poradi.1 > 1 {
             info.push(trf!("soubor {} z {}", n.poradi.0, n.poradi.1));
         }
-        ui.add(egui::Label::new(RichText::new(info.join(" · ")).size(12.5).color(MUTED)).truncate()).on_hover_text(&n.cesta);
+        let info = info.join(" · ");
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            if let Some(jmeno) = &mut n.nova_sablona {
-                let mut ulozit = false;
-                if tlacitko(ui, tr("Zrušit")).clicked() {
-                    n.nova_sablona = None;
-                    return;
-                }
-                if tlacitko(ui, tr("Uložit")).clicked() {
-                    ulozit = true;
-                }
-                let r = ui.add(egui::TextEdit::singleline(jmeno).desired_width(150.0).hint_text(tr("jméno šablony")));
-                if r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                    ulozit = true;
-                }
-                if ulozit && !jmeno.trim().is_empty() {
-                    let jmeno = jmeno.trim().to_string();
-                    if let Some(s) = n.sablona(&jmeno) {
-                        nastaveni::zmen(|x| {
-                            x.import_sablony.retain(|t| t.jmeno != s.jmeno);
-                            x.import_sablony.push(s);
-                        });
-                    }
-                    n.nova_sablona = None;
-                }
-                return;
-            }
-            if tlacitko(ui, tr("Uložit šablonu…")).on_hover_text(tr("Uložit sloupce, oddělovač, kódování a desetinnou čárku jako šablonu")).clicked() {
-                n.nova_sablona = Some(String::new());
-            }
-            let nast = nastaveni::akt();
-            let mut volba: Option<Option<SablonaImportu>> = None;
-            egui::ComboBox::from_id_salt("imp_sablona").selected_text(RichText::new(tr("Šablona: rozpoznáno automaticky")).size(12.0)).width(200.0).show_ui(ui, |ui| {
-                if ui.selectable_label(false, tr("Rozpoznat automaticky")).clicked() {
-                    volba = Some(None);
-                }
-                if let Some(p) = &nast.import_posledni {
-                    if ui.selectable_label(false, trf!("Naposledy použité ({})", p.vzor)).clicked() {
-                        volba = Some(Some(p.clone()));
-                    }
-                }
-                for s in &nast.import_sablony {
-                    if ui.selectable_label(false, format!("{} – {}", s.jmeno, s.vzor)).clicked() {
-                        volba = Some(Some(s.clone()));
-                    }
-                }
+            tlacitka_zdroje(ui, n);
+            ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                ui.add(egui::Label::new(RichText::new(&info).size(12.5).color(MUTED)).truncate()).on_hover_text(&n.cesta);
             });
-            match volba {
-                Some(Some(s)) => n.pouzij_sablonu(&s),
-                Some(None) => n.znovu_rozpoznat(),
-                None => {}
-            }
-            if tlacitko(ui, tr("Jiný zdroj…")).clicked() {
-                let fronta = std::mem::take(&mut n.fronta);
-                *n = NahledImportu::prazdny();
-                n.fronta = fronta;
-            }
         });
     });
     ui.add_space(4.0);
 }
 
+/// Tlačítka vpravo na řádku zdroje (Jiný zdroj, šablona, uložit šablonu).
+fn tlacitka_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu) {
+        if let Some(jmeno) = &mut n.nova_sablona {
+            let mut ulozit = false;
+            if tlacitko(ui, tr("Zrušit")).clicked() {
+                n.nova_sablona = None;
+                return;
+            }
+            if tlacitko(ui, tr("Uložit")).clicked() {
+                ulozit = true;
+            }
+            let r = ui.add(egui::TextEdit::singleline(jmeno).desired_width(150.0).hint_text(tr("jméno šablony")));
+            if r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                ulozit = true;
+            }
+            if ulozit && !jmeno.trim().is_empty() {
+                let jmeno = jmeno.trim().to_string();
+                if let Some(s) = n.sablona(&jmeno) {
+                    nastaveni::zmen(|x| {
+                        x.import_sablony.retain(|t| t.jmeno != s.jmeno);
+                        x.import_sablony.push(s);
+                    });
+                }
+                n.nova_sablona = None;
+            }
+            return;
+        }
+        if tlacitko(ui, tr("Uložit šablonu…")).on_hover_text(tr("Uložit sloupce, oddělovač, kódování a desetinnou čárku jako šablonu")).clicked() {
+            n.nova_sablona = Some(String::new());
+        }
+        let nast = nastaveni::akt();
+        let mut volba: Option<Option<SablonaImportu>> = None;
+        egui::ComboBox::from_id_salt("imp_sablona").selected_text(RichText::new(tr("Šablona: rozpoznáno automaticky")).size(12.0)).width(200.0).show_ui(ui, |ui| {
+            if ui.selectable_label(false, tr("Rozpoznat automaticky")).clicked() {
+                volba = Some(None);
+            }
+            if let Some(p) = &nast.import_posledni {
+                if ui.selectable_label(false, trf!("Naposledy použité ({})", p.vzor)).clicked() {
+                    volba = Some(Some(p.clone()));
+                }
+            }
+            for s in &nast.import_sablony {
+                if ui.selectable_label(false, format!("{} – {}", s.jmeno, s.vzor)).clicked() {
+                    volba = Some(Some(s.clone()));
+                }
+            }
+        });
+        match volba {
+            Some(Some(s)) => n.pouzij_sablonu(&s),
+            Some(None) => n.znovu_rozpoznat(),
+            None => {}
+        }
+        if tlacitko(ui, tr("Jiný zdroj…")).clicked() {
+            let fronta = std::mem::take(&mut n.fronta);
+            *n = NahledImportu::prazdny();
+            n.fronta = fronta;
+        }
+}
+
 fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
-    ui.horizontal_wrapped(|ui| {
-        ui.spacing_mut().item_spacing = Vec2::new(6.0, 6.0);
+    let mut pas = Pas::novy(ui);
+    {
         let vzor = FormatBodu::ze_sloupcu(n.sloupce.clone(), n.oddelovac).map(|f| f.vzor()).unwrap_or_else(|_| "?".into());
-        cip(ui, tr("Formát"), Some(n.rucne.sloupce), |ui| {
+        pas.cip(ui, tr("Formát"), Some(n.rucne.sloupce), |ui| {
             egui::ComboBox::from_id_salt("imp_vzor").selected_text(RichText::new(&vzor).strong()).width(64.0).show_ui(ui, |ui| {
                 for (v, popis) in VZORY {
                     if ui.selectable_label(vzor == v, tr(popis)).clicked() {
@@ -1120,7 +1190,7 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         });
-        cip(ui, tr("Oddělovač"), Some(n.rucne.oddelovac), |ui| {
+        pas.cip(ui, tr("Oddělovač"), Some(n.rucne.oddelovac), |ui| {
             egui::ComboBox::from_id_salt("imp_odd").selected_text(RichText::new(nazev_oddelovace(n.oddelovac)).strong()).width(78.0).show_ui(ui, |ui| {
                 for o in ODDELOVACE {
                     if ui.selectable_value(&mut n.oddelovac, o, nazev_oddelovace(o)).clicked() {
@@ -1131,7 +1201,7 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
             });
         });
         if n.druh == Some(DruhZdroje::Excel) {
-            cip(ui, tr("List"), None, |ui| {
+            pas.cip(ui, tr("List"), None, |ui| {
                 let akt = n.listy.get(n.list).cloned().unwrap_or_default();
                 let mut novy = None;
                 egui::ComboBox::from_id_salt("imp_list").selected_text(RichText::new(akt).strong()).width(110.0).show_ui(ui, |ui| {
@@ -1147,7 +1217,7 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         } else if let Some(k) = n.kodovani {
-            cip(ui, tr("Kódování"), Some(n.rucne.kodovani), |ui| {
+            pas.cip(ui, tr("Kódování"), Some(n.rucne.kodovani), |ui| {
                 let mut novy = None;
                 egui::ComboBox::from_id_salt("imp_kod").selected_text(RichText::new(k.nazev()).strong()).width(104.0).show_ui(ui, |ui| {
                     for x in kodovani::VSECHNA {
@@ -1170,7 +1240,7 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         }
-        cip(ui, tr("Desetinná"), Some(n.rucne.desetinna), |ui| {
+        pas.cip(ui, tr("Desetinná"), Some(n.rucne.desetinna), |ui| {
             let text = match n.desetinna {
                 Desetinna::Auto => nazev_desetinne(n.desetinna_zjistena),
                 d => nazev_desetinne(d),
@@ -1184,7 +1254,7 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         });
-        cip(ui, tr("Záhlaví"), Some(n.rucne.hlavicka), |ui| {
+        pas.cip(ui, tr("Záhlaví"), Some(n.rucne.hlavicka), |ui| {
             let text = if n.hlavicka == 0 { tr("žádné").to_string() } else if n.hlavicka == 1 { tr("řádek 1").to_string() } else { trf!("řádky 1–{}", n.hlavicka) };
             egui::ComboBox::from_id_salt("imp_hl").selected_text(RichText::new(text).strong()).width(70.0).show_ui(ui, |ui| {
                 for h in 0..=5usize {
@@ -1196,10 +1266,11 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         });
-        cip(ui, tr("Souřadnice"), None, |ui| {
+        pas.cip(ui, tr("Souřadnice"), None, |ui| {
             ui.label(RichText::new(if n.je_sjtsk() { tr("S-JTSK kladné – výkres -Y/-X") } else { tr("výkres E/N (beze změny)") }).strong());
         });
-    });
+    }
+    pas.konec(ui);
     ui.label(RichText::new(&n.popis_rozpoznani).size(11.5).color(if n.varovani { WARN } else { MUTED }));
     ui.add_space(2.0);
 }
@@ -1320,7 +1391,7 @@ fn tabulka(ui: &mut egui::Ui, n: &mut NahledImportu, vyska: f32) {
     let celkova = (sirka_dat + w_duvod).max(sirka_okna - 2.0);
     let (ram, _) = ui.allocate_exact_size(Vec2::new(sirka_okna, vyska), Sense::hover());
     ui.painter().rect_stroke(ram, 8.0, Stroke::new(1.0, LINE2), StrokeKind::Inside);
-    ui.scope_builder(egui::UiBuilder::new().max_rect(ram.shrink(1.0)), |ui| {
+    uvnitr(ui, ram.shrink(1.0), egui::Layout::top_down(egui::Align::Min), |ui| {
         egui::ScrollArea::horizontal().id_salt("imp_tab_h").auto_shrink([false, false]).show(ui, |ui| {
             ui.set_width(celkova);
             ui.spacing_mut().item_spacing = Vec2::ZERO;
@@ -1331,7 +1402,7 @@ fn tabulka(ui: &mut egui::Ui, n: &mut NahledImportu, vyska: f32) {
             let mut x = hr.left() + w_cislo + w_stav;
             for (j, &w) in sirky.iter().enumerate() {
                 let bunka = Rect::from_min_size(Pos2::new(x + 3.0, hr.top() + 4.0), Vec2::new(w - 6.0, 40.0));
-                ui.scope_builder(egui::UiBuilder::new().max_rect(bunka), |ui| {
+                uvnitr(ui, bunka, egui::Layout::top_down(egui::Align::Min), |ui| {
                     ui.spacing_mut().item_spacing.y = 1.0;
                     let akt = n.sloupce[j];
                     let text = RichText::new(nazev_role(akt)).size(12.5).strong().color(if akt == Sloupec::Preskocit { FAINT } else { INK });
@@ -1639,30 +1710,31 @@ fn paticka(ui: &mut egui::Ui, n: &mut NahledImportu) -> bool {
     let (_, _, chyby, podezrele, _) = n.pocty();
     let vlozi = n.plan.pridat.len();
     let prepise = n.plan.prepsat.len();
-    let sirka = ui.available_width();
+    let sirka = ui.clip_rect().width().min(ui.available_width());
     let (r, _) = ui.allocate_exact_size(Vec2::new(sirka, 48.0), Sense::hover());
     ui.painter().rect_filled(r, egui::CornerRadius { nw: 0, ne: 0, sw: 8, se: 8 }, PANEL2);
     ui.painter().hline(r.x_range(), r.top(), Stroke::new(1.0, LINE));
-    ui.scope_builder(egui::UiBuilder::new().max_rect(r.shrink2(Vec2::new(14.0, 10.0))).layout(egui::Layout::left_to_right(egui::Align::Center)), |ui| {
-        ui.spacing_mut().item_spacing.x = 4.0;
-        let kus = |ui: &mut egui::Ui, t: String, b: Color32| {
-            ui.label(RichText::new(t).size(12.5).color(b));
+    uvnitr(ui, r.shrink2(Vec2::new(14.0, 10.0)), egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        // souhrn jako jeden zkracovaný řádek (tlačítka vpravo mají přednost)
+        let mut job = egui::text::LayoutJob::default();
+        let mut kus = |t: String, b: Color32| {
+            job.append(&t, 0.0, egui::TextFormat { font_id: FontId::proportional(12.5), color: b, ..Default::default() });
         };
-        kus(ui, trf!("{} bodů se vloží", vlozi), MUTED);
+        kus(trf!("{} bodů se vloží", vlozi), MUTED);
         if prepise > 0 {
-            kus(ui, trf!("· {} se přepíše", prepise), MUTED);
+            kus(trf!(" · {} se přepíše", prepise), MUTED);
         }
         if n.plan.preskoceno > 0 {
-            kus(ui, trf!("· {} duplicit se přeskočí", n.plan.preskoceno), VIOLET);
+            kus(trf!(" · {} duplicit se přeskočí", n.plan.preskoceno), VIOLET);
         }
         if chyby > 0 {
-            kus(ui, trf!("· {} nečitelné se vynechají", chyby), BAD);
+            kus(trf!(" · {} nečitelné se vynechají", chyby), BAD);
         }
         if podezrele > 0 {
-            kus(ui, trf!("· {} podezřelé se vloží (lze vyřadit)", podezrele), WARN);
+            kus(trf!(" · {} podezřelé se vloží (lze vyřadit)", podezrele), WARN);
         }
-        kus(ui, tr("· Zpět jedním krokem").into(), MUTED);
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        kus(tr(" · Zpět jedním krokem").into(), MUTED);
+        {
             ui.spacing_mut().item_spacing.x = 8.0;
             let pocet = vlozi + prepise;
             let tl = egui::Button::new(RichText::new(trf!("Importovat {} bodů", pocet)).size(13.0).strong().color(Color32::WHITE))
@@ -1698,7 +1770,10 @@ fn paticka(ui: &mut egui::Ui, n: &mut NahledImportu) -> bool {
             if ui.checkbox(&mut ukazovat, RichText::new(tr("Náhled ukazovat i příště")).size(12.0).color(MUTED)).changed() {
                 nastaveni::zmen(|x| x.nahled_importu = ukazovat);
             }
-        });
+            ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                ui.add(egui::Label::new(job).truncate());
+            });
+        }
     });
     zavrit
 }

@@ -1337,3 +1337,52 @@ Otevřít Prospektor	Open Prospector
 {} · ⚠ zastaralý	{} · ⚠ out of date
 {} · ● aktuální	{} · ● up to date
 žádný – vytvořte Nový povrch	none – create a New surface
+ – přeskočí se	 – will be skipped
+ – přepíše	 – will overwrite
+ – přečísluje se	 – will be renumbered
+Totální stanice / GNSS	Total station / GNSS
+Všechny soubory	All files
+dnes	today
+včera	yesterday
+TXT, CSV, XYZ, XLSX, XML, GSI · nebo stiskněte Ctrl+V pro vložení tabulky ze schránky	TXT, CSV, XYZ, XLSX, XML, GSI · or press Ctrl+V to paste a table from the clipboard
+Textový soubor…	Text file…
+Schránka	Clipboard
+Excel (.xlsx)…	Excel (.xlsx)…
+výběr listu, sloupce stejně jako u textu	choose a sheet, columns as with text
+Z výkresu	From the drawing
+POINT, bloky s atributy, texty výšek u křížku – převod na body Terénu	POINT, blocks with attributes, elevation texts next to a cross – converted to Terén points
+LandXML…	LandXML…
+body CgPoints	CgPoints
+Totální stanice / GNSS…	Total station / GNSS…
+Leica GSI, Trimble JobXML, CSV přijímačů	Leica GSI, Trimble JobXML, receiver CSV
+Více souborů…	Several files…
+každý soubor do vlastní skupiny	each file into its own group
+Schránka je prázdná – zkopírujte tabulku (např. v Excelu Ctrl+C) a zkuste to znovu.	The clipboard is empty – copy a table (e.g. Ctrl+C in Excel) and try again.
+nebo cesta k souboru	or path to the file
+Šablona = uložené přiřazení sloupců, oddělovač, kódování, desetinná čárka a záhlaví. Uložíte ji v náhledu souboru.	Template = saved column assignment, delimiter, encoding, decimal separator and header. Save it in the file preview.
+Nad každým sloupcem vyberte, co obsahuje; pod ním je původní název ze záhlaví. Najetím na číslo řádku se ukáže původní text.	Choose above each column what it contains; below is the original header name. Hover over a line number to see the original text.
+Šablona: rozpoznáno automaticky	Template: detected automatically
+řádek 1	line 1
+řádky 1–{}	lines 1–{}
+S-JTSK kladné – výkres -Y/-X	S-JTSK positive – drawing -Y/-X
+Y a X jsou nejspíš prohozené – po prohození leží body v S-JTSK.	Y and X are probably swapped – after swapping, the points lie in S-JTSK.
+Prohodit Y a X	Swap Y and X
+Souřadnice mají opačné znaménko než sloupce – po převodu leží body v S-JTSK.	The coordinates have the opposite sign to the columns – after conversion, the points lie in S-JTSK.
+Souřadnice jsou prohozené a mají opačné znaménko – po opravě leží body v S-JTSK.	The coordinates are swapped and have the opposite sign – after the fix, the points lie in S-JTSK.
+V kódech jsou nečitelné znaky – soubor je možná v kódování {}.	The codes contain unreadable characters – the file may be in the {} encoding.
+Většina řádků nejde přečíst – zkontrolujte oddělovač a desetinnou čárku.	Most lines cannot be read – check the delimiter and decimal separator.
+duplicitní čísla ({} v souboru, {} ve výkresu)	duplicate numbers ({} in the file, {} in the drawing)
+mimo: {}	outside: {}
+nové	new
+duplicita	duplicate
+ve výkresu	in the drawing
+Body leží mezi body výkresu – import sedí.	The points lie among the drawing's points – the import fits.
+Mimo náhled: {}	Outside the preview: {}
+Duplicitní čísla	Duplicate numbers
+· {} v souboru, {} ve výkresu	· {} in the file, {} in the drawing
+{} nová čísla	{} new numbers
+Styl podle kódu	Style by code
+ · {} se přepíše	 · {} will be overwritten
+ · {} nečitelné se vynechají	 · {} unreadable will be left out
+ · {} podezřelé se vloží (lze vyřadit)	 · {} suspicious will be inserted (can be excluded)
+ · Zpět jedním krokem	 · Undo in one step
