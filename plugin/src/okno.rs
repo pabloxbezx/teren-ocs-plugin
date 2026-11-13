@@ -1470,6 +1470,21 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         ui.add_space(4.0);
         ui.separator();
 
+        if stav.body.is_empty() {
+            karta::prazdny_stav(
+                ui,
+                strom::ik!("ter_body_import"),
+                tr("Ve výkrese zatím nejsou body"),
+                tr("Importujte zaměření (TXT, CSV, XYZ, LandXML, GSI, Excel…) nebo vytvořte bod tlačítkem Nový bod na pásu karet."),
+                |ui| {
+                    if karta::tlacitko(ui, Some(strom::ik!("ter_body_import")), tr("Import bodů…"), true).clicked() {
+                        self.nahled_importu = Some(import_nahled::NahledImportu::novy(""));
+                    }
+                },
+            );
+            return;
+        }
+
         // ── filtry ──
         self.filtry_bodu(ui, stav);
         let filtr_skupiny = self
@@ -2645,86 +2660,135 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
             karta::pilulka(ui, &stav.povrchy.len().to_string(), SEDA);
         });
         ui.add_space(4.0);
+        if stav.povrchy.is_empty() {
+            self.prazdne_povrchy(ui, stav);
+            return;
+        }
         ui.horizontal_wrapped(|ui| {
             if karta::tlacitko(ui, Some(strom::ik!("ter_povrch_novy")), tr("Nový povrch – průvodce…"), true).clicked() {
                 self.pruvodce = Some(pruvodce::Pruvodce::novy(stav));
             }
-            if !stav.povrchy.is_empty() && karta::tlacitko(ui, Some(strom::ik!("ter_prepocitat")), tr("Přepočítat všechny"), false).clicked() {
+            if karta::tlacitko(ui, Some(strom::ik!("ter_prepocitat")), tr("Přepočítat všechny"), false).clicked() {
                 spravce::posli(Akce::Prepocitat(stav.povrchy.iter().map(|p| p.id.clone()).collect()));
             }
             zaskrtnuti_nevybirat(ui);
         });
-        ui.add_space(6.0);
+        ui.add_space(4.0);
         self.vybrane_povrchy.retain(|id| stav.povrchy.iter().any(|p| &p.id == id));
-        egui::Grid::new("povrchy").num_columns(6).striped(true).spacing([14.0, 4.0]).show(ui, |ui| {
-            let mut vse = !stav.povrchy.is_empty() && self.vybrane_povrchy.len() == stav.povrchy.len();
-            if ui.checkbox(&mut vse, "").changed() {
-                self.vybrane_povrchy = if vse { stav.povrchy.iter().map(|p| p.id.clone()).collect() } else { HashSet::new() };
+        let vybrane: Vec<String> = stav.povrchy.iter().map(|p| p.id.clone()).filter(|id| self.vybrane_povrchy.contains(id)).collect();
+
+        // lišta hromadných úprav – až po výběru (pevná výška, nic neposkakuje)
+        let (rect, _) = ui.allocate_exact_size(egui::vec2(ui.available_width(), 30.0), Sense::hover());
+        let mut child = ui.new_child(egui::UiBuilder::new().max_rect(rect.shrink2(egui::vec2(6.0, 0.0))).layout(egui::Layout::left_to_right(egui::Align::Center)));
+        if vybrane.is_empty() {
+            child.label(RichText::new(tr("Zaškrtnutím vyberete víc povrchů pro hromadné úpravy")).color(SEDA));
+        } else {
+            ui.painter().rect_filled(rect, 5.0, ui.visuals().selection.bg_fill.gamma_multiply(0.45));
+            let ui = &mut child;
+            ui.label(RichText::new(if vybrane.len() == 1 { tr("1 povrch").to_string() } else { trf!("{} povrchy", vybrane.len()) }).strong());
+            if ui.button(tr("Přepočítat")).clicked() {
+                spravce::posli(Akce::Prepocitat(vybrane.clone()));
             }
-            for t in [tr("Povrch"), tr("Styl"), tr("Trojúhelníků"), tr("Výška"), tr("Stav")] {
-                ui.label(RichText::new(t).strong());
-            }
-            ui.end_row();
-            let hledat = self.hledat.clone();
-            for p in stav.povrchy.iter().filter(|p| shoda(&p.jmeno, &hledat)) {
-                let mut v = self.vybrane_povrchy.contains(&p.id);
-                if ui.checkbox(&mut v, "").changed() {
-                    if v {
-                        self.vybrane_povrchy.insert(p.id.clone());
-                    } else {
-                        self.vybrane_povrchy.remove(&p.id);
+            ui.menu_button(tr("Styl ⏷"), |ui| {
+                for s in &stav.styly_povrchu {
+                    if ui.button(&s.jmeno).clicked() {
+                        spravce::posli(Akce::Nastav(vybrane.clone(), Zmena::Styl(s.id.clone())));
+                        ui.close();
                     }
                 }
-                if ui.link(format!("{}{}", if p.aktivni { "★ " } else { "" }, p.jmeno)).clicked() {
-                    self.vyber_uzel(Uzel::Povrch(p.id.clone()));
+            });
+            ui.menu_button(tr("Vrstevnice ⏷"), |ui| {
+                for (i, h) in INTERVALY {
+                    if ui.button(interval_text(i, h)).clicked() {
+                        spravce::posli(Akce::Nastav(vybrane.clone(), Zmena::Interval(i, h)));
+                        ui.close();
+                    }
                 }
-                ui.label(nazev_stylu_povrchu(stav, &p.styl));
-                ui.label(p.stat.trojuhelniku.to_string());
-                ui.label(format!("{} – {}", cz(p.stat.z_min, 2), cz(p.stat.z_max, 2)));
-                ui.horizontal(|ui| {
-                    if p.zastaraly {
-                        karta::pilulka(ui, tr("● zastaralý"), ORANZOVA);
-                    } else {
-                        karta::pilulka(ui, tr("● aktuální"), ZELENA);
-                    }
-                    if p.auto {
-                        ui.label(RichText::new(tr("⟳ auto")).color(ZELENA)).on_hover_text(tr("přepočítává se automaticky"));
-                    }
-                });
-                ui.end_row();
-            }
-        });
-        ui.add_space(6.0);
-        let vybrane: Vec<String> =
-            stav.povrchy.iter().map(|p| p.id.clone()).filter(|id| self.vybrane_povrchy.contains(id)).collect();
-        ui.label(RichText::new(trf!("Hromadně pro vybrané ({})", vybrane.len())).strong());
-        ui.add_enabled_ui(!vybrane.is_empty(), |ui| {
-            ui.horizontal_wrapped(|ui| {
-                if ui.button(tr("Přepočítat")).clicked() {
-                    spravce::posli(Akce::Prepocitat(vybrane.clone()));
-                }
-                egui::ComboBox::from_id_salt("hrom_styl").selected_text(tr("Styl…")).width(170.0).show_ui(ui, |ui| {
-                    for s in &stav.styly_povrchu {
-                        if ui.selectable_label(false, &s.jmeno).clicked() {
-                            spravce::posli(Akce::Nastav(vybrane.clone(), Zmena::Styl(s.id.clone())));
-                        }
-                    }
-                });
-                egui::ComboBox::from_id_salt("hrom_int").selected_text(tr("Vrstevnice…")).width(110.0).show_ui(ui, |ui| {
-                    for (i, h) in INTERVALY {
-                        if ui.selectable_label(false, interval_text(i, h)).clicked() {
-                            spravce::posli(Akce::Nastav(vybrane.clone(), Zmena::Interval(i, h)));
-                        }
-                    }
-                });
+            });
+            ui.menu_button(tr("Přepočet ⏷"), |ui| {
                 if ui.button(tr("Automaticky přepočítávat")).clicked() {
                     spravce::posli(Akce::Nastav(vybrane.clone(), Zmena::Auto(true)));
+                    ui.close();
                 }
                 if ui.button(tr("Ručně přepočítávat")).clicked() {
                     spravce::posli(Akce::Nastav(vybrane.clone(), Zmena::Auto(false)));
+                    ui.close();
                 }
             });
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.small_button("✕").on_hover_text(tr("Zrušit výběr")).clicked() {
+                    self.vybrane_povrchy.clear();
+                }
+            });
+        }
+        ui.add_space(4.0);
+
+        let hledat = self.hledat.clone();
+        egui::ScrollArea::vertical().id_salt("seznam_povrchu").auto_shrink([false, false]).show(ui, |ui| {
+            for p in stav.povrchy.iter().filter(|p| shoda(&p.jmeno, &hledat)) {
+                ui.horizontal(|ui| {
+                    let mut v = self.vybrane_povrchy.contains(&p.id);
+                    if ui.checkbox(&mut v, "").on_hover_text(tr("vybrat pro hromadné úpravy")).changed() {
+                        if v {
+                            self.vybrane_povrchy.insert(p.id.clone());
+                        } else {
+                            self.vybrane_povrchy.remove(&p.id);
+                        }
+                    }
+                    let popis = trf!(
+                        "{} · {} troj. · {} – {} m{}",
+                        nazev_stylu_povrchu(stav, &p.styl),
+                        czi(p.stat.trojuhelniku),
+                        cz(p.stat.z_min, 2),
+                        cz(p.stat.z_max, 2),
+                        if p.auto { tr(" · přepočet automaticky") } else { "" }
+                    );
+                    let (stav_t, barva) = if p.zastaraly { (tr("● zastaralý"), ORANZOVA) } else { (tr("● aktuální"), ZELENA) };
+                    let jmeno = if p.aktivni { format!("★ {}", p.jmeno) } else { p.jmeno.clone() };
+                    let r = karta::radek_seznamu(ui, &strom::Ikona::Svg(strom::ik!("ter_vrstevnice")), &jmeno, &popis, stav_t.trim_start_matches("● "), barva);
+                    if r.clicked() {
+                        if ui.input(|i| i.modifiers.command) {
+                            if !self.vybrane_povrchy.remove(&p.id) {
+                                self.vybrane_povrchy.insert(p.id.clone());
+                            }
+                        } else {
+                            self.vyber_uzel(Uzel::Povrch(p.id.clone()));
+                        }
+                    }
+                    if r.double_clicked() {
+                        spravce::posli(Akce::Aktivovat(p.id.clone()));
+                    }
+                    r.context_menu(|ui| self.menu_povrchu(ui, stav, p));
+                });
+            }
         });
+    }
+
+    /// Prázdný stav: ve výkrese není povrch – poradí, co udělat.
+    fn prazdne_povrchy(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
+        let ma_body = !stav.body.is_empty();
+        karta::prazdny_stav(
+            ui,
+            strom::ik!("ter_povrch_novy"),
+            tr("Ve výkrese zatím není povrch"),
+            &if ma_body {
+                trf!("Body už máte ({}). Stávající terén se spočítá z nich (bez vyloučených kódů, např. stromů).", czi(stav.body.len()))
+            } else {
+                tr("Nejdřív importujte body zaměření – povrch se z nich spočítá.").to_string()
+            },
+            |ui| {
+                if ma_body {
+                    if karta::tlacitko(ui, Some(strom::ik!("ter_povrch_novy")), tr("Vytvořit stávající terén"), true).clicked() {
+                        spravce::posli(Akce::NovyPovrchPas("Stavajici".into(), tr("Stávající terén").into(), true));
+                    }
+                    if ui.button(tr("Průvodce…")).clicked() {
+                        self.pruvodce = Some(pruvodce::Pruvodce::novy(stav));
+                    }
+                } else if karta::tlacitko(ui, Some(strom::ik!("ter_body_import")), tr("Import bodů…"), true).clicked() {
+                    self.nahled_importu = Some(import_nahled::NahledImportu::novy(""));
+                }
+            },
+        );
     }
 
     /// Styl, vrstevnice, max. hrana a vyloučené kódy povrchu.

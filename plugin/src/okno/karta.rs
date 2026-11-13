@@ -62,6 +62,29 @@ pub(super) fn tlacitko(ui: &mut egui::Ui, ikona: Option<egui::ImageSource<'stati
     ui.add(b)
 }
 
+/// Prázdný stav: velká ikona, nadpis, vysvětlení a tlačítka s dalším krokem.
+pub(super) fn prazdny_stav(ui: &mut egui::Ui, ikona: egui::ImageSource<'static>, nadpis: &str, text: &str, tlacitka: impl FnOnce(&mut egui::Ui)) {
+    ui.add_space(16.0);
+    egui::Frame::new()
+        .stroke(egui::Stroke::new(1.0, ui.visuals().widgets.inactive.bg_stroke.color))
+        .corner_radius(10.0)
+        .inner_margin(egui::Margin::same(24))
+        .show(ui, |ui| {
+            ui.set_max_width(560.0);
+            ui.vertical_centered(|ui| {
+                ui.add(egui::Image::new(ikona).fit_to_exact_size(egui::vec2(44.0, 44.0)));
+                ui.add_space(6.0);
+                ui.label(RichText::new(nadpis).size(17.0).strong());
+                ui.add_space(2.0);
+                ui.label(RichText::new(text).color(SEDA));
+                ui.add_space(10.0);
+                ui.horizontal(|ui| {
+                    tlacitka(ui);
+                });
+            });
+        });
+}
+
 /// Hlavní číslo s popiskem pod ním.
 pub(super) fn kpi(ui: &mut egui::Ui, hodnota: &str, popis: &str) -> egui::Response {
     egui::Frame::new()
