@@ -34,6 +34,7 @@ impl Foto {
             ("12_styly_povrchu", Uzel::StylyPovrchu),
             ("13_kontrola", Uzel::Kontrola),
             ("14_nastaveni", Uzel::Nastaveni),
+            ("15_styl_bodu", Uzel::StylBodu(crate::styly::STANDARD.into())),
         ];
         Some(Self { kroky, i: 0, snimek: 0, ceka: false, slozka })
     }

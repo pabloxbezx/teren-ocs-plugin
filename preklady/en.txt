@@ -1400,3 +1400,32 @@ Vybráno: {}	Selected: {}
 {} (zastaralý)	{} (out of date)
 Aktivní povrch – s ním pracují nástroje Úpravy, Výška v bodě a Bod na povrchu	Active surface – used by the Edits tools, Elevation at point and Point on surface
 🔍 Hledat body, skupiny, povrchy (Ctrl+F)	🔍 Search points, groups, surfaces (Ctrl+F)
+Povrch „{}“: vyloučené kódy uloženy.	Surface "{}": excluded codes saved.
+Skupina „{}“ uložena.	Group "{}" saved.
+Styl „{}“ uložen.	Style "{}" saved.
+Styl „{}“ uložen – povrchy s ním se překreslí.	Style "{}" saved – surfaces using it are redrawn.
+ukládám…	saving…
+změna se uloží sama, jakmile dopíšete	the change is saved automatically when you finish typing
+body s těmito kódy povrch nepoužije (stromy, sloupy…); změna se uloží hned	the surface ignores points with these codes (trees, poles…); the change is saved immediately
+šipky = pohyb · Ctrl+A vše · Delete smazat · Esc zrušit výběr · F2 / dvojklik upravit buňku	arrows = move · Ctrl+A all · Delete delete · Esc clear selection · F2 / double-click edit cell
+Zaškrtnutím vyberete víc povrchů pro hromadné úpravy	Tick surfaces to edit several at once
+Vrstevnice ⏷	Contours ⏷
+Přepočet ⏷	Recalculation ⏷
+vybrat pro hromadné úpravy	select for bulk edits
+{} · {} troj. · {} – {} m{}	{} · {} triangles · {} – {} m{}
+ · přepočet automaticky	 · recalculates automatically
+Ve výkrese zatím není povrch	There is no surface in the drawing yet
+Body už máte ({}). Stávající terén se spočítá z nich (bez vyloučených kódů, např. stromů).	You already have points ({}). The existing ground is computed from them (without excluded codes, e.g. trees).
+Nejdřív importujte body zaměření – povrch se z nich spočítá.	Import the survey points first – the surface is computed from them.
+Vytvořit stávající terén	Create existing ground
+Průvodce…	Wizard…
+Ve výkrese zatím nejsou body	There are no points in the drawing yet
+Importujte zaměření (TXT, CSV, XYZ, LandXML, GSI, Excel…) nebo vytvořte bod tlačítkem Nový bod na pásu karet.	Import a survey (TXT, CSV, XYZ, LandXML, GSI, Excel…) or create a point with New point on the ribbon.
+vestavěný	built-in
+vlastní	custom
+náhled v měřítku 1:{} · {} bodů ve výkrese	preview at scale 1:{} · {} points in the drawing
+Body ({})	Points ({})
+Export a nový povrch	Export and new surface
+Vytvořit povrch	Create surface
+výška {}	elevation {}
+Pravidla	Rules

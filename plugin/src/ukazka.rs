@@ -107,7 +107,12 @@ fn data() -> StavSpravce {
         },
     ];
     StavSpravce {
-        kontrola: Some(vec![PodezrelyBod { handle: Handle::new(0x1010), cislo: "1017".into(), x: 0.0, y: 0.0, z: 313.4, dz: 0.82 }]),
+        kontrola: Some(
+            [(16usize, 0.82), (32, -2.64)]
+                .iter()
+                .map(|&(i, dz)| PodezrelyBod { handle: body[i].handle, cislo: body[i].bod.cislo.clone(), x: body[i].bod.x, y: body[i].bod.y, z: body[i].bod.z, dz })
+                .collect(),
+        ),
         zprava: "Terén: povrch Stávající terén přepočítán (2 840 trojúhelníků)".into(),
         vykres: "C:\\Zakázky\\ukazka_parcela.dwg".into(),
         slozka: "C:\\Zakázky".into(),

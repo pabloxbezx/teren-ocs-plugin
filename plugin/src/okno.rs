@@ -360,6 +360,10 @@ struct Okno {
     vlastni_krok: Option<(String, f64, f64)>,
     /// Na kartě povrchu se přejmenovává (pole místo nadpisu).
     prejmenovat: bool,
+    /// Předchozí položky stromu (Alt+← vrátí zpět).
+    historie: Vec<Uzel>,
+    /// Záložka skupiny: 0 Pravidla, 1 Body, 2 Export.
+    zalozka_skupiny: u8,
     /// Záložka karty povrchu (Přehled / Export).
     zalozka_povrchu: karta::ZalozkaPovrchu,
     /// Export povrchu: (id povrchu, cesta, DXF místo LandXML).
@@ -592,6 +596,17 @@ impl eframe::App for Okno {
         if let Some(t) = pozadavek_napovedy().lock().unwrap_or_else(|e| e.into_inner()).take() {
             self.napoveda = Some(t);
         }
+        // Ctrl+F = hledání, Alt+← = zpět na předchozí položku
+        if ui.input(|i| i.modifiers.command && i.key_pressed(egui::Key::F)) {
+            ui.memory_mut(|m| m.request_focus(egui::Id::new("pole_hledani")));
+        }
+        if ui.input(|i| i.modifiers.alt && i.key_pressed(egui::Key::ArrowLeft)) {
+            if let Some(u) = self.historie.pop() {
+                let delka = self.historie.len();
+                self.vyber_uzel(u);
+                self.historie.truncate(delka);
+            }
+        }
         if ui.input(|i| i.key_pressed(egui::Key::F1)) {
             self.napoveda = if self.napoveda.is_some() { None } else { Some(self.tema_napovedy()) };
         }
@@ -652,7 +667,11 @@ impl Okno {
             self.rozbalit = Some(id.clone());
         }
         if self.uzel != u {
-            self.uzel = u;
+            let stary = std::mem::replace(&mut self.uzel, u);
+            self.historie.push(stary);
+            if self.historie.len() > 40 {
+                self.historie.remove(0);
+            }
             self.edit_skupina = None;
             self.skupina_zmenena = false;
             self.edit_styl_bodu = None;
@@ -662,6 +681,7 @@ impl Okno {
             self.nove_jmeno_povrchu.clear();
             self.zalozka_povrchu = karta::ZalozkaPovrchu::Prehled;
             self.prejmenovat = false;
+            self.zalozka_skupiny = 0;
             self.verze = 0;
         }
     }
@@ -1044,7 +1064,7 @@ impl Okno {
                     ui.label(tr("Práh odchylky"));
                     let mut prah = n.prah_kontroly;
                     if ui
-                        .add(egui::DragValue::new(&mut prah).range(0.1..=10.0).speed(0.05).suffix(" m").max_decimals(2))
+                        .add(egui::DragValue::new(&mut prah).range(0.1..=10.0).speed(0.05).suffix(" m").max_decimals(2).custom_formatter(|v, _| cz(v, 2)).custom_parser(|t| t.replace(',', ".").trim().parse().ok()))
                         .on_hover_text(tr("bod, jehož výška se od okolí liší víc, se označí jako podezřelý"))
                         .changed()
                     {
@@ -1541,7 +1561,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                 self.hledat.clear();
             }
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.label(RichText::new(tr("dvojklik nebo F2 = upravit buňku · Enter = další řádek")).small().color(SEDA));
+                ui.label(RichText::new(tr("šipky = pohyb · Ctrl+A vše · Delete smazat · Esc zrušit výběr · F2 / dvojklik upravit buňku")).small().color(SEDA));
             });
         });
 
@@ -1803,6 +1823,56 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         ];
         let sloupce: Vec<(Razeni, &str, f32)> =
             vsechny.into_iter().filter(|(_, n, _)| !self.skryte_sloupce.iter().any(|s| tr(s) == *n)).collect();
+        // klávesy tabulky (jen když se nepíše do pole)
+        if self.edit_bunka.is_none() && ui.memory(|m| m.focused().is_none()) && !poradi.is_empty() {
+            let (del, esc, vse, dolu, nahoru, enter, shift) = ui.input(|i| {
+                (
+                    i.key_pressed(egui::Key::Delete),
+                    i.key_pressed(egui::Key::Escape),
+                    i.modifiers.command && i.key_pressed(egui::Key::A),
+                    i.key_pressed(egui::Key::ArrowDown),
+                    i.key_pressed(egui::Key::ArrowUp),
+                    i.key_pressed(egui::Key::Enter),
+                    i.modifiers.shift,
+                )
+            });
+            if vse {
+                self.vybrane_body = poradi.iter().map(|b| b.handle).collect();
+            }
+            if esc {
+                self.vybrane_body.clear();
+            }
+            if del {
+                let h: Vec<Handle> = poradi.iter().map(|b| b.handle).filter(|h| self.vybrane_body.contains(h)).collect();
+                if !h.is_empty() {
+                    smazat(pocet_smazanych(h.len()), Akce::BodySmazat(h));
+                    self.vybrane_body.clear();
+                }
+            }
+            if dolu || nahoru {
+                let i = match self.posledni_klik {
+                    Some(i) if dolu => (i + 1).min(poradi.len() - 1),
+                    Some(i) => i.saturating_sub(1),
+                    None => 0,
+                };
+                if !shift {
+                    self.vybrane_body.clear();
+                }
+                self.vybrane_body.insert(poradi[i].handle);
+                self.posledni_klik = Some(i);
+                self.posunout_na = Some(poradi[i].handle);
+            }
+            if enter {
+                let h: Vec<Handle> = poradi.iter().map(|b| b.handle).filter(|h| self.vybrane_body.contains(h)).collect();
+                if !h.is_empty() {
+                    ukazat_body(stav, &h);
+                }
+            }
+            if vse || esc || dolu || nahoru {
+                let st = spravce::stav();
+                self.nacti_edit_bodu(&st);
+            }
+        }
         // F2 = upravit první upravitelnou buňku vybraného bodu
         if self.edit_bunka.is_none()
             && self.vybrane_body.len() == 1
@@ -1832,7 +1902,11 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
             };
             let sipka = if self.razeni == r { if self.sestupne { " ⏷" } else { " ⏶" } } else { "" };
             let barva = if resp.hovered() { MODRA } else { ui.visuals().strong_text_color() };
-            ui.painter().text(bunka.left_center() + egui::vec2(4.0, 0.0), Align2::LEFT_CENTER, format!("{nazev}{sipka}"), font.clone(), barva);
+            if matches!(r, Razeni::Z | Razeni::Y | Razeni::X) {
+                ui.painter().text(bunka.right_center() - egui::vec2(14.0, 0.0), Align2::RIGHT_CENTER, format!("{nazev}{sipka}"), font.clone(), barva);
+            } else {
+                ui.painter().text(bunka.left_center() + egui::vec2(4.0, 0.0), Align2::LEFT_CENTER, format!("{nazev}{sipka}"), font.clone(), barva);
+            }
             if resp.clicked() && !nazev.is_empty() {
                 if self.razeni == r {
                     if self.sestupne {
@@ -2126,55 +2200,74 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
             });
             ui.add_space(4.0);
             ui.separator();
-            let siroke = ui.available_width() >= 780.0;
-            let levy = |ui: &mut egui::Ui, me: &mut Self| {
-                if vestavena {
-                    ui.label(RichText::new(tr("Vestavěná skupina se všemi body výkresu – nedá se měnit ani smazat.")).color(SEDA));
-                } else {
-                    me.editor_skupiny(ui, stav);
-                }
-            };
-            if siroke {
-                ui.horizontal_top(|ui| {
-                    let w = (ui.available_width() * 0.56).max(420.0);
-                    ui.allocate_ui_with_layout(egui::vec2(w, 0.0), egui::Layout::top_down(egui::Align::Min), |ui| {
-                        ui.set_width(w);
+            // ── záložky Pravidla · Body · Export ──
+            let zal = [
+                (0u8, tr("Pravidla").to_string()),
+                (1, trf!("Body ({})", czi(prehled.pocet))),
+                (2, tr("Export a nový povrch").to_string()),
+            ];
+            if let Some(z) = karta::zalozky(ui, self.zalozka_skupiny, &zal) {
+                self.zalozka_skupiny = z;
+            }
+            match self.zalozka_skupiny {
+                0 => {
+                    let siroke = ui.available_width() >= 780.0;
+                    let levy = |ui: &mut egui::Ui, me: &mut Self| {
+                        if vestavena {
+                            ui.label(RichText::new(tr("Vestavěná skupina se všemi body výkresu – nedá se měnit ani smazat.")).color(SEDA));
+                        } else {
+                            me.editor_skupiny(ui, stav);
+                        }
+                    };
+                    if siroke {
+                        ui.horizontal_top(|ui| {
+                            let w = (ui.available_width() * 0.56).max(420.0);
+                            ui.allocate_ui_with_layout(egui::vec2(w, 0.0), egui::Layout::top_down(egui::Align::Min), |ui| {
+                                ui.set_width(w);
+                                levy(ui, self);
+                            });
+                            ui.add_space(16.0);
+                            ui.vertical(|ui| self.nahled_skupiny(ui, stav, &prehled.skupina));
+                        });
+                    } else {
                         levy(ui, self);
+                        ui.add_space(6.0);
+                        self.nahled_skupiny(ui, stav, &prehled.skupina);
+                    }
+                }
+                1 => {
+                    let f = prehled.skupina.filtr();
+                    let body: Vec<&BodVykresu> =
+                        stav.body.iter().filter(|b| f.obsahuje(&b.bod, &b.zdroj) && bod_odpovida(b, &self.hledat)).collect();
+                    drop(f);
+                    let vyska = ui.available_height().max(320.0);
+                    ui.allocate_ui(egui::vec2(ui.available_width(), vyska), |ui| self.tabulka_bodu(ui, stav, &body));
+                }
+                _ => {
+                    ui.label(RichText::new(tr("Nový povrch ze skupiny")).strong());
+                    ui.horizontal(|ui| {
+                        ui.label(tr("Jméno"));
+                        if self.nove_jmeno_povrchu.is_empty() {
+                            self.nove_jmeno_povrchu = trf!("Povrch {}", prehled.skupina.jmeno);
+                        }
+                        ui.add(egui::TextEdit::singleline(&mut self.nove_jmeno_povrchu).desired_width(180.0));
+                        if karta::tlacitko(ui, Some(strom::ik!("ter_povrch_z_bodu")), tr("Vytvořit povrch"), false).clicked() {
+                            spravce::posli(Akce::PovrchZeSkupiny(id.to_string(), Some(self.nove_jmeno_povrchu.trim().to_string()), false));
+                            self.nove_jmeno_povrchu.clear();
+                        }
                     });
-                    ui.add_space(16.0);
-                    ui.vertical(|ui| self.nahled_skupiny(ui, stav, &prehled.skupina));
-                });
-            } else {
-                levy(ui, self);
-                ui.add_space(6.0);
-                self.nahled_skupiny(ui, stav, &prehled.skupina);
-            }
-            ui.separator();
-            ui.horizontal(|ui| {
-                ui.label(tr("Nový povrch ze skupiny"));
-                if self.nove_jmeno_povrchu.is_empty() {
-                    self.nove_jmeno_povrchu = trf!("Povrch {}", prehled.skupina.jmeno);
-                }
-                ui.add(egui::TextEdit::singleline(&mut self.nove_jmeno_povrchu).desired_width(180.0));
-                if ui.button(tr("Vytvořit povrch")).clicked() {
-                    spravce::posli(Akce::PovrchZeSkupiny(id.to_string(), Some(self.nove_jmeno_povrchu.trim().to_string()), false));
-                    self.nove_jmeno_povrchu.clear();
-                }
-            });
-            ui.separator();
-            self.export(ui, stav, &prehled.skupina);
-            if !vestavena {
-                ui.add_space(4.0);
-                if ui.button(RichText::new(tr("Smazat skupinu")).color(CERVENA)).on_hover_text(tr("body ve výkrese zůstanou")).clicked() {
-                    smazat(trf!("Skupina „{}“ je smazaná (body ve výkrese zůstaly).", prehled.skupina.jmeno), Akce::SkupinaSmazat(id.to_string()));
+                    ui.add_space(8.0);
+                    ui.separator();
+                    self.export(ui, stav, &prehled.skupina);
+                    if !vestavena {
+                        ui.add_space(12.0);
+                        ui.separator();
+                        if ui.button(RichText::new(tr("Smazat skupinu")).color(CERVENA)).on_hover_text(tr("body ve výkrese zůstanou")).clicked() {
+                            smazat(trf!("Skupina „{}“ je smazaná (body ve výkrese zůstaly).", prehled.skupina.jmeno), Akce::SkupinaSmazat(id.to_string()));
+                        }
+                    }
                 }
             }
-            ui.separator();
-            ui.label(RichText::new(tr("Body skupiny")).strong());
-            let f = prehled.skupina.filtr();
-            let body: Vec<&BodVykresu> =
-                stav.body.iter().filter(|b| f.obsahuje(&b.bod, &b.zdroj) && bod_odpovida(b, &self.hledat)).collect();
-            ui.allocate_ui(egui::vec2(ui.available_width(), 320.0), |ui| self.tabulka_bodu(ui, stav, &body));
         });
     }
 
@@ -3263,7 +3356,7 @@ fn kontrola(ui: &mut egui::Ui, stav: &StavSpravce) {
         ui.label(tr("Práh odchylky"));
         let mut prah = nastaveni::akt().prah_kontroly;
         if ui
-            .add(egui::DragValue::new(&mut prah).range(0.1..=10.0).speed(0.05).suffix(" m").max_decimals(2))
+            .add(egui::DragValue::new(&mut prah).range(0.1..=10.0).speed(0.05).suffix(" m").max_decimals(2).custom_formatter(|v, _| cz(v, 2)).custom_parser(|t| t.replace(',', ".").trim().parse().ok()))
             .changed()
         {
             nastaveni::zmen(|n| n.prah_kontroly = prah);
@@ -3280,28 +3373,44 @@ fn kontrola(ui: &mut egui::Ui, stav: &StavSpravce) {
         Some(s) => {
             mapa_kontroly(ui, stav, s);
             ui.add_space(6.0);
+            let id_hl = egui::Id::new("kontrola_zvyrazneny");
+            let zvyrazneny: Option<Handle> = ui.ctx().data(|d| d.get_temp(id_hl)).flatten();
+            let mut najeto: Option<Handle> = None;
             egui::ScrollArea::vertical().show(ui, |ui| {
-                egui::Grid::new("podezrele").num_columns(5).striped(true).spacing([14.0, 4.0]).show(ui, |ui| {
-                    ui.label(RichText::new(tr("Bod")).strong());
-                    ui.label(RichText::new(tr("Výška")).strong());
-                    ui.label(RichText::new(tr("Odchylka")).strong());
-                    ui.label("");
-                    ui.label("");
-                    ui.end_row();
-                    for b in s {
-                        ui.label(if b.cislo.is_empty() { "–" } else { &b.cislo });
-                        ui.label(cz(b.z, 2));
-                        ui.label(RichText::new(format!("{:+.2} m", b.dz)).color(if b.dz.abs() > 2.0 { CERVENA } else { ORANZOVA }));
-                        if ui.small_button(tr("Ukázat")).clicked() {
-                            spravce::posli(Akce::Ukazat([b.x, b.y], 10.0, vec![b.handle]));
-                        }
-                        if ui.small_button(tr("Odebrat z aktivního povrchu")).clicked() {
-                            spravce::posli(Akce::VyloucitBod(b.x, b.y));
-                        }
-                        ui.end_row();
+                for b in s {
+                    let barva = if b.dz.abs() > 2.0 { CERVENA } else { ORANZOVA };
+                    let fill = if zvyrazneny == Some(b.handle) { ui.visuals().selection.bg_fill } else { ui.visuals().extreme_bg_color };
+                    let r = egui::Frame::new()
+                        .fill(fill)
+                        .stroke(egui::Stroke::new(1.0, ui.visuals().widgets.noninteractive.bg_stroke.color))
+                        .corner_radius(6.0)
+                        .inner_margin(egui::Margin::symmetric(10, 5))
+                        .show(ui, |ui| {
+                            ui.set_width(ui.available_width().min(640.0));
+                            ui.horizontal(|ui| {
+                                ui.label(RichText::new(if b.cislo.is_empty() { "–" } else { &b.cislo }).strong());
+                                ui.label(RichText::new(trf!("výška {}", cz(b.z, 2))).color(SEDA));
+                                karta::pilulka(ui, &format!("{}{} m", if b.dz > 0.0 { "+" } else { "" }, cz(b.dz, 2)), barva);
+                                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                                    if ui.small_button(tr("Odebrat z aktivního povrchu")).clicked() {
+                                        spravce::posli(Akce::VyloucitBod(b.x, b.y));
+                                    }
+                                    if ui.small_button(tr("Ukázat")).clicked() {
+                                        spravce::posli(Akce::Ukazat([b.x, b.y], 10.0, vec![b.handle]));
+                                    }
+                                });
+                            });
+                        })
+                        .response;
+                    if r.hovered() {
+                        najeto = Some(b.handle);
                     }
-                });
+                    ui.add_space(3.0);
+                }
             });
+            if najeto.is_some() {
+                ui.ctx().data_mut(|d| d.insert_temp(id_hl, najeto));
+            }
         }
     }
 }
@@ -3333,6 +3442,11 @@ fn mapa_kontroly(ui: &mut egui::Ui, stav: &StavSpravce, podezrele: &[spravce::Po
         p.circle_filled(na(b.bod.x, b.bod.y), 1.6, Color32::from_gray(90));
     }
     let mozny = resp.hover_pos();
+    let id_hl = egui::Id::new("kontrola_zvyrazneny");
+    let zvyrazneny: Option<Handle> = ui.ctx().data(|d| d.get_temp(id_hl)).flatten();
+    if let Some(b) = zvyrazneny.and_then(|h| podezrele.iter().find(|b| b.handle == h)) {
+        p.circle_stroke(na(b.x, b.y), 13.0, egui::Stroke::new(2.0, MODRA));
+    }
     let mut nejblizsi: Option<(&spravce::PodezrelyBod, f32)> = None;
     for b in podezrele {
         let c = na(b.x, b.y);
@@ -3348,6 +3462,7 @@ fn mapa_kontroly(ui: &mut egui::Ui, stav: &StavSpravce, podezrele: &[spravce::Po
         }
     }
     if let Some((b, _)) = nejblizsi {
+        ui.ctx().data_mut(|d| d.insert_temp(id_hl, Some(b.handle)));
         p.circle_stroke(na(b.x, b.y), 11.0, egui::Stroke::new(1.5, Color32::WHITE));
         let t = trf!("bod {} · výška {:.2} · odchylka {:+.2} m – klik ukáže ve výkrese", if b.cislo.is_empty() { "–" } else { &b.cislo }, b.z, b.dz);
         resp.clone().on_hover_text(t);
@@ -3438,7 +3553,16 @@ fn vyber_tloustky(ui: &mut egui::Ui, id: &str, t: &mut i16) -> bool {
 }
 
 fn mm(ui: &mut egui::Ui, v: &mut f64, rozsah: std::ops::RangeInclusive<f64>) -> bool {
-    ui.add(egui::DragValue::new(v).range(rozsah).speed(0.05).max_decimals(2).suffix(" mm")).changed()
+    ui.add(
+        egui::DragValue::new(v)
+            .range(rozsah)
+            .speed(0.05)
+            .max_decimals(2)
+            .suffix(" mm")
+            .custom_formatter(|v, _| cz(v, 2))
+            .custom_parser(|t| t.replace(',', ".").trim().parse().ok()),
+    )
+    .changed()
 }
 
 impl Okno {
@@ -3754,7 +3878,11 @@ impl Okno {
             ui.label(RichText::new(tr("Styl už ve výkrese není.")).color(SEDA));
             return;
         };
-        nadpis(ui, &trf!("Styl povrchu – {}", st.jmeno));
+        let vestaveny = st.je_vestaveny();
+        karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_styl")), &st.jmeno, |ui| {
+            karta::pilulka(ui, if vestaveny { tr("vestavěný") } else { tr("vlastní") }, SEDA);
+        });
+        ui.add_space(6.0);
         let mut z = false;
         egui::Grid::new("styl_povrchu").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
             ui.label(tr("Jméno"));
