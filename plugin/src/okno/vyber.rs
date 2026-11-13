@@ -302,7 +302,7 @@ impl Okno {
         let h: Vec<Handle> = body.iter().map(|b| b.handle).collect();
         ui.add_space(6.0);
         ui.horizontal(|ui| {
-            ui.label(RichText::new(trf!("Vybráno {} bodů", body.len())).size(18.0).strong());
+            ui.label(RichText::new(trf!("Vybráno: {}", super::pocet_bodu_text(body.len()))).size(18.0).strong());
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if ui.button(tr("Ukázat")).clicked() {
                     ukazat_body(stav, &h);

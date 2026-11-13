@@ -85,6 +85,30 @@ fn dlazdice(ui: &mut egui::Ui, ikona: &Ikona, pocet: usize, text: &str) -> egui:
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
+/// Řádek seznamu (skupiny, povrchy, podezřelé body): ikona, název, šedý popis
+/// pod ním a údaj vpravo; celý řádek je klikací.
+pub(super) fn radek_seznamu(ui: &mut egui::Ui, ikona: &Ikona, nazev: &str, popis: &str, vpravo: &str, vpravo_barva: Color32) -> egui::Response {
+    let (rect, resp) = ui.allocate_exact_size(egui::vec2(ui.available_width().max(200.0), 40.0), Sense::click());
+    if !ui.is_rect_visible(rect) {
+        return resp;
+    }
+    let v = ui.visuals().clone();
+    let fill = if resp.hovered() { v.widgets.hovered.weak_bg_fill } else { v.extreme_bg_color };
+    ui.painter().rect(rect, 6.0, fill, v.widgets.noninteractive.bg_stroke, egui::StrokeKind::Inside);
+    kresli_ikonu(ui, ikona, egui::pos2(rect.left() + 18.0, rect.center().y), false);
+    let x = rect.left() + 36.0;
+    let p = ui.painter();
+    let gv = p.layout_no_wrap(vpravo.to_string(), egui::FontId::proportional(12.5), vpravo_barva);
+    let xr = rect.right() - 12.0 - gv.size().x;
+    p.galley(egui::pos2(xr, rect.center().y - gv.size().y / 2.0), gv, vpravo_barva);
+    let sirka = (xr - x - 10.0).max(20.0);
+    let g = egui::WidgetText::from(RichText::new(nazev).strong()).into_galley(ui, Some(egui::TextWrapMode::Truncate), sirka, egui::TextStyle::Body);
+    ui.painter().galley(egui::pos2(x, rect.top() + 4.0), g, v.strong_text_color());
+    let g = egui::WidgetText::from(RichText::new(popis).size(11.5)).into_galley(ui, Some(egui::TextWrapMode::Truncate), sirka, egui::TextStyle::Small);
+    ui.painter().galley(egui::pos2(x, rect.top() + 22.0), g, SEDA);
+    resp.on_hover_cursor(egui::CursorIcon::PointingHand)
+}
+
 /// Řádek záložek; vrací kliknutou.
 pub(super) fn zalozky<T: Copy + PartialEq>(ui: &mut egui::Ui, aktivni: T, polozky: &[(T, String)]) -> Option<T> {
     let mut vysledek = None;

@@ -1234,34 +1234,49 @@ impl Okno {
     }
 
     fn detail_vykres(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        nadpis(ui, tr("Výkres"));
-        egui::Grid::new("vykres").num_columns(2).spacing([12.0, 4.0]).show(ui, |ui| {
-            ui.label(tr("Soubor"));
-            ui.label(&stav.vykres);
-            ui.end_row();
-            ui.label(tr("Body"));
-            ui.label(stav.body.len().to_string());
-            ui.end_row();
-            ui.label(tr("Skupiny bodů"));
-            ui.label(stav.skupiny.len().to_string());
-            ui.end_row();
-            ui.label(tr("Povrchy"));
-            ui.label(stav.povrchy.len().to_string());
-            ui.end_row();
-            ui.label(tr("Měřítko"));
-            ui.label(format!("1:{}", cislo_cz(stav.meritko)))
+        let nazev = std::path::Path::new(&stav.vykres)
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_else(|| stav.vykres.clone());
+        karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_prospektor")), &nazev, |ui| {
+            karta::pilulka(ui, &format!("1:{}", cislo_cz(stav.meritko)), SEDA)
                 .on_hover_text(tr("měřítko poznámek nastavené vpravo dole ve stavovém řádku; při 1:1 platí měřítko z pásu karet Terén"));
-            ui.end_row();
         });
-        ui.add_space(6.0);
-        if ui
-            .button(tr("Překreslit body"))
-            .on_hover_text(tr("smaže značky a popisy bodů a vytvoří je znovu podle stylů a měřítka"))
-            .clicked()
-        {
-            spravce::posli(Akce::ObnovitPopisy);
+        if !stav.vykres.is_empty() && stav.vykres != nazev {
+            ui.label(RichText::new(&stav.vykres).small().color(SEDA));
         }
-        ui.add_space(10.0);
+        ui.add_space(4.0);
+        ui.horizontal_wrapped(|ui| {
+            if karta::kpi(ui, &cislo_cz(stav.body.len() as f64), tr("bodů")).interact(Sense::click()).clicked() {
+                self.vyber_uzel(Uzel::Body);
+            }
+            if karta::kpi(ui, &stav.skupiny.len().to_string(), tr("skupin bodů")).interact(Sense::click()).clicked() {
+                self.vyber_uzel(Uzel::Skupiny);
+            }
+            if karta::kpi(ui, &stav.povrchy.len().to_string(), tr("povrchů")).interact(Sense::click()).clicked() {
+                self.vyber_uzel(Uzel::Povrchy);
+            }
+        });
+        ui.add_space(4.0);
+        ui.horizontal_wrapped(|ui| {
+            if ui
+                .button(tr("Překreslit body"))
+                .on_hover_text(tr("smaže značky a popisy bodů a vytvoří je znovu podle stylů a měřítka"))
+                .clicked()
+            {
+                spravce::posli(Akce::ObnovitPopisy);
+            }
+            if ui
+                .button(tr("Připravit výkres ze šablony"))
+                .on_hover_text(tr("hladiny Terénu, značka bodu podle stylu, měřítko a styly ze šablony – jedním kliknutím"))
+                .clicked()
+            {
+                spravce::posli(Akce::PripravVykres);
+            }
+        });
+        ui.add_space(4.0);
+        ui.separator();
+        ui.add_space(4.0);
         if nastaveni::akt().postup_skryt {
             if ui.small_button(tr("Ukázat postup „Jak na to“")).clicked() {
                 nastaveni::zmen(|n| n.postup_skryt = false);
@@ -1671,7 +1686,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
             (Razeni::Cislo, tr("Číslo"), 70.0),
             (Razeni::Popis, tr("Kód"), 110.0),
             (Razeni::Z, "Z", 70.0),
-            (Razeni::Styl, tr("Styl"), 190.0),
+            (Razeni::Styl, tr("Styl"), 245.0),
             (Razeni::Y, "Y", 105.0),
             (Razeni::X, "X", 115.0),
             (Razeni::Zdroj, tr("Soubor"), 120.0),
@@ -1909,36 +1924,40 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
     // ── Skupiny ──────────────────────────────────────────────────────────────
 
     fn detail_skupiny(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        ui.horizontal(|ui| {
-            nadpis(ui, tr("Skupiny bodů"));
+        karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_skupina_bodu")), tr("Skupiny bodů"), |ui| {
+            karta::pilulka(ui, &stav.skupiny.len().to_string(), SEDA);
             napoveda::otaznik(ui, tr("Skupina bodů"));
         });
-        ui.label(
-            RichText::new(
+        ui.add_space(4.0);
+        ui.horizontal(|ui| {
+            if ui.button(tr("+ Nová skupina")).clicked() {
+                spravce::posli(Akce::SkupinaNova(Vec::new()));
+            }
+            info(
+                ui,
                 tr("Skupina vybírá body podle kódu, čísla (rozsahu) nebo souboru importu. Povrch se skládá ze skupin, \
                  takže změna skupiny povrch označí jako zastaralý (s automatickým přepočtem se přepočítá sám)."),
-            )
-            .color(SEDA),
-        );
-        ui.add_space(4.0);
-        if ui.button(tr("+ Nová skupina")).clicked() {
-            spravce::posli(Akce::SkupinaNova(Vec::new()));
-        }
+            );
+        });
         ui.add_space(6.0);
-        egui::Grid::new("skupiny").num_columns(4).striped(true).spacing([14.0, 4.0]).show(ui, |ui| {
-            ui.label(RichText::new(tr("Skupina")).strong());
-            ui.label(RichText::new(tr("Bodů")).strong());
-            ui.label(RichText::new(tr("Kritéria")).strong());
-            ui.label(RichText::new(tr("Používá")).strong());
-            ui.end_row();
+        egui::ScrollArea::vertical().id_salt("seznam_skupin").auto_shrink([false, false]).show(ui, |ui| {
             for s in &stav.skupiny {
-                if ui.link(&s.skupina.jmeno).clicked() {
+                let mut popis = s.skupina.kriteria();
+                if !s.povrchy.is_empty() {
+                    popis = trf!("{} · používá {}", popis, s.povrchy.join(", "));
+                }
+                let r = karta::radek_seznamu(
+                    ui,
+                    &strom::Ikona::Svg(strom::ik!("ter_skupina_bodu")),
+                    &s.skupina.jmeno,
+                    &popis,
+                    &trf!("{} bodů", cislo_cz(s.pocet as f64)),
+                    SEDA,
+                );
+                if r.clicked() {
                     self.vyber_uzel(Uzel::Skupina(s.skupina.id.clone()));
                 }
-                ui.label(s.pocet.to_string());
-                ui.add(egui::Label::new(s.skupina.kriteria()).truncate());
-                ui.label(if s.povrchy.is_empty() { "–".into() } else { s.povrchy.join(", ") });
-                ui.end_row();
+                r.context_menu(|ui| self.menu_skupiny(ui, stav, &s.skupina));
             }
         });
     }
@@ -2016,11 +2035,6 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                 self.nahled_skupiny(ui, stav, &prehled.skupina);
             }
             ui.separator();
-            if ui.button(tr("Vybrat body skupiny ve výkrese")).clicked() {
-                let f = prehled.skupina.filtr();
-                let h: Vec<Handle> = stav.body.iter().filter(|b| f.obsahuje(&b.bod, &b.zdroj)).map(|b| b.handle).collect();
-                ukazat_body(stav, &h);
-            }
             ui.horizontal(|ui| {
                 ui.label(tr("Nový povrch ze skupiny"));
                 if self.nove_jmeno_povrchu.is_empty() {
@@ -2555,11 +2569,20 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
     }
 
     fn detail_povrchy(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        nadpis(ui, tr("Povrchy"));
-        if ui.button(tr("+ Nový povrch – průvodce…")).clicked() {
-            self.pruvodce = Some(pruvodce::Pruvodce::novy(stav));
-        }
-        zaskrtnuti_nevybirat(ui);
+        karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_povrch_novy")), tr("Povrchy"), |ui| {
+            karta::pilulka(ui, &stav.povrchy.len().to_string(), SEDA);
+        });
+        ui.add_space(4.0);
+        ui.horizontal_wrapped(|ui| {
+            if ui.button(tr("+ Nový povrch – průvodce…")).clicked() {
+                self.pruvodce = Some(pruvodce::Pruvodce::novy(stav));
+            }
+            if ui.add_enabled(!stav.povrchy.is_empty(), egui::Button::new(tr("Přepočítat všechny"))).clicked() {
+                spravce::posli(Akce::Prepocitat(stav.povrchy.iter().map(|p| p.id.clone()).collect()));
+            }
+            zaskrtnuti_nevybirat(ui);
+        });
+        ui.add_space(6.0);
         self.vybrane_povrchy.retain(|id| stav.povrchy.iter().any(|p| &p.id == id));
         egui::Grid::new("povrchy").num_columns(6).striped(true).spacing([14.0, 4.0]).show(ui, |ui| {
             let mut vse = !stav.povrchy.is_empty() && self.vybrane_povrchy.len() == stav.povrchy.len();
@@ -2580,7 +2603,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                         self.vybrane_povrchy.remove(&p.id);
                     }
                 }
-                if ui.link(format!("{}{}", if p.aktivni { "▶ " } else { "" }, p.jmeno)).clicked() {
+                if ui.link(format!("{}{}", if p.aktivni { "★ " } else { "" }, p.jmeno)).clicked() {
                     self.vyber_uzel(Uzel::Povrch(p.id.clone()));
                 }
                 ui.label(nazev_stylu_povrchu(stav, &p.styl));
@@ -2588,10 +2611,12 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                 ui.label(format!("{:.2} – {:.2}", p.stat.z_min, p.stat.z_max));
                 ui.horizontal(|ui| {
                     if p.zastaraly {
-                        ui.label(RichText::new(tr("zastaralý")).color(ORANZOVA));
+                        karta::pilulka(ui, tr("● zastaralý"), ORANZOVA);
+                    } else {
+                        karta::pilulka(ui, tr("● aktuální"), ZELENA);
                     }
                     if p.auto {
-                        ui.label(RichText::new(tr("⟳ auto")).color(ZELENA));
+                        ui.label(RichText::new(tr("⟳ auto")).color(ZELENA)).on_hover_text(tr("přepočítává se automaticky"));
                     }
                 });
                 ui.end_row();
@@ -3040,13 +3065,24 @@ fn detail_upravy(ui: &mut egui::Ui, p: &PrehledPovrchu) {
 }
 
 fn kontrola(ui: &mut egui::Ui, stav: &StavSpravce) {
-    nadpis(ui, tr("Kontrola zaměření"));
-    ui.label(
-        tr("Hledá body zaměření, jejichž výška výrazně vybočuje z okolí (překlep, bod na autě, v jámě…). \
-         Podezřelé body se ve výkrese označí kroužkem na hladině TER_KONTROLA."),
-    );
-    ui.add_space(6.0);
-    ui.horizontal(|ui| {
+    karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_vyska_v_bode")), tr("Kontrola zaměření"), |ui| match &stav.kontrola {
+        None => {
+            karta::pilulka(ui, tr("zatím neproběhla"), SEDA);
+        }
+        Some(s) if s.is_empty() => {
+            karta::pilulka(ui, tr("● bez podezřelých bodů"), ZELENA);
+        }
+        Some(s) => {
+            karta::pilulka(ui, &trf!("● podezřelé body: {}", s.len()), ORANZOVA);
+        }
+    });
+    ui.add_space(4.0);
+    ui.horizontal_wrapped(|ui| {
+        info(
+            ui,
+            tr("Hledá body zaměření, jejichž výška výrazně vybočuje z okolí (překlep, bod na autě, v jámě…). \
+             Podezřelé body se ve výkrese označí kroužkem na hladině TER_KONTROLA."),
+        );
         if ui.button(tr("Zkontrolovat zaměření")).clicked() {
             spravce::posli(Akce::Kontrola);
         }
@@ -3072,7 +3108,6 @@ fn kontrola(ui: &mut egui::Ui, stav: &StavSpravce) {
             ui.label(RichText::new(tr("Žádný podezřelý bod.")).color(ZELENA));
         }
         Some(s) => {
-            ui.label(trf!("Podezřelé body: {}", s.len()));
             mapa_kontroly(ui, stav, s);
             ui.add_space(6.0);
             egui::ScrollArea::vertical().show(ui, |ui| {
@@ -3238,17 +3273,17 @@ fn mm(ui: &mut egui::Ui, v: &mut f64, rozsah: std::ops::RangeInclusive<f64>) -> 
 
 impl Okno {
     fn detail_styly(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        nadpis(ui, tr("Styly"));
-        ui.label(
-            RichText::new(
+        karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_styl")), tr("Styly"), |ui| {
+            karta::pilulka(ui, &trf!("{} bodů · {} povrchů", stav.styly_bodu.len(), stav.styly_povrchu.len()), SEDA);
+        });
+        ui.add_space(4.0);
+        ui.horizontal_wrapped(|ui| {
+            info(
+                ui,
                 tr("Styl bodu určuje značku a popis bodu, styl povrchu vrstevnice, barvy, popisy a šipky spádu. \
                  Velikosti jsou v mm na papíře a mění se s měřítkem výkresu. Vestavěné styly jde upravit \
                  (úprava se uloží do výkresu) a kdykoli vrátit k původnímu nastavení."),
-            )
-            .color(SEDA),
-        );
-        ui.add_space(6.0);
-        ui.horizontal_wrapped(|ui| {
+            );
             if ui.button(tr("+ Nový styl bodů")).clicked() {
                 let mut st = StylBodu::vestavene().remove(0);
                 st.id = String::new();

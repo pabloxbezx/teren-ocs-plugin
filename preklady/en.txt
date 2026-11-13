@@ -1386,3 +1386,12 @@ Styl podle kódu	Style by code
  · {} podezřelé se vloží (lze vyřadit)	 · {} suspicious will be inserted (can be excluded)
  · Zpět jedním krokem	 · Undo in one step
 Další ⏷	More ⏷
+# Prospektor – karty dalších stránek
+skupin bodů	point groups
+povrchů	surfaces
+{} · používá {}	{} · used by {}
+zatím neproběhla	not run yet
+● bez podezřelých bodů	● no suspicious points
+● podezřelé body: {}	● suspicious points: {}
+{} bodů · {} povrchů	{} for points · {} for surfaces
+Vybráno: {}	Selected: {}
