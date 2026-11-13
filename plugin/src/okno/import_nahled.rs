@@ -838,6 +838,7 @@ fn kresli(ctx: &egui::Context, slot: &mut Option<NahledImportu>, stav: &StavSpra
         .collapsible(false)
         .show(ctx, |ui| {
             ui.visuals_mut().override_text_color = Some(INK);
+            ui.style_mut().interaction.selectable_labels = false;
             if !n.ma_zdroj() {
                 egui::Frame::new().inner_margin(14.0).show(ui, |ui| volba_zdroje(ui, n, stav));
                 return;
@@ -864,7 +865,7 @@ fn kresli(ctx: &egui::Context, slot: &mut Option<NahledImportu>, stav: &StavSpra
 
 fn karta_zdroje(ui: &mut egui::Ui, sirka: f32, obr: egui::ImageSource<'static>, titul: &str, popis: &str) -> bool {
     let (r, odezva) = ui.allocate_exact_size(Vec2::new(sirka, 66.0), Sense::click());
-    let nad = odezva.hovered();
+    let nad = ui.rect_contains_pointer(r);
     ui.painter().rect_filled(r, 9.0, if nad { Color32::from_rgb(38, 43, 49) } else { PANEL2 });
     ui.painter().rect_stroke(r, 9.0, Stroke::new(1.0, if nad { SELLINE } else { LINE2 }), StrokeKind::Inside);
     uvnitr(ui, r.shrink2(Vec2::new(12.0, 11.0)), egui::Layout::top_down(egui::Align::Min), |ui| {
@@ -1366,8 +1367,9 @@ fn karty_poctu(ui: &mut egui::Ui, n: &mut NahledImportu) {
         for (f, pocet, popis, barva) in karty {
             let (r, odezva) = ui.allocate_exact_size(Vec2::new(w, 50.0), Sense::click());
             let vybrano = n.filtr == f;
+            let nad = ui.rect_contains_pointer(r);
             let p = ui.painter();
-            p.rect_filled(r, 8.0, if vybrano { SEL } else if odezva.hovered() { CARD } else { PANEL2 });
+            p.rect_filled(r, 8.0, if vybrano { SEL } else if nad { CARD } else { PANEL2 });
             p.rect_stroke(r, 8.0, Stroke::new(1.0, if vybrano { SELLINE } else { LINE2 }), StrokeKind::Inside);
             p.text(r.left_top() + Vec2::new(10.0, 6.0), Align2::LEFT_TOP, pocet.to_string(), FontId::proportional(19.0), barva);
             p.with_clip_rect(r.shrink(2.0)).text(r.left_top() + Vec2::new(10.0, 31.0), Align2::LEFT_TOP, popis, FontId::proportional(11.5), MUTED);
