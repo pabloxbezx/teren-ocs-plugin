@@ -89,6 +89,18 @@ angličtina), projeví se po novém spuštění.
 
 # Co je nového
 
+## Další verze (připravuje se)
+
+- **Okno importu podle návrhu**: vlastní okno mimo Prospektor (jde posunout
+  kamkoli, po otevření vyskočí dopředu). Úvodní volba zdroje s kartami a
+  ikonami – kliknutím se otevře výběr souboru; přetažení souboru, Ctrl+V.
+- Náhled souboru: pás s formátem, oddělovačem, kódováním, desetinnou čárkou
+  a záhlavím (zalamuje se), karty počtů jako filtr, tabulka s výběrem role
+  nad sloupci, mapka, duplicity a cíl; okno se už neroztahuje přes obrazovku.
+- Tlačítko **Import bodů** otevře okno importu (místo dialogu souboru).
+- Opraveno: při startu Open CAD Studia hláška „quad panel "teren" refused:
+  plugin "" is not a loaded, alive plugin“ (#1).
+
 ## Verze 1.0.7
 
 Přehlednější Prospektor:
