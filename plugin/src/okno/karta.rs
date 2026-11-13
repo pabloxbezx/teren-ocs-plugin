@@ -11,7 +11,8 @@ use super::{
     detail_upozorneni, detail_upravy, smazat, Cast, Okno, Rezim, Uzel, CERVENA, MODRA, ORANZOVA, SEDA,
     ZELENA,
 };
-use crate::povrchy::{cislo_cz, DruhPolozky};
+use super::{cz, czi};
+use crate::povrchy::DruhPolozky;
 use crate::spravce::{self, Akce, PrehledPovrchu, StavSpravce, Zmena};
 use crate::styly;
 
@@ -223,10 +224,10 @@ impl Okno {
         let s = &p.stat;
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
-            kpi(ui, &cislo_cz(p.pocet_bodu as f64), tr("bodů"));
-            kpi(ui, &cislo_cz(s.trojuhelniku as f64), tr("trojúhelníků"));
-            kpi(ui, &format!("{:.2} – {:.2} m", s.z_min, s.z_max), tr("výška"));
-            kpi(ui, &format!("{} m²", cislo_cz(s.plocha_2d.round())), tr("plocha 2D")).on_hover_text(trf!("plocha 3D {:.1} m²", s.plocha_3d));
+            kpi(ui, &czi(p.pocet_bodu), tr("bodů"));
+            kpi(ui, &czi(s.trojuhelniku), tr("trojúhelníků"));
+            kpi(ui, &format!("{} – {} m", cz(s.z_min, 2), cz(s.z_max, 2)), tr("výška"));
+            kpi(ui, &format!("{} m²", cz(s.plocha_2d, 0)), tr("plocha 2D")).on_hover_text(trf!("plocha 3D {} m²", cz(s.plocha_3d, 1)));
         });
 
         // ── akce ──

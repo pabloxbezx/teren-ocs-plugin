@@ -316,7 +316,7 @@ fn text_bunky(b: &Bod, r: Razeni) -> String {
     match r {
         Razeni::Cislo => b.cislo.clone(),
         Razeni::Popis => b.popis.clone(),
-        _ => format!("{:.3}", b.z),
+        _ => format!("{:.3}", b.z).replace('.', ","),
     }
 }
 
@@ -464,7 +464,7 @@ fn pocet_bodu_text(n: usize) -> String {
 }
 
 fn cislo_z_poctu(n: usize) -> String {
-    cislo_cz(n as f64)
+    czi(n)
 }
 
 fn pocet_smazanych(n: usize) -> String {
@@ -502,6 +502,28 @@ fn ukaz_hlasku_smazani(ctx: &egui::Context) {
         *g = None;
     }
     ctx.request_repaint_after(std::time::Duration::from_millis(500));
+}
+
+/// Číslo česky: desetinná čárka a mezera v tisících („18 240,50“);
+/// v angličtině „18,240.50“.
+pub(crate) fn cz(v: f64, des: usize) -> String {
+    let (oddelovac, carka) = if teren::preklad::anglicky() { (',', '.') } else { ('\u{a0}', ',') };
+    let t = format!("{:.*}", des, v.abs());
+    let (cela, zbytek) = t.split_once('.').map_or((t.as_str(), ""), |(a, b)| (a, b));
+    let mut s = String::new();
+    for (i, c) in cela.chars().enumerate() {
+        if i > 0 && (cela.len() - i) % 3 == 0 {
+            s.push(oddelovac);
+        }
+        s.push(c);
+    }
+    let znam = if v < 0.0 && t.chars().any(|c| c.is_ascii_digit() && c != '0') { "−" } else { "" };
+    if zbytek.is_empty() { format!("{znam}{s}") } else { format!("{znam}{s}{carka}{zbytek}") }
+}
+
+/// Celé číslo česky s mezerou v tisících („1 532“).
+pub(crate) fn czi(n: usize) -> String {
+    cz(n as f64, 0)
 }
 
 /// Úzké (kompaktní) nebo široké okno; výška zůstává.
@@ -567,8 +589,6 @@ impl eframe::App for Okno {
         egui::Panel::top("horni").show(ui, |ui| {
             ui.add_space(4.0);
             self.hlavicka(ui, &stav);
-            ui.add_space(2.0);
-            self.radek_aktivniho(ui, &stav);
             ui.add_space(3.0);
         });
         egui::Panel::bottom("dolni").show(ui, |ui| {
@@ -1247,7 +1267,7 @@ impl Okno {
         }
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
-            if karta::kpi(ui, &cislo_cz(stav.body.len() as f64), tr("bodů")).interact(Sense::click()).clicked() {
+            if karta::kpi(ui, &czi(stav.body.len()), tr("bodů")).interact(Sense::click()).clicked() {
                 self.vyber_uzel(Uzel::Body);
             }
             if karta::kpi(ui, &stav.skupiny.len().to_string(), tr("skupin bodů")).interact(Sense::click()).clicked() {
@@ -1347,6 +1367,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                         self.vynutit_skok = true;
                         spravce::posli(Akce::VyberZVykresu);
                     }
+                    self.aktivni_v_liste(ui, stav, uzke);
                 }
                 if stav.pracuji {
                     ui.spinner();
@@ -1358,12 +1379,52 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         }
     }
 
+    /// Aktivní povrch v horní liště (výběr se stavovou tečkou; zastaralý má ⟳).
+    fn aktivni_v_liste(&mut self, ui: &mut egui::Ui, stav: &StavSpravce, uzke: bool) {
+        if stav.povrchy.is_empty() {
+            return;
+        }
+        let akt = stav.povrchy.iter().find(|p| p.aktivni);
+        if let Some(p) = akt.filter(|p| p.zastaraly) {
+            if ui
+                .add(egui::Button::new(RichText::new("⟳").color(ORANZOVA)))
+                .on_hover_text(trf!("„{}“ je zastaralý – klik ho přepočítá", p.jmeno))
+                .clicked()
+            {
+                spravce::posli(Akce::Prepocitat(vec![p.id.clone()]));
+            }
+        }
+        let jmeno = akt.map_or(tr("žádný").to_string(), |p| p.jmeno.clone());
+        egui::ComboBox::from_id_salt("aktivni_povrch")
+            .selected_text(RichText::new(jmeno).strong())
+            .width(if uzke { 120.0 } else { 170.0 })
+            .show_ui(ui, |ui| {
+                for p in &stav.povrchy {
+                    let t = if p.zastaraly { trf!("{} (zastaralý)", p.jmeno) } else { p.jmeno.clone() };
+                    if ui.selectable_label(p.aktivni, t).clicked() && !p.aktivni {
+                        spravce::posli(Akce::Aktivovat(p.id.clone()));
+                    }
+                }
+            })
+            .response
+            .on_hover_text(tr("Aktivní povrch – s ním pracují nástroje Úpravy, Výška v bodě a Bod na povrchu"));
+        let (r, _) = ui.allocate_exact_size(egui::vec2(10.0, 10.0), Sense::hover());
+        ui.painter().circle_filled(r.center(), 4.0, if akt.is_some_and(|p| p.zastaraly) { ORANZOVA } else { ZELENA });
+        if !uzke {
+            ui.label(RichText::new(tr("Aktivní povrch")).color(SEDA));
+        }
+    }
+
     fn pole_hledani(&mut self, ui: &mut egui::Ui, sirka: f32) {
-        ui.add(
+        let r = ui.add(
             egui::TextEdit::singleline(&mut self.hledat)
-                .hint_text(tr("🔍 Hledat body, skupiny, povrchy"))
+                .id(egui::Id::new("pole_hledani"))
+                .hint_text(tr("🔍 Hledat body, skupiny, povrchy (Ctrl+F)"))
                 .desired_width(sirka),
         );
+        if r.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            self.hledat.clear();
+        }
         if !self.hledat.is_empty() && ui.small_button("✕").on_hover_text(tr("Zrušit hledání")).clicked() {
             self.hledat.clear();
         }
@@ -1375,7 +1436,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
         // ── karta ──
         let skryte = stav.styl_bodu.values().filter(|(id, _)| stav.styly_bodu.iter().any(|s| &s.id == id && s.skryt)).count();
         karta::nadpis_karty(ui, &strom::Ikona::Svg(strom::ik!("ter_seznam")), tr("Body"), |ui| {
-            karta::pilulka(ui, &trf!("{} bodů", cislo_cz(stav.body.len() as f64)), SEDA);
+            karta::pilulka(ui, &trf!("{} bodů", czi(stav.body.len())), SEDA);
             if skryte > 0 {
                 karta::pilulka(ui, &trf!("{} skrytých", skryte), SEDA).on_hover_text(tr("body se stylem Nezobrazovat"));
             }
@@ -1825,12 +1886,17 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                             let t = match n {
                                 Razeni::Cislo => b.bod.cislo.clone(),
                                 Razeni::Popis => b.bod.popis.clone(),
-                                Razeni::Z => format!("{:.2}", b.bod.z),
-                                Razeni::Y => format!("{:.2}", -b.bod.x),
-                                Razeni::X => format!("{:.2}", -b.bod.y),
+                                Razeni::Z => cz(b.bod.z, 2),
+                                Razeni::Y => cz(-b.bod.x, 2),
+                                Razeni::X => cz(-b.bod.y, 2),
                                 _ => b.zdroj.clone(),
                             };
-                            p.text(lc, Align2::LEFT_CENTER, t, font.clone(), barva);
+                            if matches!(n, Razeni::Z | Razeni::Y | Razeni::X) {
+                                // čísla zarovnaná vpravo
+                                p.text(bunka.right_center() - egui::vec2(10.0, 0.0), Align2::RIGHT_CENTER, t, font.clone(), barva);
+                            } else {
+                                p.text(lc, Align2::LEFT_CENTER, t, font.clone(), barva);
+                            }
                         }
                     }
                     x += w;
@@ -1951,7 +2017,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                     &strom::Ikona::Svg(strom::ik!("ter_skupina_bodu")),
                     &s.skupina.jmeno,
                     &popis,
-                    &trf!("{} bodů", cislo_cz(s.pocet as f64)),
+                    &trf!("{} bodů", czi(s.pocet)),
                     SEDA,
                 );
                 if r.clicked() {
@@ -1983,7 +2049,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
             });
             ui.add_space(4.0);
             ui.horizontal_wrapped(|ui| {
-                karta::kpi(ui, &cislo_cz(prehled.pocet as f64), tr("bodů"));
+                karta::kpi(ui, &czi(prehled.pocet), tr("bodů"));
                 let pouziva = if prehled.povrchy.is_empty() { "–".to_string() } else { prehled.povrchy.join(", ") };
                 karta::kpi(ui, &pouziva, tr("používají povrchy"));
                 let styl = if prehled.skupina.styl.is_empty() {
@@ -2608,7 +2674,7 @@ klik = přehled výkresu a postup „Jak na to“", stav.vykres));
                 }
                 ui.label(nazev_stylu_povrchu(stav, &p.styl));
                 ui.label(p.stat.trojuhelniku.to_string());
-                ui.label(format!("{:.2} – {:.2}", p.stat.z_min, p.stat.z_max));
+                ui.label(format!("{} – {}", cz(p.stat.z_min, 2), cz(p.stat.z_max, 2)));
                 ui.horizontal(|ui| {
                     if p.zastaraly {
                         karta::pilulka(ui, tr("● zastaralý"), ORANZOVA);
@@ -3120,7 +3186,7 @@ fn kontrola(ui: &mut egui::Ui, stav: &StavSpravce) {
                     ui.end_row();
                     for b in s {
                         ui.label(if b.cislo.is_empty() { "–" } else { &b.cislo });
-                        ui.label(format!("{:.3}", b.z));
+                        ui.label(cz(b.z, 2));
                         ui.label(RichText::new(format!("{:+.2} m", b.dz)).color(if b.dz.abs() > 2.0 { CERVENA } else { ORANZOVA }));
                         if ui.small_button(tr("Ukázat")).clicked() {
                             spravce::posli(Akce::Ukazat([b.x, b.y], 10.0, vec![b.handle]));

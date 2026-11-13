@@ -860,7 +860,7 @@ BARVY	COLOURS
 ZOBRAZIT	SHOW
 POHLED	VIEW
 Odkud: {}	Source: {}
-Statistika  ·  {:.2} – {:.2} m n. m.	Statistics  ·  {:.2} – {:.2} m a.s.l.
+Statistika  ·  {} – {} m n. m.	Statistics  ·  {} – {} m a.s.l.
 vyberte…	choose…
 Jak na to	How to
 Chyba: {}	Error: {}
@@ -1295,7 +1295,7 @@ styl Nezobrazovat – povrch se počítá, ale nekreslí	style Do not display �
 trojúhelníků	triangles
 výška	elevation
 plocha 2D	2D area
-plocha 3D {:.1} m²	3D area {:.1} m²
+plocha 3D {} m²	3D area {} m²
 ★ Nastavit jako aktivní	★ Set as active
 přepočítávat automaticky	recalculate automatically
 po každé změně bodů, skupin nebo spojnic se povrch přepočítá sám	the surface recalculates itself after every change of points, groups or breaklines
@@ -1395,3 +1395,8 @@ zatím neproběhla	not run yet
 ● podezřelé body: {}	● suspicious points: {}
 {} bodů · {} povrchů	{} for points · {} for surfaces
 Vybráno: {}	Selected: {}
+# Prospektor – úpravy 1–10
+„{}“ je zastaralý – klik ho přepočítá	"{}" is out of date – click to recalculate
+{} (zastaralý)	{} (out of date)
+Aktivní povrch – s ním pracují nástroje Úpravy, Výška v bodě a Bod na povrchu	Active surface – used by the Edits tools, Elevation at point and Point on surface
+🔍 Hledat body, skupiny, povrchy (Ctrl+F)	🔍 Search points, groups, surfaces (Ctrl+F)

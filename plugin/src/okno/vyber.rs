@@ -81,34 +81,6 @@ pub(super) fn combo_stylu_bodu(ui: &mut egui::Ui, salt: &str, stav: &StavSpravce
 
 impl Okno {
     /// Řádek s aktivním povrchem a rychlým přepnutím (v obou režimech).
-    pub(super) fn radek_aktivniho(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        if stav.povrchy.is_empty() {
-            return;
-        }
-        ui.horizontal(|ui| {
-            ui.label(RichText::new("▶").color(MODRA));
-            ui.label(RichText::new(tr("Aktivní povrch:")).color(SEDA));
-            napoveda::otaznik(ui, tr("Aktivní povrch"));
-            let akt = stav.povrchy.iter().find(|p| p.aktivni);
-            let jmeno = akt.map_or(tr("žádný").to_string(), |p| p.jmeno.clone());
-            egui::ComboBox::from_id_salt("aktivni_povrch").selected_text(RichText::new(jmeno).strong()).width(200.0).show_ui(ui, |ui| {
-                for p in &stav.povrchy {
-                    if ui.selectable_label(p.aktivni, &p.jmeno).clicked() && !p.aktivni {
-                        spravce::posli(Akce::Aktivovat(p.id.clone()));
-                    }
-                }
-            });
-            if let Some(p) = akt {
-                if p.zastaraly {
-                    ui.label(RichText::new(tr("⚠ zastaralý")).color(ORANZOVA)).on_hover_text(tr("zdroje se od přepočtu změnily"));
-                    if ui.small_button(tr("Přepočítat")).clicked() {
-                        spravce::posli(Akce::Prepocitat(vec![p.id.clone()]));
-                    }
-                }
-            }
-        });
-    }
-
     /// Režim Výběr.
     pub(super) fn panel_vyberu(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
         let body: Vec<&BodVykresu> = stav.body.iter().filter(|b| stav.vyber_body.contains(&b.handle)).collect();
@@ -446,7 +418,7 @@ impl Okno {
                 }
             });
         let s = &p.stat;
-        egui::CollapsingHeader::new(RichText::new(trf!("Statistika  ·  {:.2} – {:.2} m n. m.", s.z_min, s.z_max)).strong())
+        egui::CollapsingHeader::new(RichText::new(trf!("Statistika  ·  {} – {} m n. m.", super::cz(s.z_min, 2), super::cz(s.z_max, 2))).strong())
             .id_salt("vp_stat")
             .default_open(false)
             .show(ui, |ui| {
@@ -458,7 +430,7 @@ impl Okno {
                     ui.label(s.trojuhelniku.to_string());
                     ui.end_row();
                     ui.label(tr("Plocha"));
-                    ui.label(format!("2D {:.1} m²,  3D {:.1} m²", s.plocha_2d, s.plocha_3d));
+                    ui.label(format!("2D {} m²,  3D {} m²", super::cz(s.plocha_2d, 1), super::cz(s.plocha_3d, 1)));
                     ui.end_row();
                 });
             });

@@ -141,7 +141,7 @@ fn sekce(ui: &mut egui::Ui, t: &str) {
 }
 
 fn cislo(n: usize) -> String {
-    crate::povrchy::cislo_cz(n as f64)
+    super::czi(n)
 }
 
 pub(super) fn ikona_casti(c: Cast) -> Ikona {
