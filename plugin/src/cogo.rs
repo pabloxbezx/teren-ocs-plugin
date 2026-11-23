@@ -1639,3 +1639,67 @@ mod testy_velikosti {
         }
     }
 }
+
+// ── Nativní body Open CAD Studia (jen čtení) ────────────────────────────────
+
+/// Třída nativního bodu Open CAD Studia (karta Civil, CREATEPOINTS).
+pub const TRIDA_BODU_OCS: &str = "AECC_COGO_POINT";
+
+/// Nativní bod Open CAD Studia – Terén ho jen čte (zápis API zatím nemá).
+#[derive(Debug, Clone, PartialEq)]
+pub struct BodOcs {
+    pub cislo: u32,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub popis: String,
+    pub jmeno: String,
+}
+
+/// Nativní body Open CAD Studia ve výkrese.
+pub fn body_ocs(doc: &CadDocument) -> Vec<BodOcs> {
+    ocs_plugin_api::host::codec::classes::civil::cogo_points(doc)
+        .into_iter()
+        .filter(|b| b.position.x.is_finite() && b.position.y.is_finite() && b.position.z.is_finite())
+        .map(|b| BodOcs {
+            cislo: b.number,
+            x: b.position.x,
+            y: b.position.y,
+            z: b.position.z,
+            popis: b.description.unwrap_or_default(),
+            jmeno: b.name.unwrap_or_default(),
+        })
+        .collect()
+}
+
+/// Handly entit nativních bodů Open CAD Studia (pro výběr a CREATESURFACE).
+pub fn handly_bodu_ocs(doc: &CadDocument) -> Vec<Handle> {
+    use ocs_plugin_api::host::codec::entities::ExtendedEntityData;
+    doc.model_space_entities()
+        .filter_map(|e| match e {
+            EntityType::Extended(x) => match &x.data {
+                ExtendedEntityData::Arch(a) if a.dxf_name == TRIDA_BODU_OCS => Some(e.common().handle),
+                _ => None,
+            },
+            _ => None,
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod testy_ocs {
+    use super::*;
+    use ocs_plugin_api::host::codec::classes::civil;
+
+    #[test]
+    fn cte_nativni_body_ocs() {
+        let mut doc = CadDocument::new();
+        civil::add_cogo_point(&mut doc, Some(7), Vector3::new(10.0, 20.0, 301.25), Some("ŠA"), None, None).unwrap();
+        civil::add_cogo_point(&mut doc, None, Vector3::new(11.0, 21.0, 302.0), None, None, None).unwrap();
+        let b = body_ocs(&doc);
+        assert_eq!(b.len(), 2);
+        let sedm = b.iter().find(|b| b.cislo == 7).unwrap();
+        assert_eq!((sedm.x, sedm.y, sedm.z, sedm.popis.as_str()), (10.0, 20.0, 301.25, "ŠA"));
+        assert_eq!(handly_bodu_ocs(&doc).len(), 2);
+    }
+}

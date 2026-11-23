@@ -354,6 +354,9 @@ pub fn vezmi_z_vykresu() -> Option<Result<ZVykresu, String>> {
     slot_z_vykresu().lock().unwrap_or_else(|e| e.into_inner()).take()
 }
 
+/// Položka v seznamu hladin pro nativní body Open CAD Studia.
+pub const HLADINA_BODU_OCS: &str = "(body Open CAD Studia)";
+
 /// Je hladina Terénu (vlastní body a grafika se nepřevádějí).
 fn hladina_terenu(h: &str) -> bool {
     crate::hladiny::je_pluginu(h)
@@ -403,6 +406,26 @@ pub fn priprav_z_vykresu(k: &mut dyn Vykres, hladina: Option<&str>, jen_vyber: b
                 hodnota: z_vykresu::cisty_mtext(&t.value),
             }),
             _ => {}
+        }
+    }
+    // nativní body Open CAD Studia (karta Civil) – číslo, výška a popis jsou
+    // přímo v bodě; ve výběru se nehledají (Terén je čte ze slovníku bodů)
+    if !jen_vyber {
+        let ocs = crate::cogo::body_ocs(&doc);
+        if !ocs.is_empty() {
+            let skupina = tr(HLADINA_BODU_OCS).to_string();
+            *hladiny.entry(skupina.clone()).or_default() += ocs.len();
+            if hladina.is_none_or(|h| h == skupina) {
+                znacky.extend(ocs.into_iter().map(|b| {
+                    let popis = if b.popis.is_empty() { b.jmeno } else { b.popis };
+                    Znacka {
+                        x: b.x,
+                        y: b.y,
+                        z: b.z,
+                        atributy: vec![("CISLO".into(), b.cislo.to_string()), ("Z".into(), format!("{:.4}", b.z)), ("POPIS".into(), popis)],
+                    }
+                }));
+            }
         }
     }
     let (text, statistika) = z_vykresu::preved(&znacky, &texty, tolerance);

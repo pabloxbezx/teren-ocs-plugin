@@ -278,6 +278,7 @@ impl CadModule for TerenModule {
                             default: "TER_SP_VRSTP",
                         },
                         RibbonItem::LabeledTool(tool("TER_PREPOCITAT", tr("Přepočítat povrch"), ikona!("ter_prepocitat"))),
+                        RibbonItem::LabeledTool(tool("TER_POVRCH_OCS", tr("Povrch OCS z bodů OCS"), ikona!("ter_povrch_novy"))),
                         RibbonItem::LabeledTool(tool("TER_NAJIT", tr("Ukázat v Prospektoru"), ikona!("ter_ukazat_v_prospektoru"))),
                         RibbonItem::LabeledDropdown {
                             id: "TER_DD_KLIK",
@@ -460,6 +461,7 @@ const POPISY_NASTROJU: &[(&str, &str, &str)] = &[
     ("TER_SMAZAT_TROJ", "Smazat trojúhelník – vynechá trojúhelník z aktivního povrchu.", "klikejte do trojúhelníků · Enter = konec"),
     ("TER_PRIDAT_BOD", "Přidat bod – přidá do aktivního povrchu bod (výšku zadáte v okně, návrh z povrchu).", "klikejte nebo zadejte x,y,z · Enter = konec"),
     ("TER_ODEBRAT_BOD", "Odebrat bod – vynechá bod z aktivního povrchu (bod ve výkrese zůstane).", "klikejte na vrcholy · Enter = konec"),
+    ("TER_POVRCH_OCS", "Povrch OCS z bodů OCS – vybere všechny nativní body Open CAD Studia (karta Civil) a vytvoří z nich nativní povrch příkazem CREATESURFACE. Body pro povrch Terénu převezmete importem bodů „Z výkresu“.", "bez dalšího zadání"),
     ("TER_VYSKA", "Výška v bodě – ukáže a popíše výšku aktivního povrchu v místě kliknutí.", "klikejte · Enter = konec"),
     ("TER_BOD", "Ruční bod – vytvoří bod zaměření s dalším volným číslem.", "klikněte nebo zadejte x,y, výšku pak zadáte v okně · Enter = konec"),
     ("TER_BOD_POVRCH", "Bod na povrchu – vytvoří bod s výškou z aktivního povrchu.", "klikejte · Enter = konec"),
@@ -1309,6 +1311,10 @@ impl TerenPlugin {
                 let vybrane: Vec<&cogo::BodVykresu> = vse.iter().filter(|b| h.contains(&b.handle)).collect();
                 host.update_panel(panel::ID, panel::hodnoty(&vybrane, panel::text_povrchu(&doc)));
             }
+            "TER_POVRCH_OCS" => {
+                let doc = host.document().clone();
+                povrch_ocs(host, &doc);
+            }
             "TER_VYSKA" => {
                 let mut v = PresHost(host);
                 let Some((z, doc)) = aktivni(&mut v) else { return true };
@@ -1344,6 +1350,44 @@ fn proved(v: &mut dyn Vykres, a: spravce::Akce) {
 }
 
 /// Spustí interaktivní příkaz Terénu (hlídaný – viz `vykres::PRIKAZY`).
+/// Nativní povrch Open CAD Studia ze všech jeho nativních bodů: výběr bodů,
+/// CREATESURFACE, potvrzení výběru a Enter u zlomových hran a hranice.
+fn povrch_ocs(host: &mut dyn HostApi, doc: &ocs_plugin_api::host::Document) {
+    use ocs_plugin_api::host::CommandRequest as R;
+    let body = cogo::handly_bodu_ocs(doc);
+    if body.len() < 3 {
+        host.push_error(&trf!("Terén: ve výkrese jsou {} nativní body Open CAD Studia – na povrch jsou potřeba aspoň 3.", body.len()));
+        return;
+    }
+    if let Err(e) = host.set_selection(&body) {
+        host.push_error(&trf!("Terén: body nejde vybrat ({}).", e));
+        return;
+    }
+    let mut krok = host.run_command(R::Start { name: "CREATESURFACE".into() });
+    if krok.as_ref().is_ok_and(|k| k.accepts.iter().any(|a| a == "selection")) {
+        krok = host.run_command(R::Selection);
+    }
+    // zlomové hrany a hranice: žádné
+    for _ in 0..3 {
+        match &krok {
+            Ok(k) if k.status == "waiting_input" && k.blocked_by.as_deref() == Some("command") => krok = host.run_command(R::Enter),
+            _ => break,
+        }
+    }
+    match krok {
+        Ok(k) if k.status == "completed" && k.error.is_none() => {
+            host.push_info(&trf!("Terén: nativní povrch Open CAD Studia vytvořen z {} bodů.", body.len()))
+        }
+        Ok(k) => {
+            if k.status != "completed" {
+                let _ = host.run_command(R::Cancel);
+            }
+            host.push_error(&trf!("Terén: CREATESURFACE neskončil ({}).", k.error.unwrap_or(k.prompt)));
+        }
+        Err(e) => host.push_error(&trf!("Terén: CREATESURFACE nejde spustit ({}).", e)),
+    }
+}
+
 fn spust(host: &mut dyn HostApi, c: Box<dyn ocs_plugin_api::host::InteractiveCommand>) {
     host.start_interactive(vykres::hlidany(c));
 }

@@ -968,7 +968,7 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
                 (obr!("ter_body_import"), tr("Textový soubor…"), tr("TXT, CSV, XYZ – libovolné pořadí sloupců, rozpozná se samo"), 0),
                 (obr!("ter_zdroj_schranka"), tr("Schránka"), tr("tabulka zkopírovaná z Excelu, e-mailu nebo webu"), 1),
                 (obr!("ter_zdroj_excel"), tr("Excel (.xlsx)…"), tr("výběr listu, sloupce stejně jako u textu"), 2),
-                (obr!("ter_bod_cogo"), tr("Z výkresu"), tr("POINT, bloky s atributy, texty výšek u křížku – převod na body Terénu"), 3),
+                (obr!("ter_bod_cogo"), tr("Z výkresu"), tr("POINT, bloky s atributy, texty výšek u křížku, body Open CAD Studia – převod na body Terénu"), 3),
                 (obr!("ter_zdroj_xml"), tr("LandXML…"), tr("body CgPoints"), 4),
                 (obr!("ter_zdroj_gnss"), tr("Totální stanice / GNSS…"), tr("Leica GSI, Trimble JobXML, CSV přijímačů"), 5),
                 (obr!("ter_skupina_bodu"), tr("Více souborů…"), tr("každý soubor do vlastní skupiny"), 6),

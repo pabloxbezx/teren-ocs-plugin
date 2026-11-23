@@ -1350,7 +1350,7 @@ Schránka	Clipboard
 Excel (.xlsx)…	Excel (.xlsx)…
 výběr listu, sloupce stejně jako u textu	choose a sheet, columns as with text
 Z výkresu	From the drawing
-POINT, bloky s atributy, texty výšek u křížku – převod na body Terénu	POINT, blocks with attributes, elevation texts next to a cross – converted to Terén points
+POINT, bloky s atributy, texty výšek u křížku, body Open CAD Studia – převod na body Terénu	POINT, blocks with attributes, elevation texts next to a cross, Open CAD Studio points – converted to Terén points
 LandXML…	LandXML…
 body CgPoints	CgPoints
 Totální stanice / GNSS…	Total station / GNSS…
@@ -1853,3 +1853,12 @@ Terén: hladiny ze starší verze přejmenovány na nové (anglické) názvy.	Te
 Trasy – netiskne se	Alignments – not plotted
 Popisovat hlavní body (ZÚ, KÚ, TK, KT, TP, PK, KP, PT)	Label key points (ZÚ, KÚ, TK, KT, TP, PK, KP, PT)
 ZÚ,KÚ,TK,KT,V,TP,PK,KP,PT oddělené čárkou	ZÚ,KÚ,TK,KT,V,TP,PK,KP,PT separated by commas
+(body Open CAD Studia)	(Open CAD Studio points)
+Povrch OCS z bodů OCS	OCS surface from OCS points
+Povrch OCS z bodů OCS – vybere všechny nativní body Open CAD Studia (karta Civil) a vytvoří z nich nativní povrch příkazem CREATESURFACE. Body pro povrch Terénu převezmete importem bodů „Z výkresu“.	OCS surface from OCS points – selects all native Open CAD Studio points (Civil tab) and creates a native surface from them with CREATESURFACE. To use the points for a Terén surface, bring them in with the points import "From the drawing".
+bez dalšího zadání	no further input
+Terén: ve výkrese jsou {} nativní body Open CAD Studia – na povrch jsou potřeba aspoň 3.	Terén: the drawing has {} native Open CAD Studio points – a surface needs at least 3.
+Terén: body nejde vybrat ({}).	Terén: the points cannot be selected ({}).
+Terén: nativní povrch Open CAD Studia vytvořen z {} bodů.	Terén: native Open CAD Studio surface created from {} points.
+Terén: CREATESURFACE neskončil ({}).	Terén: CREATESURFACE did not finish ({}).
+Terén: CREATESURFACE nejde spustit ({}).	Terén: CREATESURFACE cannot be started ({}).
