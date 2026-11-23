@@ -3100,7 +3100,7 @@ version = "0.1.0"
 
 [[package]]
 name = "teren_plugin"
-version = "1.4.0"
+version = "1.4.1"
 dependencies = [
  "arboard",
  "bincode",

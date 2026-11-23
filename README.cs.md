@@ -61,7 +61,7 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.47 | 1.4.0 |
+| 2026.47 | 1.4.0 – 1.4.1 |
 | 2026.46 | 1.1.0 – 1.3.1 |
 | 2026.45 | 1.0.2 – 1.0.9 |
 | 2026.44 | 1.0.0 – 1.0.1 |
@@ -78,7 +78,16 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
   totéž.
 
 Jazyk: Prospektor › Nastavení › Jazyk / Language (automaticky, čeština,
-angličtina), projeví se po novém spuštění.
+angličtina), projeví se po novém spuštění. *Automaticky* = podle jazyka
+Open CAD Studia, pak podle systému.
+
+**Další jazyk** se přidá jen souborem `<kód>.txt` (např. `de.txt`): na
+každém řádku `anglický text<TAB>překlad` nebo `anglický text = překlad`
+(když text sám obsahuje ` = `, použijte tabulátor; `\n` = nový řádek,
+`#` = poznámka). Soubor do `%APPDATA%\OpenCADStudio\teren_preklady\`
+platí hned po novém spuštění, do složky `preklady/` v repozitáři se vloží
+do pluginu při sestavení. Chybějící řádky zůstanou anglicky. Anglické
+texty jsou v kódu druhým argumentem `tr("…", "…")`.
 
 ## Nápověda a připomínky
 
@@ -90,6 +99,15 @@ angličtina), projeví se po novém spuštění.
   nejvíc pomůže krátký popis a malý vymyšlený soubor zaměření.
 
 # Co je nového
+
+## Verze 1.4.1
+
+- **Jednotná lokalizace**: každý text má českou i anglickou podobu přímo
+  v kódu vedle sebe; asi 80 popisků, které byly jen česky (vlastnosti
+  pohledu profilu a trasy, pásy, předlohy, role písma, chybové hlášky), má
+  nově i angličtinu.
+- **Jazyk podle Open CAD Studia** při volbě *Automaticky*.
+- **Další jazyky souborem** – viz *Instalace*.
 
 ## Verze 1.4.0
 

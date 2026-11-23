@@ -19,6 +19,15 @@ DWG, and every action is a single Undo step. Interface in English or Czech.
 </tr>
 </table>
 
+## What's new in 1.4.1
+
+- **One localization system**: every text has its Czech and English form
+  next to each other in the code; about 80 labels that were still only in
+  Czech (profile view and alignment properties, bands, presets, font roles,
+  error messages) now have English too.
+- **Language follows Open CAD Studio** when set to *Automatic*.
+- **More languages by a file** – see *Compatibility and installation*.
+
 ## What's new in 1.4.0
 
 - **Open CAD Studio 2026.47.** Built for the current release; older Terén
@@ -217,7 +226,7 @@ Manager offers the right one.
 
 | Open CAD Studio | Terén |
 |---|---|
-| 2026.47 | 1.4.0 |
+| 2026.47 | 1.4.0 – 1.4.1 |
 | 2026.46 | 1.1.0 – 1.3.1 |
 | 2026.45 | 1.0.2 – 1.0.9 |
 | 2026.44 | 1.0.0 – 1.0.1 |
@@ -230,7 +239,17 @@ Manager offers the right one.
   `%APPDATA%\OpenCADStudio\plugins\cz.fluvio.teren`.
 
 Language: Prospector › Settings › Jazyk / Language (automatic, Czech,
-English), applied after a restart.
+English), applied after a restart. *Automatic* follows the Open CAD Studio
+interface language, then the system language.
+
+**Adding a language** needs no code: create `<code>.txt` (e.g. `de.txt`)
+with one line per text, `English text<TAB>translation` or
+`English text = translation` (use the TAB form when the text itself
+contains ` = `; `\n` is a new line, `#` a comment). Put it in
+`%APPDATA%\OpenCADStudio\teren_preklady\` to use it right away, or in
+`preklady/` in the repository to build it into the plugin. Missing lines
+stay in English. The English texts are the second argument of
+`tr("…", "…")` in the source code.
 
 ## Help and feedback
 
@@ -250,7 +269,9 @@ English), applied after a restart.
 - `trasy/` – alignments, profiles, bands and their styles.
 - `plugin/` – the Open CAD Studio plugin (ribbon, commands, Prospector in
   egui).
-- `preklady/en.txt` – translations, one line per text: Czech, tab, English.
+- `lang/` – interface language: `tr("Czech", "English")` pairs live in the
+  code; `lang/tests/texty.rs` checks that no Czech text is left outside
+  `tr()`. `preklady/<code>.txt` – optional further languages.
 - `manual/` – manual sources (HTML) and PDFs.
 
 ## License
