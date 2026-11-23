@@ -76,7 +76,7 @@ impl InteractiveCommand for SpojnicePresBody {
         let pokyn = if self.vrcholy.is_empty() {
             trf!("Spojnice povrchu „{}“ – klikněte na první bod", self.jmeno_povrchu)
         } else {
-            tr("Další bod (znovu poslední bod = zpět, Enter = konec)").into()
+            tr("Další bod (Ctrl+Z nebo znovu poslední bod = zpět, Enter = konec)").into()
         };
         if self.zprava.is_empty() { trf!("{}:", pokyn) } else { trf!("{} | {}:", self.zprava, pokyn) }
     }
@@ -95,6 +95,12 @@ impl InteractiveCommand for SpojnicePresBody {
         self.zprava = trf!("Bod {} výška {:.3}", cislo(b), b.z);
         self.vrcholy.push(i);
         CommandStep::NeedPoint
+    }
+
+    fn on_undo_step(&mut self) -> Option<CommandStep> {
+        let i = self.vrcholy.pop()?;
+        self.zprava = trf!("Zpět – bod {} odebrán", cislo(&self.body[i]));
+        Some(CommandStep::NeedPoint)
     }
 
     fn on_cursor_move(&mut self, pt: [f64; 3]) -> Vec<PreviewWire> {
@@ -604,8 +610,8 @@ impl InteractiveCommand for NovyBod {
         let pokyn = match self.druh {
             DruhBodu::Rucne => trf!("Bod {} – klikněte nebo zadejte x,y,z", self.dalsi),
             DruhBodu::NaPovrchu => trf!("Bod {} na povrchu „{}“ – klikněte", self.dalsi, self.povrch.as_ref().map_or("", |(j, _)| j.as_str())),
-            DruhBodu::ProPovrch if self.body.len() < 3 => trf!("Povrch „{}“: bod {} – klikněte nebo zadejte x,y,z (znovu poslední = zpět, nejméně 3 body)", self.jmeno_povrchu, self.dalsi),
-            DruhBodu::ProPovrch => trf!("Povrch „{}“: bod {} (znovu poslední = zpět, Enter = vytvořit povrch z {} bodů)", self.jmeno_povrchu, self.dalsi, self.body.len()),
+            DruhBodu::ProPovrch if self.body.len() < 3 => trf!("Povrch „{}“: bod {} – klikněte nebo zadejte x,y,z (Ctrl+Z = zpět, nejméně 3 body)", self.jmeno_povrchu, self.dalsi),
+            DruhBodu::ProPovrch => trf!("Povrch „{}“: bod {} (Ctrl+Z = zpět, Enter = vytvořit povrch z {} bodů)", self.jmeno_povrchu, self.dalsi, self.body.len()),
         };
         let konec = if self.druh == DruhBodu::ProPovrch { "" } else { tr(" (Enter = konec)") };
         if self.zprava.is_empty() { trf!("{}{}:", pokyn, konec) } else { trf!("{} | {}{}:", self.zprava, pokyn, konec) }
@@ -643,6 +649,22 @@ impl InteractiveCommand for NovyBod {
             }
         };
         self.vytvor(pt[0], pt[1], z, puvod)
+    }
+
+    fn on_undo_step(&mut self) -> Option<CommandStep> {
+        // čekání na výšku zrušit; body pro povrch ještě nejsou ve výkrese.
+        // Ostatní body jsou už zapsané – ty vrací Zpět výkresu.
+        if self.ceka_vysku.take().is_some() {
+            self.zprava.clear();
+            return Some(CommandStep::NeedPoint);
+        }
+        if self.druh != DruhBodu::ProPovrch {
+            return None;
+        }
+        let b = self.body.pop()?;
+        self.dalsi -= 1;
+        self.zprava = trf!("Zpět – bod {} odebrán", b.cislo);
+        Some(CommandStep::NeedPoint)
     }
 
     fn on_dialog_response(&mut self, odpoved: DialogResponse) -> CommandStep {

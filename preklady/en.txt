@@ -30,7 +30,7 @@ Terén: import {} bodů ze souboru {} – {}{}	Terén: import of {} points from 
   pozor: {} bodů už ve výkrese je na stejném místě (import dvakrát?)	  warning: {} points are already in the drawing at the same place (imported twice?)
 Importovat {} bodů{}? Enter = ano, Esc = zrušit (pohnutím myší se zobrazí náhled):	Import {} points{}? Enter = yes, Esc = cancel (move the mouse to see a preview):
 Spojnice povrchu „{}“ – klikněte na první bod	Breakline of surface "{}" – click the first point
-Další bod (znovu poslední bod = zpět, Enter = konec)	Next point (last point again = undo, Enter = finish)
+Další bod (Ctrl+Z nebo znovu poslední bod = zpět, Enter = konec)	Next point (Ctrl+Z or last point again = undo, Enter = finish)
 V okolí {} m není bod zaměření	No survey point within {} m
 Zpět – bod {} odebrán	Undo – point {} removed
 Bod {} výška {:.3}	Point {} elevation {:.3}
@@ -72,8 +72,8 @@ Esc = zrušit	Esc = cancel
 {}Bod {} – napište výšku a Enter ({}):	{}Point {} – type the elevation and press Enter ({}):
 Bod {} – klikněte nebo zadejte x,y,z	Point {} – click or enter x,y,z
 Bod {} na povrchu „{}“ – klikněte	Point {} on surface "{}" – click
-Povrch „{}“: bod {} – klikněte nebo zadejte x,y,z (znovu poslední = zpět, nejméně 3 body)	Surface "{}": point {} – click or enter x,y,z (last one again = undo, at least 3 points)
-Povrch „{}“: bod {} (znovu poslední = zpět, Enter = vytvořit povrch z {} bodů)	Surface "{}": point {} (last one again = undo, Enter = create the surface from {} points)
+Povrch „{}“: bod {} – klikněte nebo zadejte x,y,z (Ctrl+Z = zpět, nejméně 3 body)	Surface "{}": point {} – click or enter x,y,z (Ctrl+Z = undo, at least 3 points)
+Povrch „{}“: bod {} (Ctrl+Z = zpět, Enter = vytvořit povrch z {} bodů)	Surface "{}": point {} (Ctrl+Z = undo, Enter = create the surface from {} points)
 Výšku napište číslem	Enter the elevation as a number
 Bod nevložen	Point not inserted
 Terén	Terén
@@ -944,7 +944,7 @@ Kompas: klik na S, J, V, Z natočí pohled od dané světové strany. Uložit ob
 Pojmy	Terms
 Slovníček	Glossary
 Spojnice přes body – nakreslí lomovou hranu (3D křivku) klikáním na body zaměření; trojúhelníky ji nepřekříží.	Breakline through points – draws a breakline (3D polyline) by clicking survey points; triangles will not cross it.
-klikejte na body · Backspace = zpět · Enter = konec	click points · Backspace = undo · Enter = finish
+klikejte na body · Ctrl+Z = zpět · Enter = konec	click points · Ctrl+Z = undo · Enter = finish
 Přidat spojnici – vybrané 3D křivky se stanou lomovými hranami aktivního povrchu.	Add breakline – the selected 3D polylines become breaklines of the active surface.
 nejdřív vyberte čáry, pak klikněte	select lines first, then click
 Hranice – vybraná uzavřená křivka ořízne aktivní povrch.	Boundary – the selected closed polyline clips the active surface.

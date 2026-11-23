@@ -73,6 +73,9 @@ impl InteractiveCommand for VyberBodu {
         self.body.push([pt[0], pt[1]]);
         CommandStep::NeedPoint
     }
+    fn on_undo_step(&mut self) -> Option<CommandStep> {
+        self.body.pop().map(|_| CommandStep::NeedPoint)
+    }
     fn on_enter(&mut self) -> CommandStep {
         if self.body.is_empty() {
             return CommandStep::Cancel;
@@ -154,6 +157,13 @@ impl InteractiveCommand for KresleniTrasy {
         }
         self.body.push([p[0], p[1], crate::tra::editor::polomer()]);
         CommandStep::NeedPoint
+    }
+    fn on_undo_step(&mut self) -> Option<CommandStep> {
+        // vrcholy prodlužované trasy se nevracejí
+        (self.body.len() > self.minimum()).then(|| {
+            self.body.pop();
+            CommandStep::NeedPoint
+        })
     }
     fn on_enter(&mut self) -> CommandStep {
         self.vratit_pokud_chce();
@@ -415,6 +425,13 @@ impl InteractiveCommand for KresleniNivelety {
         self.body.push((s, z));
         CommandStep::NeedPoint
     }
+    fn on_undo_step(&mut self) -> Option<CommandStep> {
+        self.body.pop()?;
+        if self.body.is_empty() {
+            self.vybrany = None;
+        }
+        Some(CommandStep::NeedPoint)
+    }
     fn on_enter(&mut self) -> CommandStep {
         let Some(v) = self.vybrany.and_then(|i| self.pohledy.get(i)) else { return CommandStep::Cancel };
         if self.body.len() < 2 {
@@ -563,6 +580,9 @@ impl InteractiveCommand for PridatVrcholyNivelety {
             }
         }
         CommandStep::NeedPoint
+    }
+    fn on_undo_step(&mut self) -> Option<CommandStep> {
+        self.pridane.pop().map(|_| CommandStep::NeedPoint)
     }
     fn on_enter(&mut self) -> CommandStep {
         if self.pridane.is_empty() {

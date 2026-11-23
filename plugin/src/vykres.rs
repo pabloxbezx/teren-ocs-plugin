@@ -621,6 +621,18 @@ impl ocs_plugin_api::host::InteractiveCommand for Hlidany {
     ) -> Vec<(String, std::collections::HashMap<String, ocs_plugin_api::dialog::DialogValue>)> {
         self.0.take_pending_panel_updates()
     }
+    fn on_dialog_action(&mut self, e: ocs_plugin_api::dialog::DialogEvent) -> ocs_plugin_api::dialog::DialogActionResponse {
+        self.0.on_dialog_action(e)
+    }
+    fn on_undo_step(&mut self) -> Option<CommandStep> {
+        self.0.on_undo_step()
+    }
+    fn input_kind(&self) -> ocs_plugin_api::host::InteractiveInputKind {
+        self.0.input_kind()
+    }
+    fn on_text_input(&mut self, text: &str) -> CommandStep {
+        self.0.on_text_input(text)
+    }
 }
 
 /// Počká, až skončí interaktivní příkaz Terénu (viz [`PRIKAZY`]). Pojistka:

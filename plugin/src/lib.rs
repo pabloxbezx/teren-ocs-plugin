@@ -450,7 +450,7 @@ enum DruhCary {
 
 /// Co nástroj dělá, co potřebuje a jak se ovládá (pás karet popisky neumí).
 const POPISY_NASTROJU: &[(&str, &str, &str)] = &[
-    ("TER_SPOJNICE", "Spojnice přes body – nakreslí lomovou hranu (3D křivku) klikáním na body zaměření; trojúhelníky ji nepřekříží.", "klikejte na body · Backspace = zpět · Enter = konec"),
+    ("TER_SPOJNICE", "Spojnice přes body – nakreslí lomovou hranu (3D křivku) klikáním na body zaměření; trojúhelníky ji nepřekříží.", "klikejte na body · Ctrl+Z = zpět · Enter = konec"),
     ("TER_PRIDAT_SPOJNICI", "Přidat spojnici – vybrané 3D křivky se stanou lomovými hranami aktivního povrchu.", "nejdřív vyberte čáry, pak klikněte"),
     ("TER_HRANICE", "Hranice – vybraná uzavřená křivka ořízne aktivní povrch.", "nejdřív vyberte křivku, pak klikněte"),
     ("TER_DIRA", "Díra – uvnitř vybrané uzavřené křivky se povrch vynechá.", "nejdřív vyberte křivku, pak klikněte"),
