@@ -16,12 +16,26 @@ ve výkrese, upravitelné a vždy jedním krokem Zpět.
 >    - **English**
 > 4. **Spusťte Open CAD Studio znovu** – teprve pak se změna projeví.
 >
-> **Vlastní jazyk:** vytvořte soubor
-> `%APPDATA%\OpenCADStudio\teren_preklady\<kód>.txt` (např. `de.txt`)
-> s řádky `anglický text = překlad`, např.
-> `Import points = Punkte importieren` (když anglický text sám obsahuje
-> ` = `, oddělte obě části tabulátorem). Pak kód jazyka vyberte
-> v Nastavení. Co nepřeložíte, zůstane anglicky.
+> ### ✍️ Jak přidat vlastní jazyk (např. němčinu)
+> 1. Stiskněte **Win+R**, napište `%APPDATA%\OpenCADStudio` a Enter.
+> 2. Vytvořte tam složku **`teren_preklady`**.
+> 3. V ní vytvořte textový soubor pojmenovaný kódem jazyka, např.
+>    **`de.txt`** (uložit v UTF-8 – Poznámkový blok to dělá sám).
+> 4. Na každý řádek napište **anglický text** přesně tak, jak je v Terénu
+>    (přepněte Terén na English, ať ho vidíte), pak ` = ` a překlad:
+>    ```
+>    # Německý překlad Terénu
+>    Prospector = Prospektor
+>    Import points = Punkte importieren
+>    New surface = Neue Oberfläche
+>    ```
+>    Když anglický text sám obsahuje ` = ` (např. `Enter = finish`),
+>    oddělte obě části **tabulátorem** místo ` = `.
+>    Řádky začínající `#` jsou poznámky.
+> 5. V **Prospektor › Nastavení › Jazyk / Language** vyberte **`de`**
+>    (kód se tam objeví sám).
+> 6. **Spusťte Open CAD Studio znovu.** Přeložené texty se ukážou ve vašem
+>    jazyce, co nepřeložíte, zůstane anglicky.
 
 ![Povrch stávajícího terénu s vrstevnicemi a body zaměření v Open CAD Studiu](manual/img/povrch2.png)
 

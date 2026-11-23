@@ -23,12 +23,27 @@
 >    - **English**
 > 4. **Restart Open CAD Studio** to apply the change.
 >
-> **Adding your own language:** create the file
-> `%APPDATA%\OpenCADStudio\teren_preklady\<code>.txt` (e.g. `de.txt`) with
-> lines `English text = translation`, for example
-> `Import points = Punkte importieren` (if the English text itself contains
-> ` = `, separate the two parts with a TAB instead). Then select the language
-> code in Settings. Any line you don't translate stays in English.
+> ### ✍️ How to add your own language (e.g. German)
+> 1. Press **Win+R**, type `%APPDATA%\OpenCADStudio` and press Enter.
+> 2. Create a folder named **`teren_preklady`** there.
+> 3. In it, create a text file named after the language code, e.g.
+>    **`de.txt`** (save it as UTF-8 – Notepad does this by default).
+> 4. Write one line per text: the **English text** exactly as it appears in
+>    Terén (switch Terén to English to see it), then ` = `, then your
+>    translation:
+>    ```
+>    # German translation of Terén
+>    Prospector = Prospektor
+>    Import points = Punkte importieren
+>    New surface = Neue Oberfläche
+>    ```
+>    If the English text itself contains ` = ` (e.g. `Enter = finish`),
+>    separate the two parts with a **TAB** instead of ` = `.
+>    Lines starting with `#` are comments.
+> 5. Open **Prospector › Settings › Language** and choose **`de`**
+>    (the code appears there automatically).
+> 6. **Restart Open CAD Studio.** Translated texts now appear in your
+>    language; everything you haven't translated stays in English.
 
 Import a survey and get a TIN surface with labelled contours in a minute.
 Edit points and triangles right in the drawing – everything stays in the
