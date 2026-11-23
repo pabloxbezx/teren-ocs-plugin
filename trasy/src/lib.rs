@@ -5,7 +5,11 @@ pub mod geometrie;
 pub mod niveleta;
 pub mod pasy;
 pub mod pohled;
-pub mod preklad;
+pub mod lang {
+    //! Jazyk rozhraní – dvojice `tr(cs, en)`, viz crate `teren_lang`.
+    pub use teren_lang::*;
+}
+pub use teren_lang::trf;
 pub mod profil;
 pub mod stanice;
 pub mod styl;

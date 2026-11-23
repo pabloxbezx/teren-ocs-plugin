@@ -14,7 +14,7 @@ use ocs_plugin_api::host::codec::types::{Color, Vector2, Vector3};
 use ocs_plugin_api::host::{Document as CadDocument, EntityType, ExtendedDataRecord, Handle, LayerConfig, TableOperation, XDataValue};
 
 use trasy::geometrie::{geometrie, DruhBodu, Geometrie, Prvek, Vrchol};
-use trasy::preklad::{tr, tr_dyn};
+use crate::lang::{tr, tr_dyn};
 use trasy::stanice::{cislo, staniceni, FormatStanice};
 use trasy::styl::{vysledne, Hodnoty};
 use trasy::styl::Styl;
@@ -62,7 +62,7 @@ impl ObjektTrasy {
 
 pub fn chyba_geometrie(e: trasy::geometrie::Chyba) -> String {
     let (t, a) = e.popis();
-    trasy::preklad::formatuj(tr(t), &a.iter().map(|s| s as &dyn std::fmt::Display).collect::<Vec<_>>())
+    crate::lang::formatuj(crate::lang::tr_tab(t), &a.iter().map(|s| s as &dyn std::fmt::Display).collect::<Vec<_>>())
 }
 
 pub(crate) fn retezce(r: &ExtendedDataRecord) -> Vec<&str> {
@@ -262,8 +262,8 @@ pub fn objekty(def: &DefiniceTrasy, vrcholy: &[Vrchol], g: &Geometrie) -> Vec<En
         let des = h.cislo("desetin_body").max(0.0) as usize;
         for b in &g.hlavni_body {
             let nazev = match b.druh {
-                DruhBodu::Zu => zk(0, "ZÚ"),
-                DruhBodu::Ku => zk(1, "KÚ"),
+                DruhBodu::Zu => zk(0, "ZÚ"), // i18n:ne
+                DruhBodu::Ku => zk(1, "KÚ"), // i18n:ne
                 DruhBodu::Tk => zk(2, "TK"),
                 DruhBodu::Kt => zk(3, "KT"),
                 DruhBodu::Tp => zk(5, "TP"),
@@ -332,7 +332,7 @@ fn zajisti_hladiny(v: &mut dyn Vykres, doc: &CadDocument) {
         // čárka 12 mm, mezera 3, tečka, mezera 3 (na papíře)
         let _ = v.tabulka(TableOperation::LinetypeCreate {
             name: TYP_CERCHOVANA.into(),
-            description: tr("Čerchovaná (trasa)").into(),
+            description: tr("Čerchovaná (trasa)", "Dash-dot (alignment)").into(), // i18n:ne
             pattern: vec![12.0, -3.0, 0.0, -3.0],
         });
     }
@@ -420,7 +420,7 @@ pub fn uloz(v: &mut dyn Vykres, doc: Option<&CadDocument>, stara: Option<&Objekt
             }
             crate::vykres::nastav_zaznam(&mut ins, zaznam(&def));
             crate::vykres::nastav_zaznam(&mut ins, zaznam_tridy());
-            if crate::vykres::prepis_blok(v, d, &s.blok, ent.clone(), ins, tr("Úprava trasy"))? {
+            if crate::vykres::prepis_blok(v, d, &s.blok, ent.clone(), ins, tr("Úprava trasy", "Edit alignment"))? { // i18n:ne
                 v.zmeneno();
                 if crate::tra::pohled::ma_pohledy() {
                     let nova = ObjektTrasy { insert: s.insert, blok: s.blok.clone(), def: def.clone(), vlozeni: zaklad, otoceni: 0.0, meritko_jine: false };
@@ -442,14 +442,14 @@ pub fn uloz(v: &mut dyn Vykres, doc: Option<&CadDocument>, stara: Option<&Objekt
         entities: handly,
         base_point: [0.0, 0.0, 0.0],
         erase_originals: true,
-        description: Some(trf!("Trasa {} (plugin Trasy)", def.jmeno)),
+        description: Some(trf!("Trasa {} (plugin Trasy)", "Alignment {} (Alignments plugin)", def.jmeno)),
     })
-    .map_err(|e| trf!("blok trasy nejde vytvořit: {}", e))?;
+    .map_err(|e| trf!("blok trasy nejde vytvořit: {}", "the alignment block cannot be created: {}", e))?; // i18n:ne
     if let Some(s) = stara {
         v.odeber(s.insert);
         if !s.blok.eq_ignore_ascii_case(&docasny) && doc.is_none_or(|d| d.block_records.iter().any(|b| b.name.eq_ignore_ascii_case(&s.blok))) {
             if let Err(e) = v.tabulka(TableOperation::BlockDelete { name: s.blok.clone() }) {
-                v.chyba(&trf!("Trasy: starý blok trasy nejde odstranit: {}", e));
+                v.chyba(&trf!("Trasy: starý blok trasy nejde odstranit: {}", "Alignments: the old alignment block cannot be removed: {}", e)); // i18n:ne
             }
         }
     }
@@ -461,7 +461,7 @@ pub fn uloz(v: &mut dyn Vykres, doc: Option<&CadDocument>, stara: Option<&Objekt
     ins.common.layer = H_TRASY.into();
     let insert = v.pridej_jednu(EntityType::Insert(ins))?;
     if !v.zapis_xdata(insert, zaznam(&def)) {
-        return Err(tr("nepodařilo se uložit definici trasy").into());
+        return Err(tr("nepodařilo se uložit definici trasy", "the alignment definition could not be saved").into()); // i18n:ne
     }
     v.zapis_xdata(insert, zaznam_tridy());
     v.hotovo();
@@ -498,7 +498,7 @@ pub fn popis(t: &ObjektTrasy) -> String {
         Ok(g) => {
             let oblouku = g.prvky.iter().filter(|(_, p)| p.je_oblouk()).count();
             trf!(
-                "{} „{}“: {} – {}, délka {} m, vrcholů {}, oblouků {}, styl {}",
+                "{} „{}“: {} – {}, délka {} m, vrcholů {}, oblouků {}, styl {}", "{} \"{}\": {} – {}, length {} m, vertices {}, curves {}, style {}", // i18n:ne
                 t.def.id,
                 t.def.jmeno,
                 staniceni(g.pocatek, f, 2, true),
@@ -509,7 +509,7 @@ pub fn popis(t: &ObjektTrasy) -> String {
                 styl
             )
         }
-        Err(e) => trf!("{} „{}“: chyba geometrie – {}", t.def.id, t.def.jmeno, e),
+        Err(e) => trf!("{} „{}“: chyba geometrie – {}", "{} \"{}\": geometry error – {}", t.def.id, t.def.jmeno, e),
     }
 }
 

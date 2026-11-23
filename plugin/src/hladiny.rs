@@ -10,7 +10,7 @@
 
 use ocs_plugin_api::host::codec::types::Color;
 use ocs_plugin_api::host::{Document as CadDocument, LayerConfig, TableOperation};
-use teren::preklad::{formatuj, tr};
+use crate::lang::formatuj;
 use teren::trf;
 
 use crate::vykres::Vykres;
@@ -79,17 +79,17 @@ const PEVNE: [(&str, &str, &str); 27] = [
 pub fn popis(nazev: &str) -> Option<String> {
     let n = nazev.to_ascii_uppercase();
     if let Some((_, _, p)) = PEVNE.iter().find(|(h, _, _)| *h == n) {
-        return Some(tr(p).to_string());
+        return Some(crate::lang::tr_tab(p).to_string());
     }
     let zbytek = n.strip_prefix("TER-SRF-")?;
     // povrch: TER-SRF-<id> nebo TER-SRF-<id>-<prvek>; id je z původního názvu
     let id_puvodni = &nazev["TER-SRF-".len()..];
     for (pripona, _, p) in PRVKY_POVRCHU {
         if let Some(id) = zbytek.strip_suffix(pripona).and_then(|s| s.strip_suffix('-')).filter(|s| !s.is_empty()) {
-            return Some(formatuj(tr(p), &[&&id_puvodni[..id.len()]]));
+            return Some(formatuj(crate::lang::tr_tab(p), &[&&id_puvodni[..id.len()]]));
         }
     }
-    Some(trf!("Povrch {} (plugin Terén)", id_puvodni))
+    Some(trf!("Povrch {} (plugin Terén)", "Surface {} (Terén plugin)", id_puvodni))
 }
 
 /// Konfigurace nové hladiny pluginu (barva a popis).

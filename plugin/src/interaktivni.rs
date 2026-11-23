@@ -5,7 +5,7 @@
 //! předají hostiteli k vložení (Commit) při ukončení. Zprávy pro uživatele
 //! se zobrazují ve výzvě příkazu.
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 use ocs_plugin_api::host::codec::entities::{Line, Point, Polyline3D, Text};
 use ocs_plugin_api::host::codec::types::Vector3;
@@ -74,32 +74,32 @@ impl SpojnicePresBody {
 impl InteractiveCommand for SpojnicePresBody {
     fn prompt(&self) -> String {
         let pokyn = if self.vrcholy.is_empty() {
-            trf!("Spojnice povrchu „{}“ – klikněte na první bod", self.jmeno_povrchu)
+            trf!("Spojnice povrchu „{}“ – klikněte na první bod", "Breakline of surface \"{}\" – click the first point", self.jmeno_povrchu)
         } else {
-            tr("Další bod (Ctrl+Z nebo znovu poslední bod = zpět, Enter = konec)").into()
+            tr("Další bod (Ctrl+Z nebo znovu poslední bod = zpět, Enter = konec)", "Next point (Ctrl+Z or last point again = undo, Enter = finish)").into()
         };
-        if self.zprava.is_empty() { trf!("{}:", pokyn) } else { trf!("{} | {}:", self.zprava, pokyn) }
+        if self.zprava.is_empty() { trf!("{}:", "{}:", pokyn) } else { trf!("{} | {}:", "{} | {}:", self.zprava, pokyn) }
     }
 
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {
         let Some(i) = self.nejblizsi(pt[0], pt[1]) else {
-            self.zprava = trf!("V okolí {} m není bod zaměření", povrchy::cislo_cz(self.tolerance));
+            self.zprava = trf!("V okolí {} m není bod zaměření", "No survey point within {} m", povrchy::cislo_cz(self.tolerance));
             return CommandStep::NeedPoint;
         };
         if self.vrcholy.last() == Some(&i) {
             self.vrcholy.pop();
-            self.zprava = trf!("Zpět – bod {} odebrán", cislo(&self.body[i]));
+            self.zprava = trf!("Zpět – bod {} odebrán", "Undo – point {} removed", cislo(&self.body[i]));
             return CommandStep::NeedPoint;
         }
         let b = &self.body[i];
-        self.zprava = trf!("Bod {} výška {:.3}", cislo(b), b.z);
+        self.zprava = trf!("Bod {} výška {:.3}", "Point {} elevation {:.3}", cislo(b), b.z);
         self.vrcholy.push(i);
         CommandStep::NeedPoint
     }
 
     fn on_undo_step(&mut self) -> Option<CommandStep> {
         let i = self.vrcholy.pop()?;
-        self.zprava = trf!("Zpět – bod {} odebrán", cislo(&self.body[i]));
+        self.zprava = trf!("Zpět – bod {} odebrán", "Undo – point {} removed", cislo(&self.body[i]));
         Some(CommandStep::NeedPoint)
     }
 
@@ -172,7 +172,7 @@ impl EditacePovrchu {
         match Povrch::z_definice(&def, 0.001) {
             Ok(p) => {
                 self.povrch = p;
-                self.zprava = trf!("✔ {} (celkem {})", e.popis(), self.nove.len() + 1);
+                self.zprava = trf!("✔ {} (celkem {})", "✔ {} (total {})", e.popis(), self.nove.len() + 1);
                 let z = self.znacka(&e);
                 self.nove.push(e);
                 spravce::posli(Akce::Odlozena(
@@ -182,7 +182,7 @@ impl EditacePovrchu {
                 Some(z)
             }
             Err(chyba) => {
-                self.zprava = trf!("Nelze: {}", chyba);
+                self.zprava = trf!("Nelze: {}", "Not possible: {}", chyba);
                 None
             }
         }
@@ -215,18 +215,18 @@ impl EditacePovrchu {
 impl InteractiveCommand for EditacePovrchu {
     fn prompt(&self) -> String {
         let pokyn = match self.druh {
-            DruhEditace::OtocitHranu => tr("Otočit hranu – klikněte na hranu"),
-            DruhEditace::SmazatTrojuhelnik => tr("Smazat trojúhelník – klikněte do trojúhelníku"),
-            DruhEditace::PridatBod => tr("Přidat bod – klikněte nebo zadejte x,y,z"),
-            DruhEditace::OdebratBod => tr("Odebrat bod – klikněte na vrchol"),
-            DruhEditace::PridatHranu if self.prvni.is_some() => tr("Přidat hranu – klikněte na druhý vrchol"),
-            DruhEditace::PridatHranu => tr("Přidat hranu – klikněte na první vrchol"),
-            DruhEditace::SmazatHranu => tr("Smazat hranu – klikněte na hranu"),
+            DruhEditace::OtocitHranu => tr("Otočit hranu – klikněte na hranu", "Swap edge – click an edge"),
+            DruhEditace::SmazatTrojuhelnik => tr("Smazat trojúhelník – klikněte do trojúhelníku", "Delete triangle – click inside a triangle"),
+            DruhEditace::PridatBod => tr("Přidat bod – klikněte nebo zadejte x,y,z", "Add point – click or enter x,y,z"),
+            DruhEditace::OdebratBod => tr("Odebrat bod – klikněte na vrchol", "Remove point – click a vertex"),
+            DruhEditace::PridatHranu if self.prvni.is_some() => tr("Přidat hranu – klikněte na druhý vrchol", "Add edge – click the second vertex"),
+            DruhEditace::PridatHranu => tr("Přidat hranu – klikněte na první vrchol", "Add edge – click the first vertex"),
+            DruhEditace::SmazatHranu => tr("Smazat hranu – klikněte na hranu", "Delete edge – click an edge"),
         };
         if self.zprava.is_empty() {
-            trf!("{} (každý klik se hned projeví, Enter = konec):", pokyn)
+            trf!("{} (každý klik se hned projeví, Enter = konec):", "{} (each click applies immediately, Enter = finish):", pokyn)
         } else {
-            trf!("{} · {}, Enter = konec:", self.zprava, pokyn)
+            trf!("{} · {}, Enter = konec:", "{} · {}, Enter = finish:", self.zprava, pokyn)
         }
     }
 
@@ -243,16 +243,16 @@ impl InteractiveCommand for EditacePovrchu {
                             let (ga, gb) = (self.povrch.globalni(a), self.povrch.globalni(b));
                             ulozit = self.pouzij(Editace::OtocitHranu([ga.0, ga.1], [gb.0, gb.1]));
                         }
-                        Err(duvod) => self.zprava = trf!("Hranu nejde otočit – {}", duvod),
+                        Err(duvod) => self.zprava = trf!("Hranu nejde otočit – {}", "The edge cannot be swapped – {}", duvod),
                     }
                 }
-                _ => self.zprava = trf!("Tady není hrana povrchu „{}“ – klikněte blíž k čáře trojúhelníku (hrany ukáže styl Trojúhelníky)", self.zaznam.jmeno),
+                _ => self.zprava = trf!("Tady není hrana povrchu „{}“ – klikněte blíž k čáře trojúhelníku (hrany ukáže styl Trojúhelníky)", "No edge of surface \"{}\" here – click closer to a triangle line (the Triangles style shows the edges)", self.zaznam.jmeno),
             },
             DruhEditace::SmazatTrojuhelnik => {
                 if self.povrch.trojuhelnik_v_bode(x, y).is_some() {
                     ulozit = self.pouzij(Editace::SmazatTrojuhelnik([x, y]));
                 } else {
-                    self.zprava = trf!("Tady není trojúhelník povrchu „{}“ – klikněte dovnitř trojúhelníku", self.zaznam.jmeno);
+                    self.zprava = trf!("Tady není trojúhelník povrchu „{}“ – klikněte dovnitř trojúhelníku", "No triangle of surface \"{}\" here – click inside a triangle", self.zaznam.jmeno);
                 }
             }
             DruhEditace::PridatBod => {
@@ -260,25 +260,25 @@ impl InteractiveCommand for EditacePovrchu {
                 let navrh = if pt[2].abs() > 1e-9 { Some(pt[2]) } else { self.povrch.vyska(x, y) };
                 self.ceka_vysku = Some([x, y]);
                 let info = match navrh {
-                    Some(_) => trf!("Y {:.2}   X {:.2}   (návrh výšky {})", -x, -y, tr("z povrchu")),
-                    None => trf!("Y {:.2}   X {:.2}   – bod je mimo povrch", -x, -y),
+                    Some(_) => trf!("Y {:.2}   X {:.2}   (návrh výšky {})", "Y {:.2}   X {:.2}   (suggested elevation {})", -x, -y, tr("z povrchu", "from the surface")),
+                    None => trf!("Y {:.2}   X {:.2}   – bod je mimo povrch", "Y {:.2}   X {:.2}   – the point is outside the surface", -x, -y),
                 };
                 let radek = |c: DialogControl| DialogRow { controls: vec![c], align_h: None, align_v: None };
                 spravce::ukaz_dialog(DialogDef {
-                    title: tr("Přidat bod").into(),
+                    title: tr("Přidat bod", "Add point").into(),
                     rows: vec![
                         radek(DialogControl::InfoText { text: info, align_h: None }),
                         radek(DialogControl::Number {
                             id: "z".into(),
-                            label: tr("Výška Z [m]").into(),
+                            label: tr("Výška Z [m]", "Elevation Z [m]").into(),
                             default: (navrh.unwrap_or(0.0) * 1000.0).round() / 1000.0,
                             min: None,
                             max: None,
                             step: Some(0.01),
                         }),
                     ],
-                    submit_label: tr("Přidat bod").into(),
-                    cancel_label: tr("Zrušit").into(),
+                    submit_label: tr("Přidat bod", "Add point").into(),
+                    cancel_label: tr("Zrušit", "Cancel").into(),
                     width: Some(340.0),
                 });
             }
@@ -287,28 +287,28 @@ impl InteractiveCommand for EditacePovrchu {
                     let (gx, gy, _) = self.povrch.globalni(i);
                     ulozit = self.pouzij(Editace::OdebratBod([gx, gy]));
                 }
-                None => self.zprava = trf!("Tady není bod povrchu „{}“ – klikněte blíž k vrcholu trojúhelníku", self.zaznam.jmeno),
+                None => self.zprava = trf!("Tady není bod povrchu „{}“ – klikněte blíž k vrcholu trojúhelníku", "No point of surface \"{}\" here – click closer to a triangle vertex", self.zaznam.jmeno),
             },
             DruhEditace::PridatHranu => match self.povrch.nejblizsi_vrchol(x, y, r * 2.0) {
                 Some(i) => match self.prvni.take() {
                     None => {
                         self.prvni = Some(i);
-                        self.zprava = tr("První vrchol vybrán – klikněte na druhý").into();
+                        self.zprava = tr("První vrchol vybrán – klikněte na druhý", "First vertex selected – click the second one").into();
                     }
-                    Some(a) if a == i => self.zprava = tr("To je tentýž vrchol – klikněte na jiný").into(),
+                    Some(a) if a == i => self.zprava = tr("To je tentýž vrchol – klikněte na jiný", "That is the same vertex – click another one").into(),
                     Some(a) => {
                         let (ga, gb) = (self.povrch.globalni(a), self.povrch.globalni(i));
                         ulozit = self.pouzij(Editace::PridatHranu([ga.0, ga.1], [gb.0, gb.1]));
                     }
                 },
-                None => self.zprava = trf!("Tady není bod povrchu „{}“ – klikněte blíž k vrcholu trojúhelníku", self.zaznam.jmeno),
+                None => self.zprava = trf!("Tady není bod povrchu „{}“ – klikněte blíž k vrcholu trojúhelníku", "No point of surface \"{}\" here – click closer to a triangle vertex", self.zaznam.jmeno),
             },
             DruhEditace::SmazatHranu => match self.povrch.nejblizsi_hrana(x, y) {
                 Some(((a, b), d)) if d <= r * 2.0 => {
                     let (ga, gb) = (self.povrch.globalni(a), self.povrch.globalni(b));
                     ulozit = self.pouzij(Editace::SmazatHranu([ga.0, ga.1], [gb.0, gb.1]));
                 }
-                _ => self.zprava = trf!("Tady není hrana povrchu „{}“ – klikněte blíž k čáře trojúhelníku (hrany ukáže styl Trojúhelníky)", self.zaznam.jmeno),
+                _ => self.zprava = trf!("Tady není hrana povrchu „{}“ – klikněte blíž k čáře trojúhelníku (hrany ukáže styl Trojúhelníky)", "No edge of surface \"{}\" here – click closer to a triangle line (the Triangles style shows the edges)", self.zaznam.jmeno),
             },
         }
         match ulozit {
@@ -328,7 +328,7 @@ impl InteractiveCommand for EditacePovrchu {
                 }
             }
         } else {
-            self.zprava = tr("Bod nevložen").into();
+            self.zprava = tr("Bod nevložen", "Point not inserted").into();
         }
         CommandStep::NeedPoint
     }
@@ -419,21 +419,21 @@ pub struct VyskaVBode {
 impl InteractiveCommand for VyskaVBode {
     fn prompt(&self) -> String {
         if self.zprava.is_empty() {
-            tr("Výška v bodě – klikněte do povrchu (Enter = konec):").into()
+            tr("Výška v bodě – klikněte do povrchu (Enter = konec):", "Elevation at point – click on the surface (Enter = finish):").into()
         } else {
-            trf!("{} | další bod (Enter = konec):", self.zprava)
+            trf!("{} | další bod (Enter = konec):", "{} | next point (Enter = finish):", self.zprava)
         }
     }
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {
         match self.povrch.vyska(pt[0], pt[1]) {
             Some(z) => {
-                self.zprava = trf!("Výška {:.3}", z);
+                self.zprava = trf!("Výška {:.3}", "Elevation {:.3}", z);
                 let mut t = Text::with_value(format!("{z:.2}"), Vector3::new(pt[0], pt[1], z)).with_height(self.vyska_textu);
                 t.common.layer = self.hladina.clone();
                 CommandStep::Commit(EntityType::Text(t))
             }
             None => {
-                self.zprava = tr("Mimo povrch").into();
+                self.zprava = tr("Mimo povrch", "Outside the surface").into();
                 CommandStep::NeedPoint
             }
         }
@@ -461,9 +461,9 @@ pub struct VybratPovrch {
 impl InteractiveCommand for VybratPovrch {
     fn prompt(&self) -> String {
         match &self.vybrano {
-            Some(j) => trf!("Aktivní povrch je „{}“ (Enter = konec):", j),
-            None if !self.zprava.is_empty() => trf!("{} | klikněte na povrch:", self.zprava),
-            None => tr("Vyberte povrch – klikněte na jeho čáru nebo trojúhelník:").into(),
+            Some(j) => trf!("Aktivní povrch je „{}“ (Enter = konec):", "The active surface is \"{}\" (Enter = finish):", j),
+            None if !self.zprava.is_empty() => trf!("{} | klikněte na povrch:", "{} | click a surface:", self.zprava),
+            None => tr("Vyberte povrch – klikněte na jeho čáru nebo trojúhelník:", "Select a surface – click one of its lines or triangles:").into(),
         }
     }
     fn on_point(&mut self, _pt: [f64; 3]) -> CommandStep {
@@ -478,7 +478,7 @@ impl InteractiveCommand for VybratPovrch {
                 povrchy::nastav_aktivni(id);
                 self.vybrano = Some(jmeno.clone());
             }
-            None => self.zprava = tr("Objekt nepatří k žádnému povrchu").into(),
+            None => self.zprava = tr("Objekt nepatří k žádnému povrchu", "The object does not belong to any surface").into(),
         }
         CommandStep::NeedPoint
     }
@@ -525,25 +525,25 @@ impl NovyBod {
         self.povrch
             .as_ref()
             .and_then(|(_, p)| p.vyska(x, y))
-            .map(|z| (z, tr("z povrchu")))
-            .or((z.abs() > 1e-9).then_some((z, tr("z místa kliknutí"))))
-            .or(self.body.last().map(|b| (b.z, tr("jako předchozí bod"))))
+            .map(|z| (z, tr("z povrchu", "from the surface")))
+            .or((z.abs() > 1e-9).then_some((z, tr("z místa kliknutí", "from the clicked location"))))
+            .or(self.body.last().map(|b| (b.z, tr("jako předchozí bod", "same as the previous point"))))
     }
 
     /// Dialog s výškou (a kódem) ručního bodu – otevře se po kliknutí.
     fn dialog_vysky(&self, [x, y, z]: [f64; 3]) -> DialogDef {
         let (navrh, odkud) = self.navrh_vysky(x, y, z).unwrap_or((0.0, ""));
-        let info = if odkud.is_empty() { format!("Y {:.2}   X {:.2}", -x, -y) } else { trf!("Y {:.2}   X {:.2}   (návrh výšky {})", -x, -y, odkud) };
+        let info = if odkud.is_empty() { format!("Y {:.2}   X {:.2}", -x, -y) } else { trf!("Y {:.2}   X {:.2}   (návrh výšky {})", "Y {:.2}   X {:.2}   (suggested elevation {})", -x, -y, odkud) };
         let radek = |c: DialogControl| DialogRow { controls: vec![c], align_h: None, align_v: None };
         DialogDef {
-            title: trf!("Bod {}", self.dalsi),
+            title: trf!("Bod {}", "Point {}", self.dalsi),
             rows: vec![
                 radek(DialogControl::InfoText { text: info, align_h: None }),
-                radek(DialogControl::Number { id: "z".into(), label: tr("Výška Z [m]").into(), default: (navrh * 1000.0).round() / 1000.0, min: None, max: None, step: Some(0.01) }),
-                radek(DialogControl::Text { id: "kod".into(), label: tr("Kód / popis").into(), default: self.kod.clone() }),
+                radek(DialogControl::Number { id: "z".into(), label: tr("Výška Z [m]", "Elevation Z [m]").into(), default: (navrh * 1000.0).round() / 1000.0, min: None, max: None, step: Some(0.01) }),
+                radek(DialogControl::Text { id: "kod".into(), label: tr("Kód / popis", "Code / description").into(), default: self.kod.clone() }),
             ],
-            submit_label: tr("Vložit bod").into(),
-            cancel_label: tr("Zrušit").into(),
+            submit_label: tr("Vložit bod", "Insert point").into(),
+            cancel_label: tr("Zrušit", "Cancel").into(),
             width: Some(340.0),
         }
     }
@@ -551,7 +551,7 @@ impl NovyBod {
     fn vytvor(&mut self, x: f64, y: f64, z: f64, puvod: &str) -> CommandStep {
         let b = Bod { cislo: self.dalsi.to_string(), x, y, z, popis: self.kod.clone() };
         self.dalsi += 1;
-        self.zprava = trf!("Bod {} výška {:.3} ({})", b.cislo, z, puvod);
+        self.zprava = trf!("Bod {} výška {:.3} ({})", "Point {} elevation {:.3} ({})", b.cislo, z, puvod);
         self.body.push(b.clone());
         match self.druh {
             DruhBodu::ProPovrch => CommandStep::NeedPoint,
@@ -563,17 +563,17 @@ impl NovyBod {
         let zadana = (pt[2].abs() > 1e-9).then_some(pt[2]);
         let z_povrchu = self.povrch.as_ref().and_then(|(_, p)| p.vyska(pt[0], pt[1]));
         match self.druh {
-            DruhBodu::NaPovrchu => z_povrchu.map(|z| (z, tr("z povrchu"))).ok_or_else(|| tr("Mimo povrch").into()),
+            DruhBodu::NaPovrchu => z_povrchu.map(|z| (z, tr("z povrchu", "from the surface"))).ok_or_else(|| tr("Mimo povrch", "Outside the surface").into()),
             DruhBodu::Rucne => zadana
-                .map(|z| (z, tr("zadaná")))
-                .or(self.vyska.map(|z| (z, tr("předvolená"))))
-                .or(z_povrchu.map(|z| (z, tr("z povrchu"))))
-                .ok_or_else(|| tr("Neznám výšku – zadejte x,y,z nebo předvolte výšku v Prospektoru (Body)").into()),
+                .map(|z| (z, tr("zadaná", "entered")))
+                .or(self.vyska.map(|z| (z, tr("předvolená", "preset"))))
+                .or(z_povrchu.map(|z| (z, tr("z povrchu", "from the surface"))))
+                .ok_or_else(|| tr("Neznám výšku – zadejte x,y,z nebo předvolte výšku v Prospektoru (Body)", "Elevation unknown – enter x,y,z or preset the elevation in the Prospector (Points)").into()),
             DruhBodu::ProPovrch => zadana
-                .map(|z| (z, tr("zadaná")))
-                .or(self.vyska.map(|z| (z, tr("předvolená"))))
-                .or(self.body.last().map(|b| (b.z, tr("jako předchozí bod"))))
-                .ok_or_else(|| tr("Neznám výšku – zadejte x,y,z nebo předvolte výšku v Prospektoru (Body)").into()),
+                .map(|z| (z, tr("zadaná", "entered")))
+                .or(self.vyska.map(|z| (z, tr("předvolená", "preset"))))
+                .or(self.body.last().map(|b| (b.z, tr("jako předchozí bod", "same as the previous point"))))
+                .ok_or_else(|| tr("Neznám výšku – zadejte x,y,z nebo předvolte výšku v Prospektoru (Body)", "Elevation unknown – enter x,y,z or preset the elevation in the Prospector (Points)").into()),
         }
     }
 
@@ -601,20 +601,20 @@ impl InteractiveCommand for NovyBod {
     fn prompt(&self) -> String {
         if let Some([x, y, z]) = self.ceka_vysku {
             let navrh = match self.navrh_vysky(x, y, z) {
-                Some((z, odkud)) => trf!("Enter = {:.2} {}", z, odkud),
-                None => tr("Esc = zrušit").into(),
+                Some((z, odkud)) => trf!("Enter = {:.2} {}", "Enter = {:.2} {}", z, odkud),
+                None => tr("Esc = zrušit", "Esc = cancel").into(),
             };
             let z = if self.zprava.is_empty() { String::new() } else { format!("{} | ", self.zprava) };
-            return trf!("{}Bod {} – napište výšku a Enter ({}):", z, self.dalsi, navrh);
+            return trf!("{}Bod {} – napište výšku a Enter ({}):", "{}Point {} – type the elevation and press Enter ({}):", z, self.dalsi, navrh);
         }
         let pokyn = match self.druh {
-            DruhBodu::Rucne => trf!("Bod {} – klikněte nebo zadejte x,y,z", self.dalsi),
-            DruhBodu::NaPovrchu => trf!("Bod {} na povrchu „{}“ – klikněte", self.dalsi, self.povrch.as_ref().map_or("", |(j, _)| j.as_str())),
-            DruhBodu::ProPovrch if self.body.len() < 3 => trf!("Povrch „{}“: bod {} – klikněte nebo zadejte x,y,z (Ctrl+Z = zpět, nejméně 3 body)", self.jmeno_povrchu, self.dalsi),
-            DruhBodu::ProPovrch => trf!("Povrch „{}“: bod {} (Ctrl+Z = zpět, Enter = vytvořit povrch z {} bodů)", self.jmeno_povrchu, self.dalsi, self.body.len()),
+            DruhBodu::Rucne => trf!("Bod {} – klikněte nebo zadejte x,y,z", "Point {} – click or enter x,y,z", self.dalsi),
+            DruhBodu::NaPovrchu => trf!("Bod {} na povrchu „{}“ – klikněte", "Point {} on surface \"{}\" – click", self.dalsi, self.povrch.as_ref().map_or("", |(j, _)| j.as_str())),
+            DruhBodu::ProPovrch if self.body.len() < 3 => trf!("Povrch „{}“: bod {} – klikněte nebo zadejte x,y,z (Ctrl+Z = zpět, nejméně 3 body)", "Surface \"{}\": point {} – click or enter x,y,z (Ctrl+Z = undo, at least 3 points)", self.jmeno_povrchu, self.dalsi),
+            DruhBodu::ProPovrch => trf!("Povrch „{}“: bod {} (Ctrl+Z = zpět, Enter = vytvořit povrch z {} bodů)", "Surface \"{}\": point {} (Ctrl+Z = undo, Enter = create the surface from {} points)", self.jmeno_povrchu, self.dalsi, self.body.len()),
         };
-        let konec = if self.druh == DruhBodu::ProPovrch { "" } else { tr(" (Enter = konec)") };
-        if self.zprava.is_empty() { trf!("{}{}:", pokyn, konec) } else { trf!("{} | {}{}:", self.zprava, pokyn, konec) }
+        let konec = if self.druh == DruhBodu::ProPovrch { "" } else { tr(" (Enter = konec)", " (Enter = finish)") };
+        if self.zprava.is_empty() { trf!("{}{}:", "{}{}:", pokyn, konec) } else { trf!("{} | {}{}:", "{} | {}{}:", self.zprava, pokyn, konec) }
     }
 
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {
@@ -623,7 +623,7 @@ impl InteractiveCommand for NovyBod {
         // takže výška = vzdálenost od místa bodu.
         if let Some([x, y, _]) = self.ceka_vysku.take() {
             let z = (pt[0] - x).hypot(pt[1] - y);
-            return self.vytvor(x, y, z, tr("zadaná"));
+            return self.vytvor(x, y, z, tr("zadaná", "entered"));
         }
         if self.druh == DruhBodu::Rucne && self.vyska.is_none() {
             self.ceka_vysku = Some(pt);
@@ -636,7 +636,7 @@ impl InteractiveCommand for NovyBod {
                 if (b.x - pt[0]).hypot(b.y - pt[1]) <= self.velikost() {
                     let b = self.body.pop().unwrap();
                     self.dalsi -= 1;
-                    self.zprava = trf!("Zpět – bod {} odebrán", b.cislo);
+                    self.zprava = trf!("Zpět – bod {} odebrán", "Undo – point {} removed", b.cislo);
                     return CommandStep::NeedPoint;
                 }
             }
@@ -663,7 +663,7 @@ impl InteractiveCommand for NovyBod {
         }
         let b = self.body.pop()?;
         self.dalsi -= 1;
-        self.zprava = trf!("Zpět – bod {} odebrán", b.cislo);
+        self.zprava = trf!("Zpět – bod {} odebrán", "Undo – point {} removed", b.cislo);
         Some(CommandStep::NeedPoint)
     }
 
@@ -675,15 +675,15 @@ impl InteractiveCommand for NovyBod {
                     self.kod = k.trim().to_string();
                 }
                 match h.get("z") {
-                    Some(DialogValue::Number(z)) if z.is_finite() => self.vytvor(x, y, *z, tr("zadaná")),
+                    Some(DialogValue::Number(z)) if z.is_finite() => self.vytvor(x, y, *z, tr("zadaná", "entered")),
                     _ => {
-                        self.zprava = tr("Výšku napište číslem").into();
+                        self.zprava = tr("Výšku napište číslem", "Enter the elevation as a number").into();
                         CommandStep::NeedPoint
                     }
                 }
             }
             DialogResponse::Cancelled => {
-                self.zprava = tr("Bod nevložen").into();
+                self.zprava = tr("Bod nevložen", "Point not inserted").into();
                 CommandStep::NeedPoint
             }
         }
@@ -733,7 +733,7 @@ impl InteractiveCommand for NovyBod {
                     self.vytvor(x, y, z, odkud)
                 }
                 None => {
-                    self.zprava = tr("Výšku napište číslem").into();
+                    self.zprava = tr("Výšku napište číslem", "Enter the elevation as a number").into();
                     CommandStep::NeedPoint
                 }
             };

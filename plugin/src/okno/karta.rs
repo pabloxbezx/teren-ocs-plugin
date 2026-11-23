@@ -1,7 +1,7 @@
 //! Karta detailu: nadpis s ikonou a stavem, hlavní čísla, nejčastější akce
 //! a záložky. Používá ji detail povrchu, skupiny a bodů.
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 
 use eframe::egui::{self, Color32, RichText, Sense};
@@ -248,39 +248,39 @@ impl Okno {
         // ── nadpis ──
         if self.prejmenovat {
             ui.horizontal(|ui| {
-                ui.label(tr("Nové jméno"));
+                ui.label(tr("Nové jméno", "New name"));
                 let r = ui.add(egui::TextEdit::singleline(&mut self.jmeno).desired_width(240.0));
                 if ui.memory(|m| m.focused().is_none()) {
                     r.request_focus();
                 }
                 let enter = r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-                if enter || ui.button(tr("Přejmenovat")).clicked() {
+                if enter || ui.button(tr("Přejmenovat", "Rename")).clicked() {
                     if self.jmeno.trim() != p.jmeno && !self.jmeno.trim().is_empty() {
                         spravce::posli(Akce::Nastav(vec![id.clone()], Zmena::Jmeno(self.jmeno.trim().to_string())));
                     }
                     self.prejmenovat = false;
                 }
-                if ui.button(tr("Zrušit")).clicked() || ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+                if ui.button(tr("Zrušit", "Cancel")).clicked() || ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     self.jmeno = p.jmeno.clone();
                     self.prejmenovat = false;
                 }
             });
         } else {
             nadpis_karty(ui, &ikona, &p.jmeno, |ui| {
-                if ui.small_button("✏").on_hover_text(tr("Přejmenovat")).clicked() {
+                if ui.small_button("✏").on_hover_text(tr("Přejmenovat", "Rename")).clicked() {
                     self.jmeno = p.jmeno.clone();
                     self.prejmenovat = true;
                 }
                 if p.zastaraly {
-                    pilulka(ui, tr("● zastaralý"), ORANZOVA).on_hover_text(tr("zdroje se od přepočtu změnily – klikněte Přepočítat"));
+                    pilulka(ui, tr("● zastaralý", "● out of date"), ORANZOVA).on_hover_text(tr("zdroje se od přepočtu změnily – klikněte Přepočítat", "the sources changed since the last recalculation – click Recalculate"));
                 } else {
-                    pilulka(ui, tr("● aktuální"), ZELENA);
+                    pilulka(ui, tr("● aktuální", "● up to date"), ZELENA);
                 }
                 if p.aktivni {
-                    pilulka(ui, tr("★ aktivní"), MODRA).on_hover_text(tr("s aktivním povrchem pracují nástroje Úpravy a Nový bod na povrchu"));
+                    pilulka(ui, tr("★ aktivní", "★ active"), MODRA).on_hover_text(tr("s aktivním povrchem pracují nástroje Úpravy a Nový bod na povrchu", "the Edits tools and New point on surface work with the active surface"));
                 }
                 if skryty {
-                    pilulka(ui, tr("skrytý"), SEDA).on_hover_text(tr("styl Nezobrazovat – povrch se počítá, ale nekreslí"));
+                    pilulka(ui, tr("skrytý", "hidden"), SEDA).on_hover_text(tr("styl Nezobrazovat – povrch se počítá, ale nekreslí", "style Do not display – the surface is computed but not drawn"));
                 }
             });
         }
@@ -289,34 +289,34 @@ impl Okno {
         let s = &p.stat;
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
-            kpi(ui, &czi(p.pocet_bodu), tr("bodů"));
-            kpi(ui, &czi(s.trojuhelniku), tr("trojúhelníků"));
-            kpi(ui, &format!("{} – {} m", cz(s.z_min, 2), cz(s.z_max, 2)), tr("výška"));
-            kpi(ui, &format!("{} m²", cz(s.plocha_2d, 0)), tr("plocha 2D")).on_hover_text(trf!("plocha 3D {} m²", cz(s.plocha_3d, 1)));
+            kpi(ui, &czi(p.pocet_bodu), tr("bodů", "points"));
+            kpi(ui, &czi(s.trojuhelniku), tr("trojúhelníků", "triangles"));
+            kpi(ui, &format!("{} – {} m", cz(s.z_min, 2), cz(s.z_max, 2)), tr("výška", "elevation"));
+            kpi(ui, &format!("{} m²", cz(s.plocha_2d, 0)), tr("plocha 2D", "2D area")).on_hover_text(trf!("plocha 3D {} m²", "3D area {} m²", cz(s.plocha_3d, 1)));
         });
 
         // ── akce ──
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
-            if tlacitko(ui, Some(ik!("ter_prepocitat")), tr("Přepočítat"), p.zastaraly).clicked() {
+            if tlacitko(ui, Some(ik!("ter_prepocitat")), tr("Přepočítat", "Recalculate"), p.zastaraly).clicked() {
                 spravce::posli(Akce::Prepocitat(vec![id.clone()]));
             }
-            if !p.aktivni && ui.button(tr("★ Nastavit jako aktivní")).clicked() {
+            if !p.aktivni && ui.button(tr("★ Nastavit jako aktivní", "★ Set as active")).clicked() {
                 spravce::posli(Akce::Aktivovat(id.clone()));
             }
-            if tlacitko(ui, Some(ik!("ter_vrstevnice")), tr("Prohlédnout ve 3D"), false).clicked() {
+            if tlacitko(ui, Some(ik!("ter_vrstevnice")), tr("Prohlédnout ve 3D", "View in 3D"), false).clicked() {
                 self.pohled.otevri(vec![id.clone()]);
                 self.rezim = Rezim::Pohled3D;
             }
             let mut auto = p.auto;
             if ui
-                .checkbox(&mut auto, tr("přepočítávat automaticky"))
-                .on_hover_text(tr("po každé změně bodů, skupin nebo spojnic se povrch přepočítá sám"))
+                .checkbox(&mut auto, tr("přepočítávat automaticky", "recalculate automatically"))
+                .on_hover_text(tr("po každé změně bodů, skupin nebo spojnic se povrch přepočítá sám", "the surface recalculates itself after every change of points, groups or breaklines"))
                 .changed()
             {
                 spravce::posli(Akce::Nastav(vec![id.clone()], Zmena::Auto(auto)));
             }
-            ui.menu_button(tr("Další ⏷"), |ui| self.menu_povrchu(ui, stav, p)).response.on_hover_text(tr("Další akce: styl, vrstevnice, přejmenovat, export, smazat"));
+            ui.menu_button(tr("Další ⏷", "More ⏷"), |ui| self.menu_povrchu(ui, stav, p)).response.on_hover_text(tr("Další akce: styl, vrstevnice, přejmenovat, export, smazat", "More actions: style, contours, rename, export, delete"));
         });
         ui.add_space(6.0);
 
@@ -328,9 +328,9 @@ impl Okno {
             _ => Tab::Prehled,
         };
         let celkem: usize = CASTI.iter().map(|c| pocet_casti(p, *c)).sum();
-        let mut polozky = vec![(Tab::Prehled, tr("Přehled").to_string()), (Tab::Zdroje, trf!("Zdroje ({})", celkem)), (Tab::Export, tr("Export").to_string())];
+        let mut polozky = vec![(Tab::Prehled, tr("Přehled", "Overview").to_string()), (Tab::Zdroje, trf!("Zdroje ({})", "Sources ({})", celkem)), (Tab::Export, tr("Export", "Export").to_string())];
         if p.upozorneni() > 0 {
-            polozky.push((Tab::Upozorneni, trf!("⚠ Upozornění ({})", p.upozorneni())));
+            polozky.push((Tab::Upozorneni, trf!("⚠ Upozornění ({})", "⚠ Warnings ({})", p.upozorneni())));
         }
         if let Some(t) = zalozky(ui, tab, &polozky) {
             match t {
@@ -384,15 +384,15 @@ impl Okno {
                 .inner_margin(egui::Margin::symmetric(10, 6))
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(trf!("⚠ {} upozornění z přepočtu", p.upozorneni())).color(ORANZOVA));
-                        if ui.link(tr("Zobrazit")).clicked() {
+                        ui.label(RichText::new(trf!("⚠ {} upozornění z přepočtu", "⚠ {} warnings from the recalculation", p.upozorneni())).color(ORANZOVA));
+                        if ui.link(tr("Zobrazit", "Show")).clicked() {
                             self.vyber_uzel(Uzel::Upozorneni(id.clone()));
                         }
                     });
                 });
             ui.add_space(6.0);
         }
-        ui.label(RichText::new(tr("Z čeho se povrch počítá")).strong());
+        ui.label(RichText::new(tr("Z čeho se povrch počítá", "What the surface is built from")).strong());
         ui.add_space(2.0);
         ui.horizontal_wrapped(|ui| {
             for c in CASTI {
@@ -404,22 +404,22 @@ impl Okno {
         });
         let skupiny: Vec<String> = p.skupiny.iter().filter(|g| g.zapnuto).map(|g| g.jmeno.clone()).collect();
         let mut t = if skupiny.is_empty() {
-            tr("Povrch nebere body ze žádné skupiny.").to_string()
+            tr("Povrch nebere body ze žádné skupiny.", "The surface takes points from no group.").to_string()
         } else {
-            trf!("{} bodů ze skupin {} (vyloučeno podle kódu {})", p.pocet_bodu, skupiny.join(", "), p.vylouceno_bodu)
+            trf!("{} bodů ze skupin {} (vyloučeno podle kódu {})", "{} points from groups {} (excluded by code {})", p.pocet_bodu, skupiny.join(", "), p.vylouceno_bodu)
         };
         let z_objektu: usize = p.polozky.iter().filter(|x| x.zapnuto && matches!(x.druh, DruhPolozky::Objekt(_))).map(|x| x.vrcholu).sum();
         if z_objektu > 0 {
-            t.push_str(&trf!(", {} z objektů výkresu", z_objektu));
+            t.push_str(&trf!(", {} z objektů výkresu", ", {} from drawing objects", z_objektu));
         }
         ui.label(RichText::new(t).small().color(SEDA));
         ui.add_space(8.0);
-        ui.label(RichText::new(tr("Zobrazení a výpočet")).strong());
+        ui.label(RichText::new(tr("Zobrazení a výpočet", "Display and computation")).strong());
         ui.add_space(2.0);
         self.nastaveni_povrchu(ui, stav, p);
         ui.add_space(10.0);
-        if ui.button(RichText::new(tr("Smazat povrch")).color(CERVENA)).clicked() {
-            smazat(trf!("Povrch „{}“ je smazaný.", p.jmeno), Akce::Smazat(id.clone()));
+        if ui.button(RichText::new(tr("Smazat povrch", "Delete surface")).color(CERVENA)).clicked() {
+            smazat(trf!("Povrch „{}“ je smazaný.", "Surface \"{}\" was deleted.", p.jmeno), Akce::Smazat(id.clone()));
         }
     }
 }

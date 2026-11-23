@@ -296,11 +296,11 @@ impl Vzhled {
     }
 
     pub fn pismo(&self, role: &str) -> &Pismo {
-        self.pisma.iter().find(|p| p.0 == role).or_else(|| self.pisma.iter().find(|p| p.0 == "hodnota")).map(|p| &p.1).expect("role písma")
+        self.pisma.iter().find(|p| p.0 == role).or_else(|| self.pisma.iter().find(|p| p.0 == "hodnota")).map(|p| &p.1).expect("role písma") // i18n:ne
     }
 
     pub fn cara(&self, k: &str) -> &Cara {
-        self.cary.iter().find(|c| c.0 == k).map(|c| &c.1).expect("čára")
+        self.cary.iter().find(|c| c.0 == k).map(|c| &c.1).expect("čára") // i18n:ne
     }
 
     /// Tloušťka [mm] podle odkazu.
@@ -315,7 +315,7 @@ impl Vzhled {
 
 /// Nadpis s doplněnými zástupnými texty `{trasa}`, `{povrch}`, `{meritko}`.
 pub fn dosad_nadpis(sablona: &str, trasa: &str, povrch: &str, meritko: &str) -> String {
-    sablona.replace("{trasa}", trasa).replace("{povrch}", povrch).replace("{meritko}", meritko).replace("{měřítko}", meritko)
+    sablona.replace("{trasa}", trasa).replace("{povrch}", povrch).replace("{meritko}", meritko).replace("{měřítko}", meritko) // i18n:ne
 }
 
 #[cfg(test)]

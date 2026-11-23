@@ -75,7 +75,7 @@ pub fn dekoduj(b: &[u8], k: Kodovani) -> String {
     t.trim_start_matches('\u{feff}').to_string()
 }
 
-const CESKE: &str = "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽäöüôĺľŕÄÖÜÔĹĽŔ";
+const CESKE: &str = "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽäöüôĺľŕÄÖÜÔĹĽŔ"; // i18n:ne
 
 /// Jak „česky“ text vypadá: písmena s diakritikou plus, rámečky,
 /// řídicí a nahrazené znaky minus.

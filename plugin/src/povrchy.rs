@@ -6,7 +6,7 @@
 //! Povinné spojnice, hranice a díry jsou obyčejné čáry ve výkrese na hladinách
 //! povrchu, takže je jde upravovat běžnými nástroji.
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
@@ -400,7 +400,7 @@ pub fn aktivni_id_hodnota() -> Option<String> {
 pub fn aktivni(doc: &CadDocument) -> Result<ZaznamPovrchu, String> {
     let vse = povrchy(doc);
     if vse.is_empty() {
-        return Err(tr("ve výkrese zatím není povrch – vytvořte ho tlačítkem Nový povrch (záložka Terén) nebo v Prospektoru pravým tlačítkem na Povrchy").into());
+        return Err(tr("ve výkrese zatím není povrch – vytvořte ho tlačítkem Nový povrch (záložka Terén) nebo v Prospektoru pravým tlačítkem na Povrchy", "there is no surface in the drawing yet – create one with the New surface button (Terén tab) or in the Prospector by right-clicking Surfaces").into());
     }
     if let Some(id) = aktivni_id_hodnota() {
         if let Some(z) = vse.iter().find(|z| z.id == id) {
@@ -500,18 +500,18 @@ impl TypObjektu {
     }
     pub fn nazev(self) -> &'static str {
         match self {
-            TypObjektu::Body => tr("Body (POINT)"),
-            TypObjektu::Bloky => tr("Bloky (výška z vložení)"),
-            TypObjektu::Cary => tr("Čáry a křivky (vrcholy)"),
-            TypObjektu::Plochy => tr("3D plochy"),
+            TypObjektu::Body => tr("Body (POINT)", "Points (POINT)"),
+            TypObjektu::Bloky => tr("Bloky (výška z vložení)", "Blocks (elevation from insertion)"),
+            TypObjektu::Cary => tr("Čáry a křivky (vrcholy)", "Lines and polylines (vertices)"),
+            TypObjektu::Plochy => tr("3D plochy", "3D faces"),
         }
     }
     pub fn mnozne(self) -> &'static str {
         match self {
-            TypObjektu::Body => tr("body"),
-            TypObjektu::Bloky => tr("bloky"),
-            TypObjektu::Cary => tr("čáry"),
-            TypObjektu::Plochy => tr("3D plochy"),
+            TypObjektu::Body => tr("body", "points"),
+            TypObjektu::Bloky => tr("bloky", "blocks"),
+            TypObjektu::Cary => tr("čáry", "lines"),
+            TypObjektu::Plochy => tr("3D plochy", "3D faces"),
         }
     }
     /// Má smysl volba „zachovat hrany“?
@@ -1098,7 +1098,7 @@ pub fn prestav_s(v: &mut dyn Vykres, z: &mut ZaznamPovrchu, doc: Option<CadDocum
         }
     }
     if povrch.trojuhelniky.is_empty() {
-        return Err(tr("povrch nemá žádné trojúhelníky – zkontrolujte hranici (neořízla vše?), díry a skupiny bodů v Prospektoru").into());
+        return Err(tr("povrch nemá žádné trojúhelníky – zkontrolujte hranici (neořízla vše?), díry a skupiny bodů v Prospektoru", "the surface has no triangles – check the boundary (did it clip everything?), holes and point groups in the Prospector").into());
     }
 
     zajisti_hladiny(v, &doc, z);
@@ -1135,9 +1135,9 @@ pub fn prestav_s(v: &mut dyn Vykres, z: &mut ZaznamPovrchu, doc: Option<CadDocum
         entities: handly,
         base_point: zaklad,
         erase_originals: true,
-        description: Some(trf!("Povrch {} (plugin Terén)", z.jmeno)),
+        description: Some(trf!("Povrch {} (plugin Terén)", "Surface {} (Terén plugin)", z.jmeno)),
     })
-    .map_err(|e| trf!("blok povrchu nejde vytvořit: {}", e))?;
+    .map_err(|e| trf!("blok povrchu nejde vytvořit: {}", "the surface block cannot be created: {}", e))?;
     // starý povrch pryč
     if z.insert != Handle::NULL {
         v.odeber(z.insert);
@@ -1145,7 +1145,7 @@ pub fn prestav_s(v: &mut dyn Vykres, z: &mut ZaznamPovrchu, doc: Option<CadDocum
     let stary = z.blok_ve_vykrese();
     if !stary.eq_ignore_ascii_case(&docasny) && doc.block_records.iter().any(|b| b.name.eq_ignore_ascii_case(&stary)) {
         if let Err(e) = v.tabulka(TableOperation::BlockDelete { name: stary }) {
-            v.chyba(&trf!("Terén: starý blok povrchu nejde odstranit: {}", e));
+            v.chyba(&trf!("Terén: starý blok povrchu nejde odstranit: {}", "Terén: the old surface block cannot be removed: {}", e));
         }
     }
     let jmeno_bloku = match v.tabulka(TableOperation::BlockRename { from: docasny.clone(), to: z.blok() }) {
@@ -1181,7 +1181,7 @@ pub fn prestav_s(v: &mut dyn Vykres, z: &mut ZaznamPovrchu, doc: Option<CadDocum
     // otisk se počítá ze zdrojů bez značek (ty jsou teď součástí z.upravy)
     z.otisk = otisk(z, &zdroje);
     if !v.zapis_xdata(insert, z.xdata()) {
-        return Err(tr("nepodařilo se uložit definici povrchu").into());
+        return Err(tr("nepodařilo se uložit definici povrchu", "the surface definition could not be saved").into());
     }
     if !trida_hned {
         v.zapis_xdata(insert, zaznam_tridy("POVRCH"));
@@ -1217,14 +1217,14 @@ pub fn vypis(v: &mut dyn Vykres, z: &ZaznamPovrchu, r: &Vysledek) {
     let hl = &r.povrch.hlaseni;
     let mut upozorneni = Vec::new();
     if !hl.krizeni_spojnic.is_empty() {
-        upozorneni.push(trf!("{} křížení spojnic", hl.krizeni_spojnic.len()));
+        upozorneni.push(trf!("{} křížení spojnic", "{} breakline crossings", hl.krizeni_spojnic.len()));
     }
     if !hl.nepouzite_editace.is_empty() {
-        upozorneni.push(trf!("{} úprav bez účinku", hl.nepouzite_editace.len()));
+        upozorneni.push(trf!("{} úprav bez účinku", "{} edits without effect", hl.nepouzite_editace.len()));
     }
-    v.info(&trf!("Terén: „{}“ – {} trojúhelníků, výška {:.2}–{:.2}", z.jmeno, s.pocet_trojuhelniku, s.z_min, s.z_max));
+    v.info(&trf!("Terén: „{}“ – {} trojúhelníků, výška {:.2}–{:.2}", "Terén: \"{}\" – {} triangles, elevation {:.2}–{:.2}", z.jmeno, s.pocet_trojuhelniku, s.z_min, s.z_max));
     if !upozorneni.is_empty() {
-        v.chyba(&trf!("⚠ Terén: „{}“ – {} → Prospektor", z.jmeno, upozorneni.join(", ")));
+        v.chyba(&trf!("⚠ Terén: „{}“ – {} → Prospektor", "⚠ Terén: \"{}\" – {} → Prospector", z.jmeno, upozorneni.join(", ")));
     }
 }
 

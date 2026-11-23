@@ -15,7 +15,7 @@ use trasy::pasy::{mista_bez_kolizi, vyska_v, DruhPasu, Pas, Poloha, Zdroj};
 use trasy::pohled::{nastaveni_s, DefinicePohledu, Osy};
 use trasy::styl::Hodnoty;
 use trasy::vzhled::Vzhled;
-use trasy::preklad::tr;
+use crate::lang::tr;
 use trasy::profil::{profil_terenu, rozsah_vysek, Povrch};
 use trasy::stanice::{cislo, staniceni, FormatStanice};
 use trasy::trf;
@@ -115,7 +115,7 @@ pub fn prekresli_zastarale_h(
     for p in zastarale {
         match uloz_s(v, doc, Some(&p), &p.def, p.vlozeni, nova) {
             Ok((h, _)) => out.push((p.insert, h)),
-            Err(e) => v.chyba(&trf!("Trasy: pohled {}: {}", p.def.id, e)),
+            Err(e) => v.chyba(&trf!("Trasy: pohled {}: {}", "Alignments: view {}: {}", p.def.id, e)),
         }
     }
     out
@@ -221,7 +221,7 @@ fn upraveny_povrch(vse: &[povrchy::PovrchTerenu], def: &DefinicePohledu) -> Opti
     let jine: Vec<_> = vse.iter().filter(|p| p.id != def.povrch).collect();
     let jmeno = |p: &&&povrchy::PovrchTerenu| {
         let j = p.jmeno.to_lowercase();
-        ["uprav", "návrh", "navrh", "design"].iter().any(|x| j.contains(x))
+        ["uprav", "návrh", "navrh", "design"].iter().any(|x| j.contains(x)) // i18n:ne
     };
     jine.iter().find(jmeno).or(jine.first()).map(|p| p.id.clone())
 }
@@ -229,14 +229,14 @@ fn upraveny_povrch(vse: &[povrchy::PovrchTerenu], def: &DefinicePohledu) -> Opti
 /// Načte z výkresu, co pohled potřebuje. `vsechny` = profily všech povrchů
 /// (pro editor, kde si pás může vybrat jakýkoli), jinak jen těch, ze kterých pásy čtou.
 pub fn podklady(doc: &CadDocument, def: &DefinicePohledu, nova: Option<&objekt::ObjektTrasy>, vsechny: bool) -> Result<Podklady, String> {
-    let trasa = trasa_pohledu(doc, def, nova).ok_or_else(|| trf!("trasa {} už ve výkrese není", def.trasa))?;
+    let trasa = trasa_pohledu(doc, def, nova).ok_or_else(|| trf!("trasa {} už ve výkrese není", "alignment {} is no longer in the drawing", def.trasa))?;
     let g = trasa.geometrie()?;
     let vse = povrchy::povrchy(doc);
-    let povrch = vse.iter().find(|p| p.id == def.povrch).ok_or_else(|| trf!("povrch {} už ve výkrese není", def.povrch))?;
+    let povrch = vse.iter().find(|p| p.id == def.povrch).ok_or_else(|| trf!("povrch {} už ve výkrese není", "surface {} is no longer in the drawing", def.povrch))?;
     let troj = povrchy::trojuhelniky(doc, povrch);
     if troj.is_empty() {
         return Err(trf!(
-            "povrch „{}“ nemá ve výkrese trojúhelníky – v Terénu mu nastavte styl se zobrazeným TIN a zkuste to znovu",
+            "povrch „{}“ nemá ve výkrese trojúhelníky – v Terénu mu nastavte styl se zobrazeným TIN a zkuste to znovu", "surface \"{}\" has no triangles in the drawing – give it a style showing the TIN in Terén and try again",
             povrch.jmeno
         ));
     }
@@ -245,7 +245,7 @@ pub fn podklady(doc: &CadDocument, def: &DefinicePohledu, nova: Option<&objekt::
     let od = def.od.unwrap_or(g.pocatek).max(g.pocatek);
     let do_ = def.do_.unwrap_or(g.konec()).min(g.konec());
     let useky = profil_terenu(&g, &index, od, do_);
-    let (mut zmin, mut zmax) = rozsah_vysek(&useky).ok_or_else(|| trf!("trasa {} nepřechází přes povrch „{}“", trasa.def.jmeno, povrch.jmeno))?;
+    let (mut zmin, mut zmax) = rozsah_vysek(&useky).ok_or_else(|| trf!("trasa {} nepřechází přes povrch „{}“", "alignment {} does not cross surface \"{}\"", trasa.def.jmeno, povrch.jmeno))?;
     let niveleta = trasa.def.nivelety.first().filter(|n| n.kontrola().is_ok()).cloned();
     if let Some(n) = &niveleta {
         for v in &n.vrcholy {
@@ -508,11 +508,11 @@ pub fn kresli(pk: &Podklady, def: &DefinicePohledu, nast: &Hodnoty) -> (Vec<Enti
         ent.push(pero.cara([0.0, 0.0], [w, 0.0], "pasy", H_RAM));
     }
     // srovnávací rovina
-    let sr = trf!("S.R. {} m n. m.", cislo(osy.srovnavaci, 2, true));
+    let sr = trf!("S.R. {} m n. m.", "Datum {} m a.s.l.", cislo(osy.srovnavaci, 2, true));
     if vykres && !pasy_vid.is_empty() {
         // záhlaví „SROVNÁVACÍ ROVINA“ a hodnota nad osou na začátku grafu
-        ent.push(pero.text("zahlavi", tr("Srovnávací rovina").to_uppercase(), [-sirka_zahlavi + 2.0 * m, 0.8 * m], TextHorizontalAlignment::Left, TextVerticalAlignment::Bottom, 0.0, H_PASY));
-        ent.push(pero.text("hodnota", trf!("{} m n. m.", cislo(osy.srovnavaci, 2, true)), [0.8 * m, 0.8 * m], TextHorizontalAlignment::Left, TextVerticalAlignment::Bottom, 0.0, H_PASY));
+        ent.push(pero.text("zahlavi", tr("Srovnávací rovina", "Datum").to_uppercase(), [-sirka_zahlavi + 2.0 * m, 0.8 * m], TextHorizontalAlignment::Left, TextVerticalAlignment::Bottom, 0.0, H_PASY));
+        ent.push(pero.text("hodnota", trf!("{} m n. m.", "{} m a.s.l.", cislo(osy.srovnavaci, 2, true)), [0.8 * m, 0.8 * m], TextHorizontalAlignment::Left, TextVerticalAlignment::Bottom, 0.0, H_PASY));
     } else if pasy_vid.is_empty() {
         ent.push(pero.text("legenda", sr, [0.0, -2.0 * hg], TextHorizontalAlignment::Left, TextVerticalAlignment::Top, 0.0, H_POPIS));
     } else {
@@ -561,7 +561,7 @@ pub fn kresli(pk: &Podklady, def: &DefinicePohledu, nast: &Hodnoty) -> (Vec<Enti
                     format!("L1 {} · L2 {} · y {}", cislo(o.t1, 2, true), cislo(o.t2, 2, true), cislo(o.vzepeti, 3, true))
                 }
                 trasy::niveleta::TypOblouku::Kruh => trf!(
-                    "kruh R {} · L {} · K {}",
+                    "kruh R {} · L {} · K {}", "circle R {} · L {} · K {}",
                     cislo(o.r, 0, true),
                     cislo(o.delka, 2, true),
                     cislo(o.k, if o.k < 10.0 { 2 } else { 1 }, true)
@@ -651,10 +651,10 @@ pub fn kresli(pk: &Podklady, def: &DefinicePohledu, nast: &Hodnoty) -> (Vec<Enti
     if vz.legenda {
         let yl = dole - 3.0 * hl;
         let mut x = 0.0;
-        let mut polozky: Vec<(String, &str)> = vec![(trf!("Terén – {}", pk.povrch), "teren")];
+        let mut polozky: Vec<(String, &str)> = vec![(trf!("Terén – {}", "Terrain – {}", pk.povrch), "teren")];
         if pk.niveleta.is_some() {
             let nazev = nast.text("nazev_nivelety");
-            polozky.push((if nazev.trim().is_empty() { tr("Niveleta").to_string() } else { trasy::preklad::tr_dyn(nazev) }, "niveleta"));
+            polozky.push((if nazev.trim().is_empty() { tr("Niveleta", "Design profile").to_string() } else { crate::lang::tr_dyn(nazev) }, "niveleta"));
         }
         for (id, _) in &pk.dalsi {
             if pasy_vid.iter().any(|p| p.zdroj == Zdroj::Povrch(id.clone()) || p.zdroj2 == Zdroj::Povrch(id.clone())) {
@@ -728,7 +728,7 @@ pub fn uloz_s(
             }
             crate::vykres::nastav_zaznam(&mut ins, zaznam_pohledu());
             crate::vykres::nastav_zaznam(&mut ins, crate::povrchy::zaznam_tridy("POHLED"));
-            if crate::vykres::prepis_blok(v, doc, &st.blok, s.objekty.clone(), ins, tr("Podélný profil"))? {
+            if crate::vykres::prepis_blok(v, doc, &st.blok, s.objekty.clone(), ins, tr("Podélný profil", "Longitudinal profile"))? {
                 MA_POHLEDY.store(true, std::sync::atomic::Ordering::SeqCst);
                 v.zmeneno();
                 return Ok((st.insert, s));
@@ -746,9 +746,9 @@ pub fn uloz_s(
         entities: handly,
         base_point: [0.0, 0.0, 0.0],
         erase_originals: true,
-        description: Some(trf!("Pohled podélného profilu {} (plugin Trasy)", def.id)),
+        description: Some(trf!("Pohled podélného profilu {} (plugin Trasy)", "Longitudinal profile view {} (Alignments plugin)", def.id)),
     })
-    .map_err(|e| trf!("blok pohledu nejde vytvořit: {}", e))?;
+    .map_err(|e| trf!("blok pohledu nejde vytvořit: {}", "the view block cannot be created: {}", e))?;
     if let Some(st) = stary {
         v.odeber(st.insert);
         if !st.blok.eq_ignore_ascii_case(&docasny) && doc.block_records.iter().any(|b| b.name.eq_ignore_ascii_case(&st.blok)) {
@@ -764,7 +764,7 @@ pub fn uloz_s(
     let insert = v.pridej_jednu(EntityType::Insert(ins))?;
     MA_POHLEDY.store(true, std::sync::atomic::Ordering::SeqCst);
     if !v.zapis_xdata(insert, zaznam_pohledu()) {
-        return Err(tr("nepodařilo se uložit definici pohledu").into());
+        return Err(tr("nepodařilo se uložit definici pohledu", "the view definition could not be saved").into());
     }
     v.zapis_xdata(insert, crate::povrchy::zaznam_tridy("POHLED"));
     v.hotovo();
@@ -888,7 +888,7 @@ fn pasy(k: &KontextPasu) -> (Vec<EntityType>, f64, Rozvrzeni) {
             cara(ent, [-k.sirka_zahlavi, y1], [0.0, y1]);
             cara(ent, [0.0, y0], [0.0, y1]);
         }
-        let zahlavi = if pas.nazev.trim().is_empty() { tr(pas.druh.nazev()).to_string() } else { pas.nazev.clone() };
+        let zahlavi = if pas.nazev.trim().is_empty() { crate::lang::tr_tab(pas.druh.nazev()).to_string() } else { pas.nazev.clone() };
         let zahlavi = if k.vykres { velka_mimo_jednotky(&zahlavi) } else { zahlavi };
         // výkresový režim: osa staničení
         if k.vykres && pas.druh == DruhPasu::Staniceni {

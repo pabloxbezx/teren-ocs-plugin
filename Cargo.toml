@@ -8,9 +8,10 @@ calamine = { version = "0.38.0", default-features = false }
 clap = { version = "4", features = ["derive"] }
 encoding_rs = "0.8.42"
 spade = "2"
+teren_lang = { path = "lang" }
 
 [workspace]
-members = [".", "plugin", "trasy"]
+members = [".", "plugin", "trasy", "lang"]
 
 [profile.release]
 opt-level = 3

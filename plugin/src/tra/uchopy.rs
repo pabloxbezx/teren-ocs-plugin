@@ -20,7 +20,7 @@ use ocs_plugin_api::host::{
     PluginRequestSender, PreviewWire,
 };
 use trasy::geometrie::{geometrie, Geometrie, Prvek, Vrchol};
-use trasy::preklad::tr;
+use crate::lang::tr;
 use trasy::trf;
 
 use crate::tra::objekt::{self, ObjektTrasy};
@@ -246,13 +246,13 @@ fn uloz_niveletu(host: &mut dyn HostApi, t: &TahNivelety, v: Vec<VrcholNivelety>
     if let Err(e) = Niveleta::nova("N", "", v.clone()).kontrola() {
         let (txt, a) = e.popis();
         host.push_error(&trf!(
-            "Trasy: změna se nepřijala – {}",
-            trasy::preklad::formatuj(tr(txt), &a.iter().map(|x| x as &dyn std::fmt::Display).collect::<Vec<_>>())
+            "Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}",
+            crate::lang::formatuj(crate::lang::tr_tab(txt), &a.iter().map(|x| x as &dyn std::fmt::Display).collect::<Vec<_>>())
         ));
         return;
     }
     VLASTNI_UPRAVA.store(true, Ordering::SeqCst);
-    host.begin_undo_group(tr("Úprava nivelety"));
+    host.begin_undo_group(tr("Úprava nivelety", "Edit design profile"));
     let mut def = t.trasa.def.clone();
     def.nivelety[0].vrcholy = v;
     let nova = ObjektTrasy { def: def.clone(), ..t.trasa.clone() };
@@ -507,7 +507,7 @@ pub fn udalost(host: &mut dyn HostApi, ev: CustomGripEvent) -> CustomGripRespons
 
 fn uloz(host: &mut dyn HostApi, t: &Tah, v: Vec<Vrchol>) {
     if let Err(e) = geometrie(&v, t.trasa.def.pocatek) {
-        host.push_error(&trf!("Trasy: změna se nepřijala – {}", objekt::chyba_geometrie(e)));
+        host.push_error(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", objekt::chyba_geometrie(e)));
         return;
     }
     // obnovu po vlastní úpravě dělá tato funkce sama (bez kopie výkresu)
@@ -516,7 +516,7 @@ fn uloz(host: &mut dyn HostApi, t: &Tah, v: Vec<Vrchol>) {
     // nich umožní přepsat blok trasy na místě (snímek + transakce místo ~11
     // požadavků). U velkého výkresu bez pohledů radši postaru bez snímku.
     let doc = (crate::tra::pohled::ma_pohledy() || !crate::vykres::velky_vykres()).then(|| host.document().clone());
-    host.begin_undo_group(tr("Úprava trasy"));
+    host.begin_undo_group(tr("Úprava trasy", "Edit alignment"));
     let mut nova = None;
     {
         let mut w = PresHostPrimo(host);
@@ -533,7 +533,7 @@ fn uloz(host: &mut dyn HostApi, t: &Tah, v: Vec<Vrchol>) {
                 }
                 nova = Some(h);
             }
-            Err(e) => w.chyba(&trf!("Trasy: {}", e)),
+            Err(e) => w.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
         }
     }
     host.end_undo_group();
@@ -634,11 +634,11 @@ fn spust_obnovu(tab: u64) {
                         // odložený přepočet – provede ho správce po chvíli klidu
                         crate::prepocet::odloz();
                     } else if zastarale {
-                        k.zacatek_kroku(tr("Přepočet podélného profilu"));
+                        k.zacatek_kroku(tr("Přepočet podélného profilu", "Recompute longitudinal profile"));
                         let n = crate::tra::pohled::prekresli_zastarale(&mut k, &doc, None, None);
                         k.konec_kroku();
                         if n > 0 {
-                            k.info(&trf!("Trasy: přepočítáno pohledů: {}.", n));
+                            k.info(&trf!("Trasy: přepočítáno pohledů: {}.", "Alignments: views recomputed: {}.", n));
                         }
                         if let Ok(d) = k.dokument() {
                             doc = d;

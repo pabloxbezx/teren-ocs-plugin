@@ -12,7 +12,7 @@ use teren::body::{nacti_body, rozdel_radek, Bod, Desetinna, FormatBodu, Oddelova
 use teren::duplicity::{self, Duplicity, Politika};
 use teren::formaty::{self, DruhZdroje};
 use teren::kodovani::{self, Kodovani};
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::rozpoznani::{self, nazev_desetinne, nazev_oddelovace, podezrela_vyska, s_formatem, v_cr, Navrh, Puvod};
 use teren::trf;
 
@@ -48,13 +48,13 @@ const VYSKA_RADKU: f32 = 22.0;
 
 /// Rychlé předvolby pořadí sloupců.
 const VZORY: [(&str, &str); 7] = [
-    ("PNEZD", "PNEZD – číslo, N, E, Z, popis"),
-    ("PENZD", "PENZD – číslo, E, N, Z, popis"),
-    ("PYXZD", "PYXZD – číslo, Y, X, Z, popis (S-JTSK)"),
-    ("PXYZD", "PXYZD – číslo, X, Y, Z, popis (S-JTSK)"),
-    ("NEZD", "NEZ – bez čísla"),
-    ("ENZD", "ENZ – bez čísla"),
-    ("YXZD", "YXZ – bez čísla (S-JTSK)"),
+    ("PNEZD", "PNEZD – číslo, N, E, Z, popis"), // i18n:ne
+    ("PENZD", "PENZD – číslo, E, N, Z, popis"), // i18n:ne
+    ("PYXZD", "PYXZD – číslo, Y, X, Z, popis (S-JTSK)"), // i18n:ne
+    ("PXYZD", "PXYZD – číslo, X, Y, Z, popis (S-JTSK)"), // i18n:ne
+    ("NEZD", "NEZ – bez čísla"), // i18n:ne
+    ("ENZD", "ENZ – bez čísla"), // i18n:ne
+    ("YXZD", "YXZ – bez čísla (S-JTSK)"), // i18n:ne
 ];
 const ODDELOVACE: [Oddelovac; 4] = [Oddelovac::Strednik, Oddelovac::Mezera, Oddelovac::Tabulator, Oddelovac::Carka];
 const ROLE: [Sloupec; 8] =
@@ -62,14 +62,14 @@ const ROLE: [Sloupec; 8] =
 
 fn nazev_role(s: Sloupec) -> &'static str {
     match s {
-        Sloupec::Cislo => tr("Číslo"),
-        Sloupec::SjtskY => tr("Y (S-JTSK)"),
-        Sloupec::SjtskX => tr("X (S-JTSK)"),
-        Sloupec::E => tr("E (výkres)"),
-        Sloupec::N => tr("N (výkres)"),
+        Sloupec::Cislo => tr("Číslo", "Number"), // i18n:ne
+        Sloupec::SjtskY => tr("Y (S-JTSK)", "Y (S-JTSK)"),
+        Sloupec::SjtskX => tr("X (S-JTSK)", "X (S-JTSK)"),
+        Sloupec::E => tr("E (výkres)", "E (drawing)"), // i18n:ne
+        Sloupec::N => tr("N (výkres)", "N (drawing)"), // i18n:ne
         Sloupec::Z => "Z",
-        Sloupec::Popis => tr("Kód/popis"),
-        Sloupec::Preskocit => tr("Ignorovat"),
+        Sloupec::Popis => tr("Kód/popis", "Code/description"), // i18n:ne
+        Sloupec::Preskocit => tr("Ignorovat", "Ignore"),
     }
 }
 
@@ -296,7 +296,7 @@ impl NahledImportu {
                 self.dekoduj();
             }
             Err(e) => {
-                self.chyba = Some(trf!("nelze číst soubor {}: {}", cesta, e));
+                self.chyba = Some(trf!("nelze číst soubor {}: {}", "cannot read file {}: {}", cesta, e)); // i18n:ne
                 self.druh = None;
             }
         }
@@ -322,9 +322,9 @@ impl NahledImportu {
     }
 
     fn ze_schranky(&mut self, text: String, zdroje: &[String]) {
-        let n = (1..).find(|i| !zdroje.iter().any(|z| z.eq_ignore_ascii_case(&trf!("schránka {}", i)))).unwrap_or(1);
+        let n = (1..).find(|i| !zdroje.iter().any(|z| z.eq_ignore_ascii_case(&trf!("schránka {}", "clipboard {}", i)))).unwrap_or(1); // i18n:ne
         *self = Self { fronta: std::mem::take(&mut self.fronta), ..Self::prazdny() };
-        self.soubor = trf!("schránka {}", n);
+        self.soubor = trf!("schránka {}", "clipboard {}", n); // i18n:ne
         self.druh = Some(DruhZdroje::Text);
         self.text = text.replace("\r\n", "\n");
         self.rozpoznej_vse();
@@ -336,7 +336,7 @@ impl NahledImportu {
         stav.hladiny = z.hladiny;
         stav.statistika = z.statistika;
         self.cesta.clear();
-        self.soubor = tr("výkres").into();
+        self.soubor = tr("výkres", "drawing").into(); // i18n:ne
         self.druh = Some(DruhZdroje::Text);
         self.kodovani = None;
         self.chyba = None;
@@ -354,15 +354,15 @@ impl NahledImportu {
         let pref = nastaveni::akt();
         let k = match pref.format.as_deref().and_then(|f| FormatBodu::z_retezce(f, pref.oddelovac).ok()) {
             Some(f) if self.z_vykresu.is_none() && self.druh == Some(DruhZdroje::Text) => {
-                self.popis_rozpoznani = tr("podle Nastavení (pevný formát)").into();
+                self.popis_rozpoznani = tr("podle Nastavení (pevný formát)", "from Settings (fixed format)").into(); // i18n:ne
                 Some(s_formatem(&self.text, &f, Puvod::Vzor))
             }
             _ => {
                 let k = rozpoznani::rozpoznej(&self.text).into_iter().next();
                 self.popis_rozpoznani = match &k {
-                    Some(k) if k.sjtsk() => tr("rozpoznáno automaticky").into(),
-                    Some(_) => tr("rozpoznáno automaticky – body neleží v S-JTSK pro ČR, ověřte sloupce").into(),
-                    None => tr("formát se nepodařilo rozpoznat – nastavte sloupce ručně").into(),
+                    Some(k) if k.sjtsk() => tr("rozpoznáno automaticky", "detected automatically").into(), // i18n:ne
+                    Some(_) => tr("rozpoznáno automaticky – body neleží v S-JTSK pro ČR, ověřte sloupce", "detected automatically – points do not lie in S-JTSK for the Czech Republic, check the columns").into(), // i18n:ne
+                    None => tr("formát se nepodařilo rozpoznat – nastavte sloupce ručně", "the format could not be detected – set the columns manually").into(), // i18n:ne
                 };
                 k
             }
@@ -404,7 +404,7 @@ impl NahledImportu {
             self.desetinna = s.desetinna;
             self.hlavicka = s.hlavicka;
             self.rucne = Rucne { oddelovac: true, kodovani: self.rucne.kodovani, desetinna: true, hlavicka: true, sloupce: true };
-            self.popis_rozpoznani = trf!("šablona „{}“", s.jmeno);
+            self.popis_rozpoznani = trf!("šablona „{}“", "template \"{}\"", s.jmeno); // i18n:ne
             self.varovani = false;
             self.zmeneno = true;
         }
@@ -516,12 +516,12 @@ impl NahledImportu {
         let b = self.vysledek.body.get(i)?;
         let mut d = Vec::new();
         if podezrela_vyska(b.z) {
-            d.push(trf!("výška {:.2} m – překlep?", b.z));
+            d.push(trf!("výška {:.2} m – překlep?", "elevation {:.2} m – typo?", b.z)); // i18n:ne
         }
         if self.odlehle.contains(&i) {
-            d.push(tr("daleko od ostatních bodů").to_string());
+            d.push(tr("daleko od ostatních bodů", "far from the other points").to_string()); // i18n:ne
         } else if self.vetsina_v_cr && !v_cr(b.x, b.y) {
-            d.push(tr("mimo ČR (S-JTSK)").to_string());
+            d.push(tr("mimo ČR (S-JTSK)", "outside the Czech Republic (S-JTSK)").to_string()); // i18n:ne
         }
         (!d.is_empty()).then(|| d.join(" · "))
     }
@@ -529,17 +529,17 @@ impl NahledImportu {
     fn duplicita(&self, i: usize) -> Option<String> {
         let b = self.vysledek.body.get(i)?;
         let akce = match self.politika() {
-            Politika::Preskocit => tr(" – přeskočí se"),
-            Politika::Prepsat => tr(" – přepíše"),
-            Politika::Precislovat(_) => tr(" – přečísluje se"),
+            Politika::Preskocit => tr(" – přeskočí se", " – will be skipped"), // i18n:ne
+            Politika::Prepsat => tr(" – přepíše", " – will overwrite"), // i18n:ne
+            Politika::Precislovat(_) => tr(" – přečísluje se", " – will be renumbered"), // i18n:ne
             Politika::Ponechat => "",
         };
         if self.dup.je_v_souboru(i) {
-            return Some(trf!("číslo {} je v souboru víckrát{}", b.cislo, akce));
+            return Some(trf!("číslo {} je v souboru víckrát{}", "number {} appears more than once in the file{}", b.cislo, akce)); // i18n:ne
         }
         let e = self.dup.ve_vykresu_pro(i)?;
         let d = self.existujici.get(e).map_or(0.0, |x| (x.x - b.x).hypot(x.y - b.y));
-        Some(trf!("{} už je ve výkresu ({:.2} m jinde){}", b.cislo, d, akce))
+        Some(trf!("{} už je ve výkresu ({:.2} m jinde){}", "{} is already in the drawing ({:.2} m away){}", b.cislo, d, akce)) // i18n:ne
     }
 
     fn pocty(&self) -> (usize, usize, usize, usize, usize) {
@@ -606,12 +606,12 @@ fn otevri_dialog(_d: Dialog, _ctx: egui::Context) {}
 fn otevri_dialog(d: Dialog, ctx: egui::Context) {
     std::thread::spawn(move || {
         let (nazev, pripony): (&str, &[&str]) = match d {
-            Dialog::Text | Dialog::Vice => (tr("Body (TXT, CSV, XYZ, XLSX, XML, GSI)"), &["txt", "csv", "xyz", "xlsx", "xls", "ods", "xml", "jxl", "gsi"]),
+            Dialog::Text | Dialog::Vice => (tr("Body (TXT, CSV, XYZ, XLSX, XML, GSI)", "Points (TXT, CSV, XYZ, XLSX, XML, GSI)"), &["txt", "csv", "xyz", "xlsx", "xls", "ods", "xml", "jxl", "gsi"]),
             Dialog::Excel => ("Excel", &["xlsx", "xlsm", "xls", "ods"]),
             Dialog::LandXml => ("LandXML", &["xml"]),
-            Dialog::Pristroj => (tr("Totální stanice / GNSS"), &["gsi", "jxl", "xml", "csv", "txt"]),
+            Dialog::Pristroj => (tr("Totální stanice / GNSS", "Total station / GNSS"), &["gsi", "jxl", "xml", "csv", "txt"]), // i18n:ne
         };
-        let mut f = rfd::FileDialog::new().set_title(tr("Import bodů")).add_filter(nazev, pripony).add_filter(tr("Všechny soubory"), &["*"]);
+        let mut f = rfd::FileDialog::new().set_title(tr("Import bodů", "Import points")).add_filter(nazev, pripony).add_filter(tr("Všechny soubory", "All files"), &["*"]); // i18n:ne
         if let Some(c) = nastaveni::akt().posledni_soubory.first().and_then(|c| std::path::Path::new(c).parent().map(PathBuf::from)) {
             f = f.set_directory(c);
         }
@@ -688,9 +688,9 @@ fn cip(ui: &mut egui::Ui, popisek: &str, rucne: Option<bool>, obsah: impl FnOnce
             obsah(ui);
             if let Some(r) = rucne {
                 let (t, bg, fg) = if r {
-                    (tr("ručně"), Color32::from_rgb(58, 50, 24), Color32::from_rgb(240, 207, 106))
+                    (tr("ručně", "manually"), Color32::from_rgb(58, 50, 24), Color32::from_rgb(240, 207, 106)) // i18n:ne
                 } else {
-                    (tr("auto"), Color32::from_rgb(29, 58, 36), Color32::from_rgb(126, 224, 154))
+                    (tr("auto", "auto"), Color32::from_rgb(29, 58, 36), Color32::from_rgb(126, 224, 154))
                 };
                 egui::Frame::new().fill(bg).corner_radius(8.0).inner_margin(egui::Margin::symmetric(5, 0)).show(ui, |ui| {
                     ui.label(RichText::new(t).size(10.0).color(fg));
@@ -779,8 +779,8 @@ fn kdy(cesta: &str) -> String {
     let teď = std::time::SystemTime::now();
     let dny = |t: std::time::SystemTime| t.duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs() / 86_400) as i64;
     match dny(teď) - dny(t) {
-        0 => tr("dnes").into(),
-        1 => tr("včera").into(),
+        0 => tr("dnes", "today").into(),
+        1 => tr("včera", "yesterday").into(), // i18n:ne
         _ => {
             // kalendářní datum ze dnů od 1970 (H. Hinnant)
             let z = dny(t) + 719_468;
@@ -826,7 +826,7 @@ fn kresli(ctx: &egui::Context, slot: &mut Option<NahledImportu>, stav: &StavSpra
 
     let mut otevreno = true;
     let mut hotovo = false;
-    let titulek = if n.soubor.is_empty() { tr("Import bodů").to_string() } else { trf!("Import bodů – {}", n.soubor) };
+    let titulek = if n.soubor.is_empty() { tr("Import bodů", "Import points").to_string() } else { trf!("Import bodů – {}", "Point import – {}", n.soubor) }; // i18n:ne
     let mut zvednuti = n.zvednuti;
     let mut obsah = |ui: &mut egui::Ui| {
         // vstupy okna importu (u samostatného okna jsou jen v něm)
@@ -948,11 +948,11 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
             let (r, odezva) = ui.allocate_exact_size(Vec2::new(levy, 78.0), Sense::click());
             let nad = odezva.hovered() || ctx.input(|i| !i.raw.hovered_files.is_empty());
             carkovany_ramecek(ui, r, if nad { SELLINE } else { Color32::from_rgb(74, 82, 92) });
-            ui.painter().text(r.center() - Vec2::new(0.0, 10.0), Align2::CENTER_CENTER, tr("Přetáhněte sem soubor (nebo více souborů), nebo klikněte a vyberte"), FontId::proportional(14.5), INK);
+            ui.painter().text(r.center() - Vec2::new(0.0, 10.0), Align2::CENTER_CENTER, tr("Přetáhněte sem soubor (nebo více souborů), nebo klikněte a vyberte", "Drop a file here (or several files), or click and choose"), FontId::proportional(14.5), INK); // i18n:ne
             ui.painter().text(
                 r.center() + Vec2::new(0.0, 11.0),
                 Align2::CENTER_CENTER,
-                tr("TXT, CSV, XYZ, XLSX, XML, GSI · nebo stiskněte Ctrl+V pro vložení tabulky ze schránky"),
+                tr("TXT, CSV, XYZ, XLSX, XML, GSI · nebo stiskněte Ctrl+V pro vložení tabulky ze schránky", "TXT, CSV, XYZ, XLSX, XML, GSI · or press Ctrl+V to paste a table from the clipboard"), // i18n:ne
                 FontId::proportional(12.5),
                 MUTED,
             );
@@ -965,13 +965,13 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
             let sloupcu = (((levy + mezera) / (210.0 + mezera)).floor() as usize).clamp(1, 4);
             let w = (levy - mezera * (sloupcu as f32 - 1.0)) / sloupcu as f32;
             let karty: [(egui::ImageSource<'static>, &str, &str, u8); 7] = [
-                (obr!("ter_body_import"), tr("Textový soubor…"), tr("TXT, CSV, XYZ – libovolné pořadí sloupců, rozpozná se samo"), 0),
-                (obr!("ter_zdroj_schranka"), tr("Schránka"), tr("tabulka zkopírovaná z Excelu, e-mailu nebo webu"), 1),
-                (obr!("ter_zdroj_excel"), tr("Excel (.xlsx)…"), tr("výběr listu, sloupce stejně jako u textu"), 2),
-                (obr!("ter_bod_cogo"), tr("Z výkresu"), tr("POINT, bloky s atributy, texty výšek u křížku, body Open CAD Studia – převod na body Terénu"), 3),
-                (obr!("ter_zdroj_xml"), tr("LandXML…"), tr("body CgPoints"), 4),
-                (obr!("ter_zdroj_gnss"), tr("Totální stanice / GNSS…"), tr("Leica GSI, Trimble JobXML, CSV přijímačů"), 5),
-                (obr!("ter_skupina_bodu"), tr("Více souborů…"), tr("každý soubor do vlastní skupiny"), 6),
+                (obr!("ter_body_import"), tr("Textový soubor…", "Text file…"), tr("TXT, CSV, XYZ – libovolné pořadí sloupců, rozpozná se samo", "TXT, CSV, XYZ – any column order, detected automatically"), 0), // i18n:ne
+                (obr!("ter_zdroj_schranka"), tr("Schránka", "Clipboard"), tr("tabulka zkopírovaná z Excelu, e-mailu nebo webu", "a table copied from Excel, an e-mail or a web page"), 1), // i18n:ne
+                (obr!("ter_zdroj_excel"), tr("Excel (.xlsx)…", "Excel (.xlsx)…"), tr("výběr listu, sloupce stejně jako u textu", "choose a sheet, columns as with text"), 2), // i18n:ne
+                (obr!("ter_bod_cogo"), tr("Z výkresu", "From the drawing"), tr("POINT, bloky s atributy, texty výšek u křížku, body Open CAD Studia – převod na body Terénu", "POINT, blocks with attributes, elevation texts next to a cross, Open CAD Studio points – converted to Terén points"), 3), // i18n:ne
+                (obr!("ter_zdroj_xml"), tr("LandXML…", "LandXML…"), tr("body CgPoints", "CgPoints"), 4),
+                (obr!("ter_zdroj_gnss"), tr("Totální stanice / GNSS…", "Total station / GNSS…"), tr("Leica GSI, Trimble JobXML, CSV přijímačů", "Leica GSI, Trimble JobXML, receiver CSV"), 5), // i18n:ne
+                (obr!("ter_skupina_bodu"), tr("Více souborů…", "Several files…"), tr("každý soubor do vlastní skupiny", "each file into its own group"), 6), // i18n:ne
             ];
             let mut klik = None;
             for radek in karty.chunks(sloupcu) {
@@ -989,12 +989,12 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
                 Some(0) => otevri_dialog(Dialog::Text, ctx.clone()),
                 Some(1) => match schranka() {
                     Some(t) => n.ze_schranky(t, &stav.zdroje),
-                    None => n.zprava = Some(tr("Schránka je prázdná – zkopírujte tabulku (např. v Excelu Ctrl+C) a zkuste to znovu.").into()),
+                    None => n.zprava = Some(tr("Schránka je prázdná – zkopírujte tabulku (např. v Excelu Ctrl+C) a zkuste to znovu.", "The clipboard is empty – copy a table (e.g. Ctrl+C in Excel) and try again.").into()), // i18n:ne
                 },
                 Some(2) => otevri_dialog(Dialog::Excel, ctx.clone()),
                 Some(3) => {
                     n.z_vykresu = Some(ZVykresu::novy());
-                    n.soubor = tr("výkres").into();
+                    n.soubor = tr("výkres", "drawing").into(); // i18n:ne
                     spravce::posli(Akce::BodyZVykresu(None, false, 0.0));
                 }
                 Some(4) => otevri_dialog(Dialog::LandXml, ctx.clone()),
@@ -1010,10 +1010,10 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
         ui.allocate_ui_with_layout(Vec2::new(pravy, 0.0), egui::Layout::top_down(egui::Align::Min), |ui| {
             ui.set_width(pravy);
             let nast = nastaveni::akt();
-            nadpis(ui, tr("Poslední soubory"));
+            nadpis(ui, tr("Poslední soubory", "Recent files")); // i18n:ne
             box_ram(ui, |ui| {
                 if nast.posledni_soubory.is_empty() {
-                    ui.label(RichText::new(tr("zatím žádné")).size(12.5).color(MUTED));
+                    ui.label(RichText::new(tr("zatím žádné", "none yet")).size(12.5).color(MUTED)); // i18n:ne
                 }
                 for c in &nast.posledni_soubory {
                     let r = ui
@@ -1032,10 +1032,10 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
                 }
             });
             ui.add_space(12.0);
-            nadpis(ui, tr("Šablony formátu"));
+            nadpis(ui, tr("Šablony formátu", "Format templates")); // i18n:ne
             box_ram(ui, |ui| {
                 if nast.import_sablony.is_empty() {
-                    ui.label(RichText::new(tr("zatím žádné")).size(12.5).color(MUTED));
+                    ui.label(RichText::new(tr("zatím žádné", "none yet")).size(12.5).color(MUTED)); // i18n:ne
                 }
                 for s in &nast.import_sablony {
                     ui.horizontal(|ui| {
@@ -1047,7 +1047,7 @@ fn volba_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
             ui.add_space(6.0);
             ui.add(
                 egui::Label::new(
-                    RichText::new(tr("Šablona = uložené přiřazení sloupců, oddělovač, kódování, desetinná čárka a záhlaví. Uložíte ji v náhledu souboru."))
+                    RichText::new(tr("Šablona = uložené přiřazení sloupců, oddělovač, kódování, desetinná čárka a záhlaví. Uložíte ji v náhledu souboru.", "Template = saved column assignment, delimiter, encoding, decimal separator and header. Save it in the file preview.")) // i18n:ne
                         .size(12.0)
                         .color(MUTED),
                 )
@@ -1087,7 +1087,7 @@ fn nahled(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) -> bool 
                     ui.add_space(8.0);
                     ui.horizontal(|ui| {
                         ui.spinner();
-                        ui.label(tr("Čtu body z výkresu…"));
+                        ui.label(tr("Čtu body z výkresu…", "Reading points from the drawing…")); // i18n:ne
                     });
                     return;
                 }
@@ -1100,7 +1100,7 @@ fn nahled(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) -> bool 
                 ui.add_space(4.0);
                 ui.add(
                     egui::Label::new(
-                        RichText::new(tr("Nad každým sloupcem vyberte, co obsahuje; pod ním je původní název ze záhlaví. Najetím na číslo řádku se ukáže původní text."))
+                        RichText::new(tr("Nad každým sloupcem vyberte, co obsahuje; pod ním je původní název ze záhlaví. Najetím na číslo řádku se ukáže původní text.", "Choose above each column what it contains; below is the original header name. Hover over a line number to see the original text.")) // i18n:ne
                             .size(11.5)
                             .color(MUTED),
                     )
@@ -1142,9 +1142,9 @@ fn radek_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu) {
         if let Some(d) = n.druh.filter(|d| *d != DruhZdroje::Text) {
             info.push(d.nazev().to_string());
         }
-        info.push(trf!("{} řádků", n.text.lines().count()));
+        info.push(trf!("{} řádků", "{} lines", n.text.lines().count())); // i18n:ne
         if n.poradi.1 > 1 {
-            info.push(trf!("soubor {} z {}", n.poradi.0, n.poradi.1));
+            info.push(trf!("soubor {} z {}", "file {} of {}", n.poradi.0, n.poradi.1));
         }
         let info = info.join(" · ");
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -1161,14 +1161,14 @@ fn radek_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu) {
 fn tlacitka_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu) {
         if let Some(jmeno) = &mut n.nova_sablona {
             let mut ulozit = false;
-            if tlacitko(ui, tr("Zrušit")).clicked() {
+            if tlacitko(ui, tr("Zrušit", "Cancel")).clicked() { // i18n:ne
                 n.nova_sablona = None;
                 return;
             }
-            if tlacitko(ui, tr("Uložit")).clicked() {
+            if tlacitko(ui, tr("Uložit", "Save")).clicked() { // i18n:ne
                 ulozit = true;
             }
-            let r = ui.add(egui::TextEdit::singleline(jmeno).desired_width(150.0).hint_text(tr("jméno šablony")));
+            let r = ui.add(egui::TextEdit::singleline(jmeno).desired_width(150.0).hint_text(tr("jméno šablony", "template name"))); // i18n:ne
             if r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                 ulozit = true;
             }
@@ -1184,17 +1184,17 @@ fn tlacitka_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu) {
             }
             return;
         }
-        if tlacitko(ui, tr("Uložit šablonu…")).on_hover_text(tr("Uložit sloupce, oddělovač, kódování a desetinnou čárku jako šablonu")).clicked() {
+        if tlacitko(ui, tr("Uložit šablonu…", "Save template…")).on_hover_text(tr("Uložit sloupce, oddělovač, kódování a desetinnou čárku jako šablonu", "Save the columns, delimiter, encoding and decimal separator as a template")).clicked() { // i18n:ne
             n.nova_sablona = Some(String::new());
         }
         let nast = nastaveni::akt();
         let mut volba: Option<Option<SablonaImportu>> = None;
-        egui::ComboBox::from_id_salt("imp_sablona").selected_text(RichText::new(tr("Šablona: rozpoznáno automaticky")).size(12.0)).width(200.0).show_ui(ui, |ui| {
-            if ui.selectable_label(false, tr("Rozpoznat automaticky")).clicked() {
+        egui::ComboBox::from_id_salt("imp_sablona").selected_text(RichText::new(tr("Šablona: rozpoznáno automaticky", "Template: detected automatically")).size(12.0)).width(200.0).show_ui(ui, |ui| { // i18n:ne
+            if ui.selectable_label(false, tr("Rozpoznat automaticky", "Detect automatically")).clicked() {
                 volba = Some(None);
             }
             if let Some(p) = &nast.import_posledni {
-                if ui.selectable_label(false, trf!("Naposledy použité ({})", p.vzor)).clicked() {
+                if ui.selectable_label(false, trf!("Naposledy použité ({})", "Last used ({})", p.vzor)).clicked() { // i18n:ne
                     volba = Some(Some(p.clone()));
                 }
             }
@@ -1209,7 +1209,7 @@ fn tlacitka_zdroje(ui: &mut egui::Ui, n: &mut NahledImportu) {
             Some(None) => n.znovu_rozpoznat(),
             None => {}
         }
-        if tlacitko(ui, tr("Jiný zdroj…")).clicked() {
+        if tlacitko(ui, tr("Jiný zdroj…", "Other source…")).clicked() { // i18n:ne
             let fronta = std::mem::take(&mut n.fronta);
             *n = NahledImportu::prazdny();
             n.fronta = fronta;
@@ -1220,10 +1220,10 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
     let mut pas = Pas::novy(ui);
     {
         let vzor = FormatBodu::ze_sloupcu(n.sloupce.clone(), n.oddelovac).map(|f| f.vzor()).unwrap_or_else(|_| "?".into());
-        pas.cip(ui, tr("Formát"), Some(n.rucne.sloupce), |ui| {
+        pas.cip(ui, tr("Formát", "Format"), Some(n.rucne.sloupce), |ui| { // i18n:ne
             egui::ComboBox::from_id_salt("imp_vzor").selected_text(RichText::new(&vzor).strong()).width(64.0).show_ui(ui, |ui| {
                 for (v, popis) in VZORY {
-                    if ui.selectable_label(vzor == v, tr(popis)).clicked() {
+                    if ui.selectable_label(vzor == v, crate::lang::tr_tab(popis)).clicked() {
                         if let Ok(f) = FormatBodu::z_retezce(v, n.oddelovac) {
                             n.sloupce = f.sloupce;
                             n.rucne.sloupce = true;
@@ -1233,7 +1233,7 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         });
-        pas.cip(ui, tr("Oddělovač"), Some(n.rucne.oddelovac), |ui| {
+        pas.cip(ui, tr("Oddělovač", "Delimiter"), Some(n.rucne.oddelovac), |ui| { // i18n:ne
             egui::ComboBox::from_id_salt("imp_odd").selected_text(RichText::new(nazev_oddelovace(n.oddelovac)).strong()).width(78.0).show_ui(ui, |ui| {
                 for o in ODDELOVACE {
                     if ui.selectable_value(&mut n.oddelovac, o, nazev_oddelovace(o)).clicked() {
@@ -1244,7 +1244,7 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
             });
         });
         if n.druh == Some(DruhZdroje::Excel) {
-            pas.cip(ui, tr("List"), None, |ui| {
+            pas.cip(ui, tr("List", "Sheet"), None, |ui| {
                 let akt = n.listy.get(n.list).cloned().unwrap_or_default();
                 let mut novy = None;
                 egui::ComboBox::from_id_salt("imp_list").selected_text(RichText::new(akt).strong()).width(110.0).show_ui(ui, |ui| {
@@ -1260,7 +1260,7 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         } else if let Some(k) = n.kodovani {
-            pas.cip(ui, tr("Kódování"), Some(n.rucne.kodovani), |ui| {
+            pas.cip(ui, tr("Kódování", "Encoding"), Some(n.rucne.kodovani), |ui| { // i18n:ne
                 let mut novy = None;
                 egui::ComboBox::from_id_salt("imp_kod").selected_text(RichText::new(k.nazev()).strong()).width(104.0).show_ui(ui, |ui| {
                     for x in kodovani::VSECHNA {
@@ -1283,7 +1283,7 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         }
-        pas.cip(ui, tr("Desetinná"), Some(n.rucne.desetinna), |ui| {
+        pas.cip(ui, tr("Desetinná", "Decimal"), Some(n.rucne.desetinna), |ui| { // i18n:ne
             let text = match n.desetinna {
                 Desetinna::Auto => nazev_desetinne(n.desetinna_zjistena),
                 d => nazev_desetinne(d),
@@ -1297,11 +1297,11 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         });
-        pas.cip(ui, tr("Záhlaví"), Some(n.rucne.hlavicka), |ui| {
-            let text = if n.hlavicka == 0 { tr("žádné").to_string() } else if n.hlavicka == 1 { tr("řádek 1").to_string() } else { trf!("řádky 1–{}", n.hlavicka) };
+        pas.cip(ui, tr("Záhlaví", "Header"), Some(n.rucne.hlavicka), |ui| { // i18n:ne
+            let text = if n.hlavicka == 0 { tr("žádné", "none").to_string() } else if n.hlavicka == 1 { tr("řádek 1", "line 1").to_string() } else { trf!("řádky 1–{}", "lines 1–{}", n.hlavicka) }; // i18n:ne
             egui::ComboBox::from_id_salt("imp_hl").selected_text(RichText::new(text).strong()).width(70.0).show_ui(ui, |ui| {
                 for h in 0..=5usize {
-                    let t = if h == 0 { tr("žádné").to_string() } else if h == 1 { tr("řádek 1").to_string() } else { trf!("řádky 1–{}", h) };
+                    let t = if h == 0 { tr("žádné", "none").to_string() } else if h == 1 { tr("řádek 1", "line 1").to_string() } else { trf!("řádky 1–{}", "lines 1–{}", h) }; // i18n:ne
                     if ui.selectable_value(&mut n.hlavicka, h, t).clicked() {
                         n.rucne.hlavicka = true;
                         n.zmeneno = true;
@@ -1309,8 +1309,8 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
                 }
             });
         });
-        pas.cip(ui, tr("Souřadnice"), None, |ui| {
-            ui.label(RichText::new(if n.je_sjtsk() { tr("S-JTSK kladné – výkres -Y/-X") } else { tr("výkres E/N (beze změny)") }).strong());
+        pas.cip(ui, tr("Souřadnice", "Coordinates"), None, |ui| { // i18n:ne
+            ui.label(RichText::new(if n.je_sjtsk() { tr("S-JTSK kladné – výkres -Y/-X", "S-JTSK positive – drawing -Y/-X") } else { tr("výkres E/N (beze změny)", "drawing E/N (unchanged)") }).strong()); // i18n:ne
         });
     }
     pas.konec(ui);
@@ -1320,13 +1320,13 @@ fn souhrnny_pas(ui: &mut egui::Ui, n: &mut NahledImportu) {
 
 fn pruhy(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
     if let Some(e) = n.chyba_formatu.clone() {
-        pruh(ui, true, BAD, &trf!("Sloupce nedávají platný formát: {}", e), None);
+        pruh(ui, true, BAD, &trf!("Sloupce nedávají platný formát: {}", "The columns do not form a valid format: {}", e), None); // i18n:ne
     }
     if let Some((navrh, sloupce)) = n.navrh.clone() {
         let (text, tl) = match navrh {
-            Navrh::Prohodit => (tr("Y a X jsou nejspíš prohozené – po prohození leží body v S-JTSK."), tr("Prohodit Y a X")),
-            Navrh::Znamenko => (tr("Souřadnice mají opačné znaménko než sloupce – po převodu leží body v S-JTSK."), tr("Převést")),
-            Navrh::ProhoditZnamenko => (tr("Souřadnice jsou prohozené a mají opačné znaménko – po opravě leží body v S-JTSK."), tr("Opravit")),
+            Navrh::Prohodit => (tr("Y a X jsou nejspíš prohozené – po prohození leží body v S-JTSK.", "Y and X are probably swapped – after swapping, the points lie in S-JTSK."), tr("Prohodit Y a X", "Swap Y and X")), // i18n:ne
+            Navrh::Znamenko => (tr("Souřadnice mají opačné znaménko než sloupce – po převodu leží body v S-JTSK.", "The coordinates have the opposite sign to the columns – after conversion, the points lie in S-JTSK."), tr("Převést", "Convert")), // i18n:ne
+            Navrh::ProhoditZnamenko => (tr("Souřadnice jsou prohozené a mají opačné znaménko – po opravě leží body v S-JTSK.", "The coordinates are swapped and have the opposite sign – after the fix, the points lie in S-JTSK."), tr("Opravit", "Fix")), // i18n:ne
         };
         if pruh(ui, true, WARN, text, Some(tl)) {
             n.sloupce = sloupce;
@@ -1337,7 +1337,7 @@ fn pruhy(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
     if let Some(k) = n.kodovani {
         if !n.rucne.kodovani && kodovani::podezrele_znaky(&n.text) > 0 {
             let jine = if k == Kodovani::Cp1250 { Kodovani::Cp852 } else { Kodovani::Cp1250 };
-            if pruh(ui, false, MUTED, &trf!("V kódech jsou nečitelné znaky – soubor je možná v kódování {}.", jine.nazev()), Some(&trf!("Použít {}", jine.nazev()))) {
+            if pruh(ui, false, MUTED, &trf!("V kódech jsou nečitelné znaky – soubor je možná v kódování {}.", "The codes contain unreadable characters – the file may be in the {} encoding.", jine.nazev()), Some(&trf!("Použít {}", "Use {}", jine.nazev()))) { // i18n:ne
                 n.kodovani = Some(jine);
                 n.rucne.kodovani = true;
                 n.dekoduj();
@@ -1345,11 +1345,11 @@ fn pruhy(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
         }
     }
     let (_, body, chyby, _, _) = n.pocty();
-    if chyby > 0 && chyby > body && pruh(ui, true, BAD, tr("Většina řádků nejde přečíst – zkontrolujte oddělovač a desetinnou čárku."), Some(tr("Vrátit rozpoznané"))) {
+    if chyby > 0 && chyby > body && pruh(ui, true, BAD, tr("Většina řádků nejde přečíst – zkontrolujte oddělovač a desetinnou čárku.", "Most lines cannot be read – check the delimiter and decimal separator."), Some(tr("Vrátit rozpoznané", "Restore detected"))) { // i18n:ne
         n.znovu_rozpoznat();
     }
     let uz = stav.body.iter().filter(|b| !n.soubor.is_empty() && b.zdroj.eq_ignore_ascii_case(&n.soubor)).count();
-    if uz > 0 && n.politika != 1 && pruh(ui, false, ACCENT, &trf!("Soubor už byl importován ({} bodů ve výkrese) – body se stejným číslem jde aktualizovat.", uz), Some(tr("Aktualizovat podle čísla"))) {
+    if uz > 0 && n.politika != 1 && pruh(ui, false, ACCENT, &trf!("Soubor už byl importován ({} bodů ve výkrese) – body se stejným číslem jde aktualizovat.", "The file has already been imported ({} points in the drawing) – points with the same number can be updated.", uz), Some(tr("Aktualizovat podle čísla", "Update by number"))) { // i18n:ne
         n.politika = 1;
         n.prepocti_plan();
     }
@@ -1360,13 +1360,13 @@ fn pruhy(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
             ui.set_width(ui.available_width());
             ui.horizontal_wrapped(|ui| {
                 ui.label(RichText::new(trf!(
-                    "Značek {} · výška z textu {} · z atributu {} · ze značky {} · bez výšky {}",
+                    "Značek {} · výška z textu {} · z atributu {} · ze značky {} · bez výšky {}", "Markers {} · elevation from text {} · from attribute {} · from marker {} · without elevation {}", // i18n:ne
                     st.znacek, st.vyska_z_textu, st.vyska_z_atributu, st.vyska_ze_znacky, st.bez_vysky
                 )).size(12.5));
-                ui.label(RichText::new(tr("Hladina")).size(12.5).color(MUTED));
-                let akt = z.hladina.clone().unwrap_or_else(|| tr("všechny").into());
+                ui.label(RichText::new(tr("Hladina", "Layer")).size(12.5).color(MUTED));
+                let akt = z.hladina.clone().unwrap_or_else(|| tr("všechny", "all").into()); // i18n:ne
                 egui::ComboBox::from_id_salt("imp_hladina").selected_text(akt).width(140.0).show_ui(ui, |ui| {
-                    if ui.selectable_label(z.hladina.is_none(), tr("všechny")).clicked() {
+                    if ui.selectable_label(z.hladina.is_none(), tr("všechny", "all")).clicked() { // i18n:ne
                         z.hladina = None;
                         znovu = true;
                     }
@@ -1377,9 +1377,9 @@ fn pruhy(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
                         }
                     }
                 });
-                znovu |= ui.checkbox(&mut z.jen_vyber, tr("jen vybrané")).changed();
-                ui.label(RichText::new(tr("Tolerance textu")).size(12.5).color(MUTED));
-                if ui.add(egui::DragValue::new(&mut z.tolerance).range(0.0..=100.0).speed(0.1).suffix(" m")).on_hover_text(tr("0 = trojnásobek výšky textu")).changed() {
+                znovu |= ui.checkbox(&mut z.jen_vyber, tr("jen vybrané", "selected only")).changed(); // i18n:ne
+                ui.label(RichText::new(tr("Tolerance textu", "Text tolerance")).size(12.5).color(MUTED));
+                if ui.add(egui::DragValue::new(&mut z.tolerance).range(0.0..=100.0).speed(0.1).suffix(" m")).on_hover_text(tr("0 = trojnásobek výšky textu", "0 = three times the text height")).changed() { // i18n:ne
                     znovu = true;
                 }
             });
@@ -1394,12 +1394,12 @@ fn pruhy(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
 
 fn karty_poctu(ui: &mut egui::Ui, n: &mut NahledImportu) {
     let (radku, body, chyby, podezrele, dup) = n.pocty();
-    let dup_popis = trf!("duplicitní čísla ({} v souboru, {} ve výkresu)", n.dup.v_souboru.len(), n.dup.ve_vykresu.len());
+    let dup_popis = trf!("duplicitní čísla ({} v souboru, {} ve výkresu)", "duplicate numbers ({} in the file, {} in the drawing)", n.dup.v_souboru.len(), n.dup.ve_vykresu.len()); // i18n:ne
     let karty = [
-        (Filtr::Vse, radku, tr("řádků s daty").to_string(), INK),
-        (Filtr::Nacte, body, tr("načte se").to_string(), OK),
-        (Filtr::Chyby, chyby, tr("nečitelné").to_string(), BAD),
-        (Filtr::Podezrele, podezrele, tr("podezřelé").to_string(), WARN),
+        (Filtr::Vse, radku, tr("řádků s daty", "lines with data").to_string(), INK), // i18n:ne
+        (Filtr::Nacte, body, tr("načte se", "will be read").to_string(), OK), // i18n:ne
+        (Filtr::Chyby, chyby, tr("nečitelné", "unreadable").to_string(), BAD), // i18n:ne
+        (Filtr::Podezrele, podezrele, tr("podezřelé", "suspicious").to_string(), WARN), // i18n:ne
         (Filtr::Duplicity, dup, dup_popis, VIOLET),
     ];
     let mezera = 8.0;
@@ -1415,7 +1415,7 @@ fn karty_poctu(ui: &mut egui::Ui, n: &mut NahledImportu) {
             p.rect_stroke(r, 8.0, Stroke::new(1.0, if vybrano { SELLINE } else { LINE2 }), StrokeKind::Inside);
             p.text(r.left_top() + Vec2::new(10.0, 6.0), Align2::LEFT_TOP, pocet.to_string(), FontId::proportional(19.0), barva);
             p.with_clip_rect(r.shrink(2.0)).text(r.left_top() + Vec2::new(10.0, 31.0), Align2::LEFT_TOP, popis, FontId::proportional(11.5), MUTED);
-            if odezva.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(tr("klikněte pro filtr tabulky")).clicked() {
+            if odezva.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(tr("klikněte pro filtr tabulky", "click to filter the table")).clicked() { // i18n:ne
                 n.filtr = if vybrano { Filtr::Vse } else { f };
             }
         }
@@ -1465,12 +1465,12 @@ fn tabulka(ui: &mut egui::Ui, n: &mut NahledImportu, vyska: f32) {
                             }
                         }
                     });
-                    let puvodni = n.zahlavi.get(j).map(|t| format!("„{t}“")).unwrap_or_else(|| trf!("sloupec {}", j + 1));
+                    let puvodni = n.zahlavi.get(j).map(|t| format!("„{t}“")).unwrap_or_else(|| trf!("sloupec {}", "column {}", j + 1));
                     ui.add(egui::Label::new(RichText::new(puvodni).size(10.5).color(FAINT)).truncate());
                 });
                 x += w;
             }
-            ui.painter().text(Pos2::new(x + 8.0, hr.bottom() - 8.0), Align2::LEFT_BOTTOM, tr("Stav"), FontId::proportional(12.5), MUTED);
+            ui.painter().text(Pos2::new(x + 8.0, hr.bottom() - 8.0), Align2::LEFT_BOTTOM, tr("Stav", "Status"), FontId::proportional(12.5), MUTED);
             // řádky (kreslí se jen viditelné)
             egui::ScrollArea::vertical()
                 .id_salt("imp_tab_v")
@@ -1482,7 +1482,7 @@ fn tabulka(ui: &mut egui::Ui, n: &mut NahledImportu, vyska: f32) {
                         let (rect, _) = ui.allocate_exact_size(Vec2::new(celkova, VYSKA_RADKU), Sense::hover());
                         let vyrazen = n.vynechat.contains(&r.cislo);
                         let (pozadi, barva_tecky, duvod, spatny, bod) = match &r.stav {
-                            StavRadku::Hlavicka => (Color32::TRANSPARENT, Color32::from_gray(85), tr("záhlaví – nenačítá se").to_string(), None, None),
+                            StavRadku::Hlavicka => (Color32::TRANSPARENT, Color32::from_gray(85), tr("záhlaví – nenačítá se", "header – not read").to_string(), None, None), // i18n:ne
                             StavRadku::Chyba(s, d) => (Color32::from_rgb(42, 26, 26), BAD, d.clone(), *s, None),
                             StavRadku::Bod(i) => {
                                 let dup = n.duplicita(*i);
@@ -1535,18 +1535,18 @@ fn tabulka(ui: &mut egui::Ui, n: &mut NahledImportu, vyska: f32) {
                             if n.podezrely(i).is_some() || vyrazen {
                                 let cb = Rect::from_min_size(Pos2::new(xd, rect.top() + 1.0), Vec2::new(80.0, VYSKA_RADKU - 2.0));
                                 let mut v = vyrazen;
-                                if ui.put(cb, egui::Checkbox::new(&mut v, RichText::new(tr("vyřadit")).size(11.5))).changed() {
+                                if ui.put(cb, egui::Checkbox::new(&mut v, RichText::new(tr("vyřadit", "exclude")).size(11.5))).changed() { // i18n:ne
                                     prepnout = Some(r.cislo);
                                 }
                                 xd += 84.0;
                             }
                         }
-                        let (t, b) = if duvod.is_empty() { (tr("v pořádku").to_string(), OK) } else { (duvod, MUTED) };
+                        let (t, b) = if duvod.is_empty() { (tr("v pořádku", "OK").to_string(), OK) } else { (duvod, MUTED) }; // i18n:ne
                         p.with_clip_rect(Rect::from_min_max(Pos2::new(xd, rect.top()), rect.right_bottom())).text(Pos2::new(xd, stred_y), Align2::LEFT_CENTER, t, FontId::proportional(11.5), b);
                     }
                     if viditelne.is_empty() {
                         ui.add_space(10.0);
-                        ui.label(RichText::new(tr("Žádné řádky – zkuste jiný filtr.")).color(MUTED));
+                        ui.label(RichText::new(tr("Žádné řádky – zkuste jiný filtr.", "No lines – try another filter.")).color(MUTED)); // i18n:ne
                     }
                 });
         });
@@ -1567,7 +1567,7 @@ fn mapka(ui: &mut egui::Ui, n: &NahledImportu) {
     p.rect_stroke(rect, 8.0, Stroke::new(1.0, LINE2), StrokeKind::Inside);
     let body: Vec<(usize, &Bod)> = n.vysledek.body.iter().enumerate().filter(|(i, _)| !n.odlehle.contains(i)).collect();
     if body.is_empty() {
-        p.text(rect.center(), Align2::CENTER_CENTER, tr("žádné body"), FontId::proportional(12.0), MUTED);
+        p.text(rect.center(), Align2::CENTER_CENTER, tr("žádné body", "no points"), FontId::proportional(12.0), MUTED); // i18n:ne
         return;
     }
     let (mut x0, mut x1, mut y0, mut y1) = (f64::MAX, f64::MIN, f64::MAX, f64::MIN);
@@ -1630,7 +1630,7 @@ fn mapka(ui: &mut egui::Ui, n: &NahledImportu) {
         let c = Pos2::new(rect.right() - 20.0, rect.center().y);
         p.line_segment([c + Vec2::new(-6.0, -10.0), c + Vec2::new(6.0, 0.0)], Stroke::new(1.6, WARN));
         p.line_segment([c + Vec2::new(6.0, 0.0), c + Vec2::new(-6.0, 10.0)], Stroke::new(1.6, WARN));
-        p.text(c + Vec2::new(-10.0, 22.0), Align2::RIGHT_CENTER, trf!("mimo: {}", n.odlehle.len()), FontId::proportional(10.0), WARN);
+        p.text(c + Vec2::new(-10.0, 22.0), Align2::RIGHT_CENTER, trf!("mimo: {}", "outside: {}", n.odlehle.len()), FontId::proportional(10.0), WARN);
     }
     // měřítko
     let delka = [1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0, 2000.0, 5000.0].into_iter().find(|d| d * s > 30.0).unwrap_or(10000.0);
@@ -1642,7 +1642,7 @@ fn mapka(ui: &mut egui::Ui, n: &NahledImportu) {
     ui.add_space(6.0);
     ui.horizontal_wrapped(|ui| {
         ui.spacing_mut().item_spacing.x = 10.0;
-        for (barva, t) in [(OK, tr("nové")), (WARN, tr("podezřelé")), (VIOLET, tr("duplicita")), (Color32::from_gray(85), tr("ve výkresu"))] {
+        for (barva, t) in [(OK, tr("nové", "new")), (WARN, tr("podezřelé", "suspicious")), (VIOLET, tr("duplicita", "duplicate")), (Color32::from_gray(85), tr("ve výkresu", "in the drawing"))] { // i18n:ne
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing.x = 4.0;
                 let (r, _) = ui.allocate_exact_size(Vec2::splat(10.0), Sense::hover());
@@ -1652,21 +1652,21 @@ fn mapka(ui: &mut egui::Ui, n: &NahledImportu) {
         }
     });
     let poznamka = if n.existujici.is_empty() {
-        RichText::new(tr("Ve výkrese zatím nejsou body.")).color(MUTED)
+        RichText::new(tr("Ve výkrese zatím nejsou body.", "There are no points in the drawing yet.")).color(MUTED) // i18n:ne
     } else if okoli.is_empty() {
-        RichText::new(tr("Body leží daleko od bodů výkresu – zkontrolujte sloupce a soustavu.")).color(WARN)
+        RichText::new(tr("Body leží daleko od bodů výkresu – zkontrolujte sloupce a soustavu.", "The points are far from the drawing's points – check the columns and coordinate system.")).color(WARN) // i18n:ne
     } else {
-        RichText::new(tr("Body leží mezi body výkresu – import sedí.")).color(MUTED)
+        RichText::new(tr("Body leží mezi body výkresu – import sedí.", "The points lie among the drawing's points – the import fits.")).color(MUTED) // i18n:ne
     };
     ui.add(egui::Label::new(poznamka.size(12.0)).wrap());
     if !n.odlehle.is_empty() {
         let t: Vec<String> = n.odlehle.iter().take(5).filter_map(|&i| n.vysledek.body.get(i)).map(|b| b.cislo.clone()).collect();
-        ui.add(egui::Label::new(RichText::new(trf!("Mimo náhled: {}", t.join(", "))).size(12.0).color(WARN)).wrap());
+        ui.add(egui::Label::new(RichText::new(trf!("Mimo náhled: {}", "Outside the preview: {}", t.join(", "))).size(12.0).color(WARN)).wrap()); // i18n:ne
     }
 }
 
 fn pravy_panel(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
-    nadpis(ui, tr("Poloha bodů"));
+    nadpis(ui, tr("Poloha bodů", "Point location")); // i18n:ne
     mapka(ui, n);
     ui.add_space(6.0);
     let v_souboru = n.dup.v_souboru.len();
@@ -1674,15 +1674,15 @@ fn pravy_panel(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
     let pocet = v_souboru + ve_vykresu;
     box_ram(ui, |ui| {
         ui.horizontal(|ui| {
-            nadpis(ui, tr("Duplicitní čísla"));
-            ui.label(RichText::new(trf!("· {} v souboru, {} ve výkresu", v_souboru, ve_vykresu)).size(11.5).color(MUTED));
+            nadpis(ui, tr("Duplicitní čísla", "Duplicate numbers")); // i18n:ne
+            ui.label(RichText::new(trf!("· {} v souboru, {} ve výkresu", "· {} in the file, {} in the drawing", v_souboru, ve_vykresu)).size(11.5).color(MUTED)); // i18n:ne
         });
         let mut zmena = false;
         for (i, titul, popis, cislo) in [
-            (0, tr("Přeskočit"), tr("ponechat body ve výkrese, z dvojic v souboru vzít první"), trf!("{} přeskočeno", pocet)),
-            (1, tr("Přepsat"), tr("aktualizovat polohu a výšku podle souboru"), trf!("{} přepsáno", ve_vykresu)),
-            (2, tr("Přečíslovat od"), tr("nová čísla dostanou jen duplicity"), trf!("{} nová čísla", pocet)),
-            (3, tr("Importovat i tak"), tr("dosavadní chování – dvě stejná čísla"), trf!("{} zdvojeno", pocet)),
+            (0, tr("Přeskočit", "Skip"), tr("ponechat body ve výkrese, z dvojic v souboru vzít první", "keep the points in the drawing, take the first of pairs in the file"), trf!("{} přeskočeno", "{} skipped", pocet)), // i18n:ne
+            (1, tr("Přepsat", "Overwrite"), tr("aktualizovat polohu a výšku podle souboru", "update position and elevation from the file"), trf!("{} přepsáno", "{} overwritten", ve_vykresu)), // i18n:ne
+            (2, tr("Přečíslovat od", "Renumber from"), tr("nová čísla dostanou jen duplicity", "only duplicates get new numbers"), trf!("{} nová čísla", "{} new numbers", pocet)), // i18n:ne
+            (3, tr("Importovat i tak", "Import anyway"), tr("dosavadní chování – dvě stejná čísla", "previous behaviour – two identical numbers"), trf!("{} zdvojeno", "{} doubled", pocet)), // i18n:ne
         ] {
             ui.horizontal_top(|ui| {
                 ui.spacing_mut().item_spacing.x = 6.0;
@@ -1710,41 +1710,41 @@ fn pravy_panel(ui: &mut egui::Ui, n: &mut NahledImportu, stav: &StavSpravce) {
     });
     ui.add_space(6.0);
     box_ram(ui, |ui| {
-        nadpis(ui, tr("Kam"));
+        nadpis(ui, tr("Kam", "Where"));
         let kmen = std::path::Path::new(&n.soubor).file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
-        let jmeno_nove = trf!("Nová skupina „Import {}“", kmen);
+        let jmeno_nove = trf!("Nová skupina „Import {}“", "New group \"Import {}\"", kmen); // i18n:ne
         let akt = match &n.skupina {
             CilSkupiny::Nova => jmeno_nove.clone(),
             CilSkupiny::Existujici(id) => stav.skupiny.iter().find(|s| &s.skupina.id == id).map(|s| s.skupina.jmeno.clone()).unwrap_or_default(),
-            CilSkupiny::Zadna => tr("Bez skupiny").into(),
+            CilSkupiny::Zadna => tr("Bez skupiny", "No group").into(),
         };
         ui.horizontal(|ui| {
             ikona(ui, obr!("ter_skupina_bodu"), 18.0);
             egui::ComboBox::from_id_salt("imp_skupina").selected_text(RichText::new(akt).size(12.5)).width(ui.available_width() - 4.0).show_ui(ui, |ui| {
                 ui.selectable_value(&mut n.skupina, CilSkupiny::Nova, jmeno_nove);
                 for s in stav.skupiny.iter().filter(|s| !s.skupina.vse) {
-                    ui.selectable_value(&mut n.skupina, CilSkupiny::Existujici(s.skupina.id.clone()), trf!("{} ({} bodů)", s.skupina.jmeno, s.pocet));
+                    ui.selectable_value(&mut n.skupina, CilSkupiny::Existujici(s.skupina.id.clone()), trf!("{} ({} bodů)", "{} ({} points)", s.skupina.jmeno, s.pocet)); // i18n:ne
                 }
-                ui.selectable_value(&mut n.skupina, CilSkupiny::Zadna, tr("Bez skupiny"));
+                ui.selectable_value(&mut n.skupina, CilSkupiny::Zadna, tr("Bez skupiny", "No group"));
             });
         });
         let akt = if n.styl.is_empty() {
-            tr("Styl podle kódu").to_string()
+            tr("Styl podle kódu", "Style by code").to_string() // i18n:ne
         } else {
             stav.styly_bodu.iter().find(|s| s.id == n.styl).map(|s| s.jmeno.clone()).unwrap_or_else(|| n.styl.clone())
         };
         ui.horizontal(|ui| {
             ikona(ui, obr!("ter_styl_bodu"), 18.0);
             egui::ComboBox::from_id_salt("imp_styl").selected_text(RichText::new(akt).size(12.5)).width(ui.available_width() - 4.0).show_ui(ui, |ui| {
-                ui.selectable_value(&mut n.styl, String::new(), tr("Styl podle kódu"));
+                ui.selectable_value(&mut n.styl, String::new(), tr("Styl podle kódu", "Style by code")); // i18n:ne
                 for s in &stav.styly_bodu {
                     ui.selectable_value(&mut n.styl, s.id.clone(), &s.jmeno);
                 }
             });
         });
         ui.add_space(4.0);
-        ui.checkbox(&mut n.priblizit, RichText::new(tr("Po importu přiblížit na body")).size(12.5));
-        ui.checkbox(&mut n.zapamatovat, RichText::new(tr("Zapamatovat nastavení pro příště")).size(12.5));
+        ui.checkbox(&mut n.priblizit, RichText::new(tr("Po importu přiblížit na body", "Zoom to the points after import")).size(12.5)); // i18n:ne
+        ui.checkbox(&mut n.zapamatovat, RichText::new(tr("Zapamatovat nastavení pro příště", "Remember settings for next time")).size(12.5)); // i18n:ne
     });
 }
 
@@ -1764,24 +1764,24 @@ fn paticka(ui: &mut egui::Ui, n: &mut NahledImportu) -> bool {
         let mut kus = |t: String, b: Color32| {
             job.append(&t, 0.0, egui::TextFormat { font_id: FontId::proportional(12.5), color: b, ..Default::default() });
         };
-        kus(trf!("{} bodů se vloží", vlozi), MUTED);
+        kus(trf!("{} bodů se vloží", "{} points will be inserted", vlozi), MUTED); // i18n:ne
         if prepise > 0 {
-            kus(trf!(" · {} se přepíše", prepise), MUTED);
+            kus(trf!(" · {} se přepíše", " · {} will be overwritten", prepise), MUTED); // i18n:ne
         }
         if n.plan.preskoceno > 0 {
-            kus(trf!(" · {} duplicit se přeskočí", n.plan.preskoceno), VIOLET);
+            kus(trf!(" · {} duplicit se přeskočí", " · {} duplicates will be skipped", n.plan.preskoceno), VIOLET); // i18n:ne
         }
         if chyby > 0 {
-            kus(trf!(" · {} nečitelné se vynechají", chyby), BAD);
+            kus(trf!(" · {} nečitelné se vynechají", " · {} unreadable will be left out", chyby), BAD); // i18n:ne
         }
         if podezrele > 0 {
-            kus(trf!(" · {} podezřelé se vloží (lze vyřadit)", podezrele), WARN);
+            kus(trf!(" · {} podezřelé se vloží (lze vyřadit)", " · {} suspicious will be inserted (can be excluded)", podezrele), WARN); // i18n:ne
         }
-        kus(tr(" · Zpět jedním krokem").into(), MUTED);
+        kus(tr(" · Zpět jedním krokem", " · Undo in one step").into(), MUTED); // i18n:ne
         {
             ui.spacing_mut().item_spacing.x = 8.0;
             let pocet = vlozi + prepise;
-            let tl = egui::Button::new(RichText::new(trf!("Importovat {} bodů", pocet)).size(13.0).strong().color(Color32::WHITE))
+            let tl = egui::Button::new(RichText::new(trf!("Importovat {} bodů", "Import {} points", pocet)).size(13.0).strong().color(Color32::WHITE)) // i18n:ne
                 .fill(PRIMARNI)
                 .stroke(Stroke::new(1.0, SELLINE))
                 .corner_radius(6.0)
@@ -1789,7 +1789,7 @@ fn paticka(ui: &mut egui::Ui, n: &mut NahledImportu) -> bool {
             if ui.add_enabled(pocet > 0 && n.chyba_formatu.is_none(), tl).clicked() {
                 if let Some(nast) = n.nastaveni_importu() {
                     if n.zapamatovat {
-                        let posledni = n.sablona(tr("naposledy"));
+                        let posledni = n.sablona(tr("naposledy", "last used"));
                         let (politika, priblizit) = (n.politika().klic().to_string(), n.priblizit);
                         nastaveni::zmen(|x| {
                             if posledni.is_some() {
@@ -1803,15 +1803,15 @@ fn paticka(ui: &mut egui::Ui, n: &mut NahledImportu) -> bool {
                     zavrit = true;
                 }
             }
-            if tlacitko(ui, tr("Zrušit")).clicked() {
+            if tlacitko(ui, tr("Zrušit", "Cancel")).clicked() { // i18n:ne
                 n.fronta.clear();
                 zavrit = true;
             }
-            if !n.fronta.is_empty() && tlacitko(ui, tr("Přeskočit soubor")).clicked() {
+            if !n.fronta.is_empty() && tlacitko(ui, tr("Přeskočit soubor", "Skip file")).clicked() { // i18n:ne
                 zavrit = true;
             }
             let mut ukazovat = nastaveni::akt().nahled_importu;
-            if ui.checkbox(&mut ukazovat, RichText::new(tr("Náhled ukazovat i příště")).size(12.0).color(MUTED)).changed() {
+            if ui.checkbox(&mut ukazovat, RichText::new(tr("Náhled ukazovat i příště", "Show the preview next time too")).size(12.0).color(MUTED)).changed() { // i18n:ne
                 nastaveni::zmen(|x| x.nahled_importu = ukazovat);
             }
             ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
@@ -1847,12 +1847,12 @@ pub fn ukazka(cesta: &str, png: &str, sirka: f32, vyska: f32, filtr: &str) -> ef
             self.snimku += 1;
             for e in ctx.input(|i| i.raw.events.clone()) {
                 if let egui::Event::Screenshot { image, .. } = e {
-                    let soubor = std::fs::File::create(&self.snimek).expect("soubor snímku");
+                    let soubor = std::fs::File::create(&self.snimek).expect("soubor snímku"); // i18n:ne
                     let mut enc = png::Encoder::new(std::io::BufWriter::new(soubor), image.size[0] as u32, image.size[1] as u32);
                     enc.set_color(png::ColorType::Rgba);
                     enc.set_depth(png::BitDepth::Eight);
                     let data: Vec<u8> = image.pixels.iter().flat_map(|c| c.to_array()).collect();
-                    enc.write_header().and_then(|mut w| w.write_image_data(&data)).expect("zápis snímku");
+                    enc.write_header().and_then(|mut w| w.write_image_data(&data)).expect("zápis snímku"); // i18n:ne
                     ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                 }
             }
@@ -1890,7 +1890,7 @@ pub fn ukazka(cesta: &str, png: &str, sirka: f32, vyska: f32, filtr: &str) -> ef
     let moznosti = eframe::NativeOptions { viewport: egui::ViewportBuilder::default().with_inner_size([sirka, vyska]), ..Default::default() };
     let snimek = png.to_string();
     eframe::run_native(
-        "Terén – import (ukázka)",
+        "Terén – import (ukázka)", // i18n:ne
         moznosti,
         Box::new(move |cc| {
             super::nastav_vzhled(&cc.egui_ctx);

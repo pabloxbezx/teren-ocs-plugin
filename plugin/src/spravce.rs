@@ -5,7 +5,7 @@
 //! sekundu), i když zrovna neběží žádný příkaz pluginu. Okno (nebo později
 //! panel Open CAD Studia) jen čte `stav()` a posílá `Akce`.
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -679,7 +679,7 @@ fn obnov_uchopy_s(k: &mut PresKanal, doc: &CadDocument, posledni: &mut Option<u6
         *posledni = Some(otisk);
         k.uchopy(crate::uchopy::spoj_teren(g.clone()));
         if navic > 0 {
-            k.info(&trf!("Terén: úchopy jen pro prvních {} bodů (dalších {} bez úchopu).", crate::uchopy::MAX_UCHOPU, navic));
+            k.info(&trf!("Terén: úchopy jen pro prvních {} bodů (dalších {} bez úchopu).", "Terén: grips only for the first {} points ({} more without a grip).", crate::uchopy::MAX_UCHOPU, navic));
         }
     }
     g.len()
@@ -781,11 +781,11 @@ impl Pracovnik {
         let doc = if z { k.dokument().unwrap_or(doc) } else { doc };
         let pohledy = crate::tra::pohled::pohledy(&doc);
         if pohledy.iter().any(|p| crate::tra::pohled::otisk(&doc, &p.def) != p.def.otisk) {
-            k.zacatek_kroku(tr("Přepočet podélného profilu"));
+            k.zacatek_kroku(tr("Přepočet podélného profilu", "Longitudinal profile recalculation"));
             let n = crate::tra::pohled::prekresli_zastarale(&mut k, &doc, None, None);
             k.konec_kroku();
             if n > 0 {
-                k.info(&trf!("Trasy: přepočítáno pohledů: {}.", n));
+                k.info(&trf!("Trasy: přepočítáno pohledů: {}.", "Alignments: views recalculated: {}.", n));
             }
         }
         if sdilene().okno_otevreno.load(Ordering::SeqCst) {
@@ -846,10 +846,10 @@ impl Pracovnik {
     /// požadavků na Open CAD Studio, aby se úprava projevila hned.
     fn rychly_prepocet(&mut self, k: &mut PresKanal, doc: CadDocument, id: &str) {
         let Some(mut z) = povrchy::povrchy(&doc).into_iter().find(|z| z.id == id) else { return };
-        k.zpet_samostatne(tr("Úprava povrchu"));
+        k.zpet_samostatne(tr("Úprava povrchu", "Surface edit"));
         match povrchy::prestav_s(k, &mut z, Some(doc)) {
             Ok(_) => k.hotovo(),
-            Err(e) => k.chyba(&trf!("Terén: {}", e)),
+            Err(e) => k.chyba(&trf!("Terén: {}", "Terén: {}", e)),
         }
         if sdilene().okno_otevreno.load(Ordering::SeqCst) {
             self.obnov(k);
@@ -1001,8 +1001,8 @@ impl Pracovnik {
         let zmena = predtim.is_some_and(|p| p != ted);
         if zmena && (!cogo::body(doc).is_empty() || !povrchy::povrchy(doc).is_empty()) {
             match po_zmene_meritka(k) {
-                Ok(t) => k.info(&trf!("Terén: {}", t)),
-                Err(e) => k.chyba(&trf!("Terén: {}", e)),
+                Ok(t) => k.info(&trf!("Terén: {}", "Terén: {}", t)),
+                Err(e) => k.chyba(&trf!("Terén: {}", "Terén: {}", e)),
             }
             k.konec_kroku();
             return true;
@@ -1031,10 +1031,10 @@ impl Pracovnik {
                 videno.clear();
             }
             videno.extend(otisk);
-            k.zpet(tr("Posun bodu"));
+            k.zpet(tr("Posun bodu", "Move point"));
             match cogo::proved_posuny(k, &doc, &posuny) {
                 Ok(_) => k.zmeneno(),
-                Err(e) => k.chyba(&trf!("Terén: posun bodu: {}", e)),
+                Err(e) => k.chyba(&trf!("Terén: posun bodu: {}", "Terén: move point: {}", e)),
             }
             k.konec_kroku();
             return true;
@@ -1054,9 +1054,9 @@ impl Pracovnik {
         }
         videno.0.extend(n.navic.iter().map(|h| h.value()));
         videno.1.extend(n.chybi.iter().map(|b| b.handle.value()));
-        k.zpet(tr("Popisy bodů"));
+        k.zpet(tr("Popisy bodů", "Point labels"));
         if let Err(e) = cogo::oprav_nesoulad(k, &doc, &n) {
-            k.chyba(&trf!("Terén: popisy bodů: {}", e));
+            k.chyba(&trf!("Terén: popisy bodů: {}", "Terén: point labels: {}", e));
         }
         k.zmeneno();
         k.konec_kroku();
@@ -1079,7 +1079,7 @@ impl Pracovnik {
         for mut z in zastarale {
             {
                 zmena = true;
-                k.zpet(tr("Automatický přepočet povrchu"));
+                k.zpet(tr("Automatický přepočet povrchu", "Automatic surface recalculation"));
                 // první (a obvykle jediný) přepočet nad už staženým snímkem
                 let snimek = jediny.then(|| doc.clone());
                 match povrchy::prestav_s(k, &mut z, snimek) {
@@ -1087,7 +1087,7 @@ impl Pracovnik {
                         povrchy::vypis(k, &z, &r);
                         k.hotovo();
                     }
-                    Err(e) => k.chyba(&trf!("Terén: automatický přepočet „{}“: {}", z.jmeno, e)),
+                    Err(e) => k.chyba(&trf!("Terén: automatický přepočet „{}“: {}", "Terén: automatic recalculation of \"{}\": {}", z.jmeno, e)),
                 }
                 k.konec_kroku();
             }
@@ -1101,7 +1101,7 @@ impl Pracovnik {
             Err(e) => {
                 uprav_stav(|s| {
                     s.pripojeno = false;
-                    s.zprava = trf!("Výkres není dostupný: {}", e);
+                    s.zprava = trf!("Výkres není dostupný: {}", "The drawing is not available: {}", e);
                 });
                 return;
             }
@@ -1151,7 +1151,7 @@ impl Pracovnik {
                 .filter(|id| styly::je_ulozeny(&doc, id))
                 .collect();
             s.meritko = nastaveni::meritko(&doc);
-            s.vykres = cesta.clone().unwrap_or_else(|| tr("nový výkres").into());
+            s.vykres = cesta.clone().unwrap_or_else(|| tr("nový výkres", "new drawing").into());
             s.slozka = cesta
                 .as_deref()
                 .and_then(|c| std::path::Path::new(c).parent().map(|p| p.display().to_string()))
@@ -1162,7 +1162,7 @@ impl Pracovnik {
 
     fn akce(&mut self, a: Akce) {
         let Some(tab) = Self::aktivni_tab() else {
-            uprav_stav(|s| s.zprava = tr("Spusťte nejdřív libovolný příkaz Terén ve výkrese.").into());
+            uprav_stav(|s| s.zprava = tr("Spusťte nejdřív libovolný příkaz Terén ve výkrese.", "First run any Terén command in the drawing.").into());
             return;
         };
         let Some(mut k) = kanal(tab) else { return };
@@ -1174,9 +1174,9 @@ impl Pracovnik {
                 let n = obnov_uchopy(&mut k, &mut self.uchopy_hash);
                 k.panel(HashMap::from([("uchopy".to_string(), DialogValue::Bool(zap))]));
                 if zap {
-                    k.info(&trf!("Terén: posun bodů úchopem zapnutý – táhněte kroužek na bodě (úchopů: {}). Vypnete tlačítkem Posun bodů.", n));
+                    k.info(&trf!("Terén: posun bodů úchopem zapnutý – táhněte kroužek na bodě (úchopů: {}). Vypnete tlačítkem Posun bodů.", "Terén: moving points by grip is on – drag the circle on a point (grips: {}). Turn it off with the Move points button.", n));
                 } else {
-                    k.info(tr("Terén: posun bodů úchopem vypnutý."));
+                    k.info(tr("Terén: posun bodů úchopem vypnutý.", "Terén: moving points by grip is off."));
                 }
                 return;
             }
@@ -1198,7 +1198,7 @@ impl Pracovnik {
                 crate::tra::prospektor::PRACUJE.store(false, Ordering::SeqCst);
                 uprav_stav(|s| match r {
                     Ok(z) => s.zprava = z,
-                    Err(e) => s.zprava = trf!("Chyba: {}", e),
+                    Err(e) => s.zprava = trf!("Chyba: {}", "Error: {}", e),
                 });
                 return;
             }
@@ -1232,7 +1232,7 @@ impl Pracovnik {
         }
         crate::tra::prospektor::PRACUJE.store(false, Ordering::SeqCst);
         if let Err(e) = &vysledek {
-            k.chyba(&trf!("Terén: {}", e));
+            k.chyba(&trf!("Terén: {}", "Terén: {}", e));
         }
         if drzet {
             self.posledni_akce = Some(Instant::now());
@@ -1246,14 +1246,14 @@ impl Pracovnik {
             match vysledek {
                 Ok(Some(z)) => s.zprava = z,
                 Ok(None) => {}
-                Err(e) => s.zprava = trf!("Chyba: {}", e),
+                Err(e) => s.zprava = trf!("Chyba: {}", "Error: {}", e),
             }
         });
     }
 
     fn zaznam(k: &mut dyn Vykres, id: &str) -> Result<(ZaznamPovrchu, CadDocument), String> {
         let doc = k.dokument()?;
-        let z = povrchy::povrchy(&doc).into_iter().find(|z| z.id == id).ok_or(tr("povrch už ve výkrese není"))?;
+        let z = povrchy::povrchy(&doc).into_iter().find(|z| z.id == id).ok_or(tr("povrch už ve výkrese není", "the surface is no longer in the drawing"))?;
         Ok((z, doc))
     }
 
@@ -1262,7 +1262,7 @@ impl Pracovnik {
         let r = povrchy::prestav(k, z)?;
         povrchy::vypis(k, z, &r);
         k.hotovo();
-        Ok(Some(trf!("„{}“ přepočítán ({} trojúhelníků)", z.jmeno, r.povrch.statistika().pocet_trojuhelniku)))
+        Ok(Some(trf!("„{}“ přepočítán ({} trojúhelníků)", "\"{}\" recalculated ({} triangles)", z.jmeno, r.povrch.statistika().pocet_trojuhelniku)))
     }
 
     fn proved(k: &mut dyn Vykres, a: Akce) -> Vysledek {
@@ -1271,7 +1271,7 @@ impl Pracovnik {
             Akce::Aktivovat(id) => {
                 let (z, _) = Self::zaznam(k, &id)?;
                 povrchy::nastav_aktivni(&id);
-                Ok(Some(trf!("Aktivní povrch: „{}“", z.jmeno)))
+                Ok(Some(trf!("Aktivní povrch: „{}“", "Active surface: \"{}\"", z.jmeno)))
             }
             Akce::Nastav(idy, zmena) => {
                 let mut zpravy = Vec::new();
@@ -1281,7 +1281,7 @@ impl Pracovnik {
                         Zmena::Jmeno(j) => {
                             let j = j.trim().to_string();
                             if j.is_empty() {
-                                return Err(tr("jméno nesmí být prázdné").into());
+                                return Err(tr("jméno nesmí být prázdné", "the name must not be empty").into());
                             }
                             z.jmeno = j;
                             false
@@ -1309,16 +1309,16 @@ impl Pracovnik {
                         }
                     };
                     if prepocitat {
-                        if let Some(t) = Self::prestav(k, &mut z, tr("Nastavení povrchu"))? {
+                        if let Some(t) = Self::prestav(k, &mut z, tr("Nastavení povrchu", "Surface settings"))? {
                             zpravy.push(t);
                         }
                     } else {
-                        k.zpet(tr("Nastavení povrchu"));
+                        k.zpet(tr("Nastavení povrchu", "Surface settings"));
                         if !povrchy::uloz_zaznam(k, &z) {
-                            return Err(tr("nastavení se nepodařilo uložit").into());
+                            return Err(tr("nastavení se nepodařilo uložit", "the settings could not be saved").into());
                         }
                         k.hotovo();
-                        zpravy.push(trf!("„{}“ uložen", z.jmeno));
+                        zpravy.push(trf!("„{}“ uložen", "\"{}\" saved", z.jmeno));
                     }
                 }
                 Ok(Some(zpravy.join("; ")))
@@ -1327,7 +1327,7 @@ impl Pracovnik {
                 let mut zpravy = Vec::new();
                 for id in &idy {
                     let (mut z, _) = Self::zaznam(k, id)?;
-                    if let Some(t) = Self::prestav(k, &mut z, tr("Přepočítat povrch"))? {
+                    if let Some(t) = Self::prestav(k, &mut z, tr("Přepočítat povrch", "Recalculate surface"))? {
                         zpravy.push(t);
                     }
                 }
@@ -1335,24 +1335,24 @@ impl Pracovnik {
             }
             Akce::Smazat(id) => {
                 let (z, doc) = Self::zaznam(k, &id)?;
-                k.zpet(tr("Smazat povrch"));
+                k.zpet(tr("Smazat povrch", "Delete surface"));
                 povrchy::smaz(k, &doc, &z)?;
                 k.hotovo();
-                Ok(Some(trf!("Povrch „{}“ smazán", z.jmeno)))
+                Ok(Some(trf!("Povrch „{}“ smazán", "Surface \"{}\" deleted", z.jmeno)))
             }
             Akce::OdebratPolozku(id, h) => {
                 let (mut z, doc) = Self::zaznam(k, &id)?;
-                k.zpet(tr("Odebrat z povrchu"));
+                k.zpet(tr("Odebrat z povrchu", "Remove from surface"));
                 if let Some(e) = povrchy::odeber_objekt(&doc, h, &id) {
-                    k.transakce(tr("Odebrat objekt z povrchu"), vec![e])?;
+                    k.transakce(tr("Odebrat objekt z povrchu", "Remove object from surface"), vec![e])?;
                 } else {
-                    let e = doc.model_space_entities().find(|e| e.common().handle == h).ok_or(tr("čára už ve výkrese není"))?;
+                    let e = doc.model_space_entities().find(|e| e.common().handle == h).ok_or(tr("čára už ve výkrese není", "the line is no longer in the drawing"))?;
                     if !k.uprav(povrchy::uvolni_caru(e.clone())) {
-                        return Err(tr("čáru se nepodařilo upravit").into());
+                        return Err(tr("čáru se nepodařilo upravit", "the line could not be modified").into());
                     }
                 }
                 z.vypnute.retain(|x| *x != h);
-                Self::prestav(k, &mut z, tr("Odebrat z povrchu"))
+                Self::prestav(k, &mut z, tr("Odebrat z povrchu", "Remove from surface"))
             }
             Akce::PolozkaZapnout(id, h, zap) => {
                 let (mut z, _) = Self::zaznam(k, &id)?;
@@ -1360,29 +1360,29 @@ impl Pracovnik {
                 if !zap {
                     z.vypnute.push(h);
                 }
-                Self::prestav(k, &mut z, if zap { tr("Zapnout položku povrchu") } else { tr("Vypnout položku povrchu") })
+                Self::prestav(k, &mut z, if zap { tr("Zapnout položku povrchu", "Enable surface item") } else { tr("Vypnout položku povrchu", "Disable surface item") })
             }
             Akce::UpravaZapnout(id, i, zap) => {
                 let (mut z, doc) = Self::zaznam(k, &id)?;
                 Self::prevezmi_znacky(k, &doc, &mut z);
-                let u = z.upravy.get_mut(i).ok_or(tr("úprava neexistuje"))?;
+                let u = z.upravy.get_mut(i).ok_or(tr("úprava neexistuje", "the edit does not exist"))?;
                 u.zapnuto = zap;
-                Self::prestav(k, &mut z, tr("Úprava povrchu"))
+                Self::prestav(k, &mut z, tr("Úprava povrchu", "Surface edit"))
             }
             Akce::UpravaSmazat(id, i) => {
                 let (mut z, doc) = Self::zaznam(k, &id)?;
                 Self::prevezmi_znacky(k, &doc, &mut z);
                 if i >= z.upravy.len() {
-                    return Err(tr("úprava neexistuje").into());
+                    return Err(tr("úprava neexistuje", "the edit does not exist").into());
                 }
                 z.upravy.remove(i);
-                Self::prestav(k, &mut z, tr("Smazat úpravu povrchu"))
+                Self::prestav(k, &mut z, tr("Smazat úpravu povrchu", "Delete surface edit"))
             }
             Akce::UpravySmazat(id) => {
                 let (mut z, doc) = Self::zaznam(k, &id)?;
                 Self::prevezmi_znacky(k, &doc, &mut z);
                 z.upravy.clear();
-                Self::prestav(k, &mut z, tr("Zrušit úpravy povrchu"))
+                Self::prestav(k, &mut z, tr("Zrušit úpravy povrchu", "Undo surface edits"))
             }
             Akce::SkupinaVPovrchu(id, skupina, stav) => {
                 let (mut z, _) = Self::zaznam(k, &id)?;
@@ -1393,32 +1393,32 @@ impl Pracovnik {
                         None => z.skupiny.push(SkupinaVPovrchu { id: skupina, zapnuto: zap }),
                     },
                 }
-                Self::prestav(k, &mut z, tr("Skupiny bodů povrchu"))
+                Self::prestav(k, &mut z, tr("Skupiny bodů povrchu", "Surface point groups"))
             }
             Akce::PridatObjekty(id, typ, hrany) => {
                 let (mut z, doc) = Self::zaznam(k, &id)?;
                 let vyber = k.vybrane();
                 if vyber.is_empty() {
-                    return Err(trf!("nejdřív ve výkrese vyberte {} pro povrch „{}“", typ.mnozne(), z.jmeno));
+                    return Err(trf!("nejdřív ve výkrese vyberte {} pro povrch „{}“", "first select {} for surface \"{}\" in the drawing", typ.mnozne(), z.jmeno));
                 }
                 let p = povrchy::pridej_objekty(&doc, &vyber, &id, typ, hrany);
-                let mut info = trf!("přidáno {} ({})", p.pridano, typ.mnozne());
+                let mut info = trf!("přidáno {} ({})", "added {} ({})", p.pridano, typ.mnozne());
                 if p.uz_bylo > 0 {
-                    info.push_str(&trf!(", {} už v povrchu bylo", p.uz_bylo));
+                    info.push_str(&trf!(", {} už v povrchu bylo", ", {} were already in the surface", p.uz_bylo));
                 }
                 if p.jineho_typu > 0 {
-                    info.push_str(&trf!(", {} vybraných objektů je jiného typu", p.jineho_typu));
+                    info.push_str(&trf!(", {} vybraných objektů je jiného typu", ", {} selected objects are of another type", p.jineho_typu));
                 }
                 if p.obsazene > 0 {
-                    info.push_str(&trf!(", {} objektů patří k povrchu jinak (spojnice…)", p.obsazene));
+                    info.push_str(&trf!(", {} objektů patří k povrchu jinak (spojnice…)", ", {} objects belong to the surface otherwise (breaklines…)", p.obsazene));
                 }
                 if p.pridano == 0 {
-                    return Ok(Some(trf!("Objekty výkresu: {}", info)));
+                    return Ok(Some(trf!("Objekty výkresu: {}", "Drawing objects: {}", info)));
                 }
                 povrchy::zajisti_hladinu(k, &doc, &z.hladiny().povrch, 7);
-                k.transakce(tr("Přidat objekty do povrchu"), p.upravit)?;
-                let r = Self::prestav(k, &mut z, tr("Přepočítat povrch"))?;
-                Ok(Some(trf!("Objekty výkresu: {}. {}", info, r.unwrap_or_default())))
+                k.transakce(tr("Přidat objekty do povrchu", "Add objects to surface"), p.upravit)?;
+                let r = Self::prestav(k, &mut z, tr("Přepočítat povrch", "Recalculate surface"))?;
+                Ok(Some(trf!("Objekty výkresu: {}. {}", "Drawing objects: {}. {}", info, r.unwrap_or_default())))
             }
             Akce::UkazatBody(h) => {
                 let doc = k.dokument()?;
@@ -1458,9 +1458,9 @@ impl Pracovnik {
                         (bv, b, st)
                     })
                     .collect();
-                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Upravit body"))?;
+                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Upravit body", "Edit points"))?;
                 k.hotovo();
-                Ok(Some(trf!("Upraveno bodů: {}", n)))
+                Ok(Some(trf!("Upraveno bodů: {}", "Points edited: {}", n)))
             }
             Akce::Uchopy(_) | Akce::Hlaseni(_) | Akce::Navod(..) | Akce::TrasaEditor(_) => Ok(None),
             Akce::TrasaNastav(h, j, p, s) => crate::tra::prospektor::nastav(k, h, &j, p, &s).map(|z| (!z.is_empty()).then_some(z)),
@@ -1473,17 +1473,17 @@ impl Pracovnik {
                 let doc = k.dokument()?;
                 st.jmeno = st.jmeno.trim().to_string();
                 if st.jmeno.is_empty() {
-                    return Err(tr("jméno stylu nesmí být prázdné").into());
+                    return Err(tr("jméno stylu nesmí být prázdné", "the style name must not be empty").into());
                 }
                 if st.id.is_empty() {
                     st.id = styly::volne_id(&doc, &st.jmeno);
                 }
-                k.zpet(tr("Styl profilu"));
+                k.zpet(tr("Styl profilu", "Profile style"));
                 styly::uloz_styl_profilu(k, &doc, &st)?;
                 k.hotovo();
                 let z = crate::tra::prospektor::prekresli(k, None)?;
                 skoc(Skok::StylProfilu(st.id.clone()));
-                Ok(Some(trf!("Styl profilu „{}“ uložen. {}", st.jmeno, z)))
+                Ok(Some(trf!("Styl profilu „{}“ uložen. {}", "Profile style “{}” saved. {}", st.jmeno, z)))
             }
             Akce::UlozStylTrasy(st) => {
                 let mut st = *st;
@@ -1491,21 +1491,21 @@ impl Pracovnik {
                 st.nazev = st.nazev.trim().to_string();
                 st.rodic = None;
                 if st.nazev.is_empty() {
-                    return Err(tr("jméno stylu nesmí být prázdné").into());
+                    return Err(tr("jméno stylu nesmí být prázdné", "the style name must not be empty").into());
                 }
                 if st.id.is_empty() {
                     st.id = styly::volne_id(&doc, &st.nazev);
                 }
-                k.zpet(tr("Styl trasy"));
+                k.zpet(tr("Styl trasy", "Alignment style"));
                 styly::uloz_styl_trasy(k, &doc, &st)?;
                 k.hotovo();
                 let z = crate::tra::prospektor::prekresli_trasy_stylu(k, &st.id, None)?;
                 skoc(Skok::StylTrasy(st.id.clone()));
-                Ok(Some(trf!("Styl trasy „{}“ uložen. {}", trasy::preklad::tr_dyn(&st.nazev), z)))
+                Ok(Some(trf!("Styl trasy „{}“ uložen. {}", "Alignment style \"{}\" saved. {}", crate::lang::tr_dyn(&st.nazev), z)))
             }
             Akce::SmazStylTrasy(id) => {
                 let doc = k.dokument()?;
-                k.zpet(tr("Styl trasy"));
+                k.zpet(tr("Styl trasy", "Alignment style"));
                 styly::smaz_styl(k, &doc, &id);
                 k.hotovo();
                 let nahrada = (!trasy::trasa::je_vestaveny(&id)).then_some(trasy::trasa::STYL_ZAKLAD);
@@ -1515,7 +1515,7 @@ impl Pracovnik {
             }
             Akce::SmazStylProfilu(id) => {
                 let doc = k.dokument()?;
-                k.zpet(tr("Styl profilu"));
+                k.zpet(tr("Styl profilu", "Profile style"));
                 styly::smaz_styl(k, &doc, &id);
                 k.hotovo();
                 let z = crate::tra::prospektor::prekresli(k, None)?;
@@ -1542,28 +1542,28 @@ impl Pracovnik {
                 let mut z = povrchy::aktivni(&doc)?;
                 Self::prevezmi_znacky(k, &doc, &mut z);
                 z.upravy.push(Uprava { e: teren::povrch::Editace::OdebratBod([x, y]), zapnuto: true });
-                Self::prestav(k, &mut z, tr("Odebrat bod z povrchu"))
+                Self::prestav(k, &mut z, tr("Odebrat bod z povrchu", "Remove point from surface"))
             }
 
             // ── body ──
             Akce::BodUpravit(h, novy) => {
                 let doc = k.dokument()?;
                 let vse = cogo::body(&doc);
-                let bv = vse.iter().find(|b| b.handle == h).ok_or(tr("bod už ve výkrese není"))?.clone();
+                let bv = vse.iter().find(|b| b.handle == h).ok_or(tr("bod už ve výkrese není", "the point is no longer in the drawing"))?.clone();
                 let mut novy = novy;
                 if !novy.x.is_finite() || !novy.y.is_finite() {
                     novy.x = bv.bod.x;
                     novy.y = bv.bod.y;
                 }
-                let mut zprava = trf!("Bod {} upraven", novy.cislo);
+                let mut zprava = trf!("Bod {} upraven", "Point {} modified", novy.cislo);
                 if novy.cislo != bv.bod.cislo
                     && !novy.cislo.is_empty()
                     && vse.iter().any(|b| b.handle != h && b.bod.cislo.eq_ignore_ascii_case(&novy.cislo))
                 {
-                    zprava.push_str(tr(" – pozor, číslo už má jiný bod"));
+                    zprava.push_str(tr(" – pozor, číslo už má jiný bod", " – warning, another point already has this number"));
                 }
                 let styl = bv.styl.clone();
-                cogo::uprav_body(k, &doc, &[(bv, novy, styl)], tr("Upravit bod"))?;
+                cogo::uprav_body(k, &doc, &[(bv, novy, styl)], tr("Upravit bod", "Edit point"))?;
                 k.hotovo();
                 Ok(Some(zprava))
             }
@@ -1586,9 +1586,9 @@ impl Pracovnik {
                         (bv, b, styl)
                     })
                     .collect();
-                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Upravit body"))?;
+                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Upravit body", "Edit points"))?;
                 k.hotovo();
-                Ok(Some(trf!("Upraveno bodů: {}", n)))
+                Ok(Some(trf!("Upraveno bodů: {}", "Points edited: {}", n)))
             }
             Akce::PopisyNaMisto(h) => {
                 let doc = k.dokument()?;
@@ -1601,17 +1601,17 @@ impl Pracovnik {
                         (bv, b, styl)
                     })
                     .collect();
-                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Popisy na místo"))?;
+                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Popisy na místo", "Reset labels"))?;
                 k.hotovo();
-                Ok(Some(trf!("Popisy vráceny na místo: {}", n)))
+                Ok(Some(trf!("Popisy vráceny na místo: {}", "Labels reset: {}", n)))
             }
             Akce::BodySmazat(h) => {
                 let doc = k.dokument()?;
                 let body: Vec<BodVykresu> = cogo::body(&doc).into_iter().filter(|b| h.contains(&b.handle)).collect();
-                k.zpet(tr("Smazat body"));
+                k.zpet(tr("Smazat body", "Delete points"));
                 let n = cogo::smaz_body(k, &doc, &body);
                 k.hotovo();
-                Ok(Some(trf!("Smazáno bodů: {}", n)))
+                Ok(Some(trf!("Smazáno bodů: {}", "Points deleted: {}", n)))
             }
             Akce::BodyPrecislovat(h, od, krok) => {
                 let doc = k.dokument()?;
@@ -1626,25 +1626,25 @@ impl Pracovnik {
                 }
                 let nova: Vec<&str> = zmeny.iter().map(|(_, b, _)| b.cislo.as_str()).collect();
                 let kolize = vse.iter().filter(|b| !h.contains(&b.handle) && nova.contains(&b.bod.cislo.as_str())).count();
-                cogo::uprav_body(k, &doc, &zmeny, tr("Přečíslovat body"))?;
+                cogo::uprav_body(k, &doc, &zmeny, tr("Přečíslovat body", "Renumber points"))?;
                 k.hotovo();
-                let mut t = trf!("Přečíslováno bodů: {} (od {}, krok {})", zmeny.len(), od, krok);
+                let mut t = trf!("Přečíslováno bodů: {} (od {}, krok {})", "Points renumbered: {} (from {}, step {})", zmeny.len(), od, krok);
                 if kolize > 0 {
-                    t.push_str(&trf!(" – pozor, {} jiných bodů má stejné číslo", kolize));
+                    t.push_str(&trf!(" – pozor, {} jiných bodů má stejné číslo", " – warning, {} other points have the same number", kolize));
                 }
                 Ok(Some(t))
             }
             Akce::ObnovitPopisy => {
                 let doc = k.dokument()?;
-                k.zpet(tr("Obnovit popisy bodů"));
+                k.zpet(tr("Obnovit popisy bodů", "Refresh point labels"));
                 let n = cogo::obnov_grafiku(k, &doc)?;
                 k.hotovo();
-                Ok(Some(trf!("Popisy {} bodů vytvořeny znovu", n)))
+                Ok(Some(trf!("Popisy {} bodů vytvořeny znovu", "Labels of {} points created again", n)))
             }
             Akce::VyberZVykresu => {
                 let vyber = k.vybrane();
                 if vyber.is_empty() {
-                    return Ok(Some(tr("Ve výkrese není nic vybráno").into()));
+                    return Ok(Some(tr("Ve výkrese není nic vybráno", "Nothing is selected in the drawing").into()));
                 }
                 let doc = k.dokument()?;
                 Ok(Some(match najdi_ve_strome(&doc, &vyber) {
@@ -1652,7 +1652,7 @@ impl Pracovnik {
                         skoc(s);
                         t
                     }
-                    None => tr("Vybrané objekty nepatří k žádnému bodu ani povrchu").into(),
+                    None => tr("Vybrané objekty nepatří k žádnému bodu ani povrchu", "The selected objects belong to no point or surface").into(),
                 }))
             }
 
@@ -1667,51 +1667,51 @@ impl Pracovnik {
                         (b, novy, styl.clone())
                     })
                     .collect();
-                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Styl bodů"))?;
+                let n = cogo::uprav_body(k, &doc, &zmeny, tr("Styl bodů", "Point style"))?;
                 k.hotovo();
                 let jmeno = if styl.is_empty() {
-                    tr("podle skupiny / kódu").to_string()
+                    tr("podle skupiny / kódu", "by group / code").to_string()
                 } else {
                     styly::styly_bodu(&doc).into_iter().find(|s| s.id == styl).map_or(styl.clone(), |s| format!("„{}“", s.jmeno))
                 };
-                Ok(Some(trf!("Styl {} nastaven {} bodům", jmeno, n)))
+                Ok(Some(trf!("Styl {} nastaven {} bodům", "Style {} set for {} points", jmeno, n)))
             }
             Akce::UlozStylBodu(mut st) => {
                 let doc = k.dokument()?;
                 st.jmeno = st.jmeno.trim().to_string();
                 if st.jmeno.is_empty() {
-                    return Err(tr("jméno stylu nesmí být prázdné").into());
+                    return Err(tr("jméno stylu nesmí být prázdné", "the style name must not be empty").into());
                 }
                 if st.id.is_empty() {
                     st.id = styly::volne_id(&doc, &st.jmeno);
                 }
-                k.zpet(tr("Styl bodů"));
+                k.zpet(tr("Styl bodů", "Point style"));
                 styly::uloz_styl_bodu(k, &doc, &st)?;
                 let doc = k.dokument()?;
                 let n = cogo::obnov_grafiku(k, &doc)?;
                 k.hotovo();
                 skoc(Skok::StylBodu(st.id.clone()));
-                Ok(Some(trf!("Styl „{}“ uložen, překresleno {} bodů", st.jmeno, n)))
+                Ok(Some(trf!("Styl „{}“ uložen, překresleno {} bodů", "Style \"{}\" saved, {} points redrawn", st.jmeno, n)))
             }
             Akce::UlozStylPovrchu(mut st) => {
                 let doc = k.dokument()?;
                 st.jmeno = st.jmeno.trim().to_string();
                 if st.jmeno.is_empty() {
-                    return Err(tr("jméno stylu nesmí být prázdné").into());
+                    return Err(tr("jméno stylu nesmí být prázdné", "the style name must not be empty").into());
                 }
                 if st.id.is_empty() {
                     st.id = styly::volne_id(&doc, &st.jmeno);
                 }
                 if let Some((i, h)) = st.interval {
                     if !(i > 0.0 && h >= i) {
-                        return Err(tr("krok vrstevnic musí být kladný a hlavní krok aspoň jako vedlejší").into());
+                        return Err(tr("krok vrstevnic musí být kladný a hlavní krok aspoň jako vedlejší", "the contour interval must be positive and the major interval at least the minor one").into());
                     }
                 }
-                k.zpet(tr("Styl povrchu"));
+                k.zpet(tr("Styl povrchu", "Surface style"));
                 styly::uloz_styl_povrchu(k, &doc, &st)?;
-                let mut zpravy = vec![trf!("Styl „{}“ uložen", st.jmeno)];
+                let mut zpravy = vec![trf!("Styl „{}“ uložen", "Style \"{}\" saved", st.jmeno)];
                 for mut z in povrchy::povrchy(&doc).into_iter().filter(|z| z.styl.eq_ignore_ascii_case(&st.id)) {
-                    if let Some(t) = Self::prestav(k, &mut z, tr("Styl povrchu"))? {
+                    if let Some(t) = Self::prestav(k, &mut z, tr("Styl povrchu", "Surface style"))? {
                         zpravy.push(t);
                     }
                 }
@@ -1725,53 +1725,53 @@ impl Pracovnik {
                 if !vestaveny {
                     let povrch = povrchy::povrchy(&doc).into_iter().find(|z| z.styl.eq_ignore_ascii_case(&id));
                     if let Some(z) = povrch {
-                        return Err(trf!("styl používá povrch „{}“", z.jmeno));
+                        return Err(trf!("styl používá povrch „{}“", "the style is used by surface \"{}\"", z.jmeno));
                     }
                     if let Some(g) = cogo::ulozene_skupiny(&doc).into_iter().find(|(_, g)| g.styl.eq_ignore_ascii_case(&id)) {
-                        return Err(trf!("styl používá skupina „{}“", g.1.jmeno));
+                        return Err(trf!("styl používá skupina „{}“", "the style is used by group \"{}\"", g.1.jmeno));
                     }
                     if cogo::body(&doc).iter().any(|b| b.styl.eq_ignore_ascii_case(&id)) {
-                        return Err(tr("styl mají nastavený některé body").into());
+                        return Err(tr("styl mají nastavený některé body", "some points have the style set").into());
                     }
                 }
-                k.zpet(tr("Smazat styl"));
+                k.zpet(tr("Smazat styl", "Delete style"));
                 if !styly::smaz_styl(k, &doc, &id) {
-                    return Err(tr("styl ve výkrese není uložený").into());
+                    return Err(tr("styl ve výkrese není uložený", "the style is not saved in the drawing").into());
                 }
                 // překreslit, co styl používalo
                 let doc = k.dokument()?;
                 cogo::obnov_grafiku(k, &doc)?;
                 for mut z in povrchy::povrchy(&doc).into_iter().filter(|z| z.styl.eq_ignore_ascii_case(&id)) {
-                    Self::prestav(k, &mut z, tr("Styl povrchu"))?;
+                    Self::prestav(k, &mut z, tr("Styl povrchu", "Surface style"))?;
                 }
                 k.hotovo();
-                Ok(Some(if vestaveny { tr("Styl vrácen k původnímu nastavení").into() } else { tr("Styl smazán").into() }))
+                Ok(Some(if vestaveny { tr("Styl vrácen k původnímu nastavení", "Style restored to the original settings").into() } else { tr("Styl smazán", "Style deleted").into() }))
             }
             Akce::SablonaUloz => {
                 let doc = k.dokument()?;
                 let (cesta, n) = styly::uloz_sablonu(&doc)?;
-                Ok(Some(trf!("Šablona uložena ({} stylů): {}", n, cesta)))
+                Ok(Some(trf!("Šablona uložena ({} stylů): {}", "Template saved ({} styles): {}", n, cesta)))
             }
             Akce::SablonaNacti => {
                 let doc = k.dokument()?;
-                k.zpet(tr("Načíst šablonu stylů"));
+                k.zpet(tr("Načíst šablonu stylů", "Load style template"));
                 let n = styly::nacti_sablonu(k, &doc)?;
                 let doc = k.dokument()?;
                 cogo::obnov_grafiku(k, &doc)?;
                 let mut prepocteno = 0;
                 for mut z in povrchy::povrchy(&doc) {
-                    if povrchy::zastaraly(&doc, &z) && Self::prestav(k, &mut z, tr("Styl povrchu")).is_ok() {
+                    if povrchy::zastaraly(&doc, &z) && Self::prestav(k, &mut z, tr("Styl povrchu", "Surface style")).is_ok() {
                         prepocteno += 1;
                     }
                 }
                 k.hotovo();
-                Ok(Some(trf!("Ze šablony načteno {} stylů, přepočteno povrchů: {}", n, prepocteno)))
+                Ok(Some(trf!("Ze šablony načteno {} stylů, přepočteno povrchů: {}", "{} styles loaded from the template, surfaces recalculated: {}", n, prepocteno)))
             }
             Akce::Import(n) => crate::import::proved_import(k, *n).map(Some),
             Akce::BodyZVykresu(hladina, vyber, tol) => crate::import::priprav_z_vykresu(k, hladina.as_deref(), vyber, tol).map(Some),
             Akce::Meritko(m) => {
                 crate::zmen_meritko_v(k, m);
-                Ok(Some(trf!("Měřítko 1:{}", m)))
+                Ok(Some(trf!("Měřítko 1:{}", "Scale 1:{}", m)))
             }
             Akce::NovyPovrchPas(zaklad, jmeno, body) => {
                 let vyber = k.vybrane();
@@ -1779,43 +1779,43 @@ impl Pracovnik {
                 Ok(None)
             }
             Akce::PripravVykres => {
-                k.zpet(tr("Připravit výkres ze šablony"));
+                k.zpet(tr("Připravit výkres ze šablony", "Prepare the drawing from the template"));
                 cogo::priprav_vykres(k)?;
-                let mut co = vec![tr("hladiny Terénu").to_string(), tr("značka bodu podle stylu (PDMODE 1)").to_string()];
+                let mut co = vec![tr("hladiny Terénu", "Terén layers").to_string(), tr("značka bodu podle stylu (PDMODE 1)", "point marker by style (PDMODE 1)").to_string()];
                 if let Some(m) = styly::meritko_sablony() {
                     crate::zmen_meritko_v(k, m);
-                    co.push(trf!("měřítko 1:{}", m));
+                    co.push(trf!("měřítko 1:{}", "scale 1:{}", m));
                 }
                 if styly::sablona_existuje() {
                     let doc = k.dokument()?;
                     let n = styly::nacti_sablonu(k, &doc)?;
-                    co.push(trf!("{} stylů ze šablony", n));
+                    co.push(trf!("{} stylů ze šablony", "{} styles from the template", n));
                     let doc = k.dokument()?;
                     if !cogo::body(&doc).is_empty() {
                         cogo::obnov_grafiku(k, &doc)?;
                     }
                 }
                 k.hotovo();
-                k.info(&trf!("Terén: výkres připraven – {}", co.join(", ")));
-                Ok(Some(trf!("Výkres připraven: {}", co.join(", "))))
+                k.info(&trf!("Terén: výkres připraven – {}", "Terén: drawing prepared – {}", co.join(", ")));
+                Ok(Some(trf!("Výkres připraven: {}", "Drawing prepared: {}", co.join(", "))))
             }
             Akce::SrovnatBody(jen_zjistit) => {
                 let doc = k.dokument()?;
                 let n = cogo::nesoulad(&doc, nastaveni::meritko(&doc));
                 if n.je_prazdny() {
-                    return Ok(Some(trf!("Popisy bodů jsou v pořádku (bodů {})", cogo::body(&doc).len())));
+                    return Ok(Some(trf!("Popisy bodů jsou v pořádku (bodů {})", "Point labels are fine (points {})", cogo::body(&doc).len())));
                 }
                 if jen_zjistit {
-                    return Ok(Some(trf!("Nesoulad: grafika navíc {}, body bez grafiky {}", n.navic.len(), n.chybi.len())));
+                    return Ok(Some(trf!("Nesoulad: grafika navíc {}, body bez grafiky {}", "Mismatch: extra graphics {}, points without graphics {}", n.navic.len(), n.chybi.len())));
                 }
-                k.zpet(tr("Popisy bodů"));
+                k.zpet(tr("Popisy bodů", "Point labels"));
                 cogo::oprav_nesoulad(k, &doc, &n)?;
                 k.hotovo();
-                Ok(Some(trf!("Odstraněno {} objektů grafiky, dokresleno {} bodů", n.navic.len(), n.chybi.len())))
+                Ok(Some(trf!("Odstraněno {} objektů grafiky, dokresleno {} bodů", "Removed {} graphic objects, drew {} points", n.navic.len(), n.chybi.len())))
             }
             Akce::PodkladyPohledu(id) => {
                 let doc = k.dokument()?;
-                let p = crate::tra::pohled::pohledy(&doc).into_iter().find(|p| p.def.id == id).ok_or_else(|| trf!("pohled {} už ve výkrese není", id))?;
+                let p = crate::tra::pohled::pohledy(&doc).into_iter().find(|p| p.def.id == id).ok_or_else(|| trf!("pohled {} už ve výkrese není", "view {} is no longer in the drawing", id))?;
                 let styly = styly::styly_profilu(&doc);
                 let ef = trasy::pohled::efektivni(&p.def, &styly);
                 let vysledek = crate::tra::pohled::podklady(&doc, &ef, None, true);
@@ -1836,16 +1836,16 @@ impl Pracovnik {
                 }
                 let n: usize = site.iter().map(|s| s.troj.len()).sum();
                 uprav_stav(|s| s.site3d = Arc::new(site));
-                Ok(Some(trf!("Prohlížeč: {} trojúhelníků", n)))
+                Ok(Some(trf!("Prohlížeč: {} trojúhelníků", "Viewer: {} triangles", n)))
             }
             Akce::PovrchyNevybirat(ano) => {
                 nastaveni::zmen(|n| n.povrch_nevybirat = ano);
                 let doc = k.dokument()?;
                 let n = oznac_povrchy(k, &doc, ano);
                 Ok(Some(if ano {
-                    trf!("Povrchy ({}) nejdou vybrat kliknutím – klik projde na body pod nimi", n)
+                    trf!("Povrchy ({}) nejdou vybrat kliknutím – klik projde na body pod nimi", "Surfaces ({}) cannot be selected by clicking – a click passes to the points under them", n)
                 } else {
-                    trf!("Povrchy ({}) jdou znovu vybrat kliknutím", n)
+                    trf!("Povrchy ({}) jdou znovu vybrat kliknutím", "Surfaces ({}) can be selected by clicking again", n)
                 }))
             }
             Akce::SmazatKontrolu => {
@@ -1855,11 +1855,11 @@ impl Pracovnik {
                     .filter(|e| e.common().layer.eq_ignore_ascii_case(H_KONTROLA))
                     .map(|e| e.common().handle)
                     .collect();
-                k.zpet(tr("Smazat značky kontroly"));
+                k.zpet(tr("Smazat značky kontroly", "Delete check marks"));
                 let n = cogo::smaz_objekty(k, h);
                 k.hotovo();
                 uprav_stav(|s| s.kontrola = None);
-                Ok(Some(trf!("Smazáno {} značek kontroly", n)))
+                Ok(Some(trf!("Smazáno {} značek kontroly", "Deleted {} check marks", n)))
             }
 
             // ── skupiny ──
@@ -1867,13 +1867,13 @@ impl Pracovnik {
                 let doc = k.dokument()?;
                 s.jmeno = s.jmeno.trim().to_string();
                 if s.jmeno.is_empty() {
-                    return Err(tr("jméno skupiny nesmí být prázdné").into());
+                    return Err(tr("jméno skupiny nesmí být prázdné", "the group name must not be empty").into());
                 }
                 if s.id.is_empty() {
                     s.id = cogo::volne_id_skupiny(&doc, &s.jmeno);
                 }
                 let stary_styl = cogo::najdi_skupinu(&doc, &s.id).map(|g| g.styl).unwrap_or_default();
-                k.zpet(tr("Skupina bodů"));
+                k.zpet(tr("Skupina bodů", "Point group"));
                 cogo::uloz_skupinu(k, &doc, &s)?;
                 if stary_styl != s.styl {
                     let doc = k.dokument()?;
@@ -1881,22 +1881,22 @@ impl Pracovnik {
                 }
                 k.hotovo();
                 skoc(Skok::Skupina(s.id.clone()));
-                Ok(Some(trf!("Skupina „{}“ uložena", s.jmeno)))
+                Ok(Some(trf!("Skupina „{}“ uložena", "Group \"{}\" saved", s.jmeno)))
             }
             Akce::SkupinaNova(h) => {
                 let doc = k.dokument()?;
-                let jmeno = cogo::volne_jmeno_skupiny(&doc, tr("Nová skupina"));
+                let jmeno = cogo::volne_jmeno_skupiny(&doc, tr("Nová skupina", "New group"));
                 let mut s = SkupinaBodu { id: cogo::volne_id_skupiny(&doc, &jmeno), jmeno, ..Default::default() };
                 let cisla: Vec<String> =
                     cogo::body(&doc).into_iter().filter(|b| h.contains(&b.handle)).map(|b| b.bod.cislo).collect();
                 let mut sez = SeznamCisel::default();
                 sez.pridej(&cisla);
                 s.cisla = sez.text();
-                k.zpet(tr("Nová skupina bodů"));
+                k.zpet(tr("Nová skupina bodů", "New point group"));
                 cogo::uloz_skupinu(k, &doc, &s)?;
                 k.hotovo();
                 skoc(Skok::Skupina(s.id.clone()));
-                Ok(Some(trf!("Skupina „{}“ vytvořena ({} bodů)", s.jmeno, cisla.len())))
+                Ok(Some(trf!("Skupina „{}“ vytvořena ({} bodů)", "Group \"{}\" created ({} points)", s.jmeno, cisla.len())))
             }
             Akce::SkupinaSmazat(id) => {
                 let doc = k.dokument()?;
@@ -1906,12 +1906,12 @@ impl Pracovnik {
                     .map(|z| z.jmeno)
                     .collect();
                 if !pouzita.is_empty() {
-                    return Err(trf!("skupinu používá povrch {} – nejdřív ji z povrchu odeberte", pouzita.join(", ")));
+                    return Err(trf!("skupinu používá povrch {} – nejdřív ji z povrchu odeberte", "the group is used by surface {} – remove it from the surface first", pouzita.join(", ")));
                 }
-                k.zpet(tr("Smazat skupinu bodů"));
+                k.zpet(tr("Smazat skupinu bodů", "Delete point group"));
                 cogo::smaz_skupinu(k, &doc, &id)?;
                 k.hotovo();
-                Ok(Some(tr("Skupina smazána (body zůstaly)").into()))
+                Ok(Some(tr("Skupina smazána (body zůstaly)", "Group deleted (points remain)").into()))
             }
             Akce::SkupinaBody(id, h, pridat) => {
                 let doc = k.dokument()?;
@@ -1922,14 +1922,14 @@ impl Pracovnik {
                 let doc = k.dokument()?;
                 let body: Vec<Handle> = cogo::body(&doc).into_iter().map(|b| b.handle).filter(|h| vyber.contains(h)).collect();
                 if body.is_empty() {
-                    return Err(tr("ve výkrese nejsou vybrané žádné body").into());
+                    return Err(tr("ve výkrese nejsou vybrané žádné body", "no points are selected in the drawing").into());
                 }
                 Self::skupina_body(k, &doc, &id, &body, pridat)
             }
             Akce::PovrchZeSkupiny(skupina, jmeno, auto) => {
                 let doc = k.dokument()?;
-                let s = cogo::najdi_skupinu(&doc, &skupina).ok_or(tr("skupina už ve výkrese není"))?;
-                let jmeno = jmeno.unwrap_or_else(|| trf!("Povrch {}", s.jmeno));
+                let s = cogo::najdi_skupinu(&doc, &skupina).ok_or(tr("skupina už ve výkrese není", "the group is no longer in the drawing"))?;
+                let jmeno = jmeno.unwrap_or_else(|| trf!("Povrch {}", "Surface {}", s.jmeno));
                 let mut zaklad = cogo::bez_diakritiky(&jmeno);
                 if zaklad.is_empty() {
                     zaklad = "POVRCH".into();
@@ -1941,7 +1941,7 @@ impl Pracovnik {
                 if s.id == VSECHNY {
                     z.vyloucene_kody = nastaveni::akt().vyloucene_kody;
                 }
-                let r = Self::prestav(k, &mut z, tr("Nový povrch"))?;
+                let r = Self::prestav(k, &mut z, tr("Nový povrch", "New surface"))?;
                 skoc(Skok::Povrch(z.id.clone()));
                 Ok(r)
             }
@@ -1950,11 +1950,11 @@ impl Pracovnik {
                 let def = povrchy::definice(&doc, &z).definice;
                 let p = teren::povrch::Povrch::z_definice(&def, 0.001).map_err(|e| e.to_string())?;
                 if p.trojuhelniky.is_empty() {
-                    return Err(trf!("povrch „{}“ nemá žádné trojúhelníky – nejdřív ho přepočítejte", z.jmeno));
+                    return Err(trf!("povrch „{}“ nemá žádné trojúhelníky – nejdřív ho přepočítejte", "surface \"{}\" has no triangles – recalculate it first", z.jmeno));
                 }
                 let cesta = cesta.trim().trim_matches('"').to_string();
                 if cesta.is_empty() {
-                    return Err(tr("zadejte cestu k souboru").into());
+                    return Err(tr("zadejte cestu k souboru", "enter the file path").into());
                 }
                 let bajty = if landxml {
                     teren::landxml::povrch(&p, &z.jmeno, "", &def.body, env!("CARGO_PKG_VERSION")).into_bytes()
@@ -1963,10 +1963,10 @@ impl Pracovnik {
                     d.pridej_tin(&p);
                     d.do_bajtu()
                 };
-                std::fs::write(&cesta, bajty).map_err(|e| trf!("soubor {} nejde zapsat: {}", cesta, e))?;
-                let co = if landxml { "LandXML" } else { tr("DXF s 3D plochami") };
-                k.info(&trf!("Terén: „{}“ – {} trojúhelníků uloženo do {} ({})", z.jmeno, p.trojuhelniky.len(), cesta, co));
-                Ok(Some(trf!("Uloženo {} trojúhelníků do {}", p.trojuhelniky.len(), cesta)))
+                std::fs::write(&cesta, bajty).map_err(|e| trf!("soubor {} nejde zapsat: {}", "file {} cannot be written: {}", cesta, e))?;
+                let co = if landxml { "LandXML" } else { tr("DXF s 3D plochami", "DXF with 3D faces") };
+                k.info(&trf!("Terén: „{}“ – {} trojúhelníků uloženo do {} ({})", "Terén: \"{}\" – {} triangles saved to {} ({})", z.jmeno, p.trojuhelniky.len(), cesta, co));
+                Ok(Some(trf!("Uloženo {} trojúhelníků do {}", "Saved {} triangles to {}", p.trojuhelniky.len(), cesta)))
             }
             Akce::NovyPovrch(n) => {
                 let doc = k.dokument()?;
@@ -1982,38 +1982,38 @@ impl Pracovnik {
                 z.styl = n.styl;
                 (z.interval, z.hlavni) = n.interval;
                 z.auto = n.auto;
-                let r = Self::prestav(k, &mut z, tr("Nový povrch"))?;
+                let r = Self::prestav(k, &mut z, tr("Nový povrch", "New surface"))?;
                 povrchy::nastav_aktivni(&z.id);
                 skoc(Skok::Povrch(z.id.clone()));
                 Ok(r)
             }
             Akce::Export(skupina, cesta, format, odd, cp1250) => {
                 let doc = k.dokument()?;
-                let s = cogo::najdi_skupinu(&doc, &skupina).ok_or(tr("skupina už ve výkrese není"))?;
+                let s = cogo::najdi_skupinu(&doc, &skupina).ok_or(tr("skupina už ve výkrese není", "the group is no longer in the drawing"))?;
                 let vse = cogo::body(&doc);
                 let body: Vec<Bod> = cogo::body_skupin(&vse, std::slice::from_ref(&s)).into_iter().map(|b| b.bod.clone()).collect();
                 if body.is_empty() {
-                    return Err(tr("skupina neobsahuje žádné body").into());
+                    return Err(tr("skupina neobsahuje žádné body", "the group contains no points").into());
                 }
                 let fmt = FormatBodu::z_retezce(&format, odd)?;
                 let text = zapis_body(&body, &fmt);
                 let bajty = if cp1250 { teren::koduj_cp1250(&text) } else { text.into_bytes() };
                 let cesta = cesta.trim().trim_matches('"').to_string();
                 if cesta.is_empty() {
-                    return Err(tr("zadejte cestu k souboru").into());
+                    return Err(tr("zadejte cestu k souboru", "enter the file path").into());
                 }
-                std::fs::write(&cesta, bajty).map_err(|e| trf!("soubor {} nejde zapsat: {}", cesta, e))?;
-                k.info(&trf!("Terén: export {} bodů skupiny „{}“ do {} ({})", body.len(), s.jmeno, cesta, format));
-                Ok(Some(trf!("Exportováno {} bodů do {}", body.len(), cesta)))
+                std::fs::write(&cesta, bajty).map_err(|e| trf!("soubor {} nejde zapsat: {}", "file {} cannot be written: {}", cesta, e))?;
+                k.info(&trf!("Terén: export {} bodů skupiny „{}“ do {} ({})", "Terén: export of {} points of group \"{}\" to {} ({})", body.len(), s.jmeno, cesta, format));
+                Ok(Some(trf!("Exportováno {} bodů do {}", "Exported {} points to {}", body.len(), cesta)))
             }
         }
     }
 
     fn skupina_body(k: &mut dyn Vykres, doc: &CadDocument, id: &str, h: &[Handle], pridat: bool) -> Vysledek {
         if id == VSECHNY {
-            return Err(tr("skupinu Všechny body nelze měnit").into());
+            return Err(tr("skupinu Všechny body nelze měnit", "the All points group cannot be changed").into());
         }
-        let mut s = cogo::najdi_skupinu(doc, id).ok_or(tr("skupina už ve výkrese není"))?;
+        let mut s = cogo::najdi_skupinu(doc, id).ok_or(tr("skupina už ve výkrese není", "the group is no longer in the drawing"))?;
         let cisla: Vec<String> = cogo::body(doc).into_iter().filter(|b| h.contains(&b.handle)).map(|b| b.bod.cislo).collect();
         let bez_cisla = h.len().saturating_sub(cisla.iter().filter(|c| !c.is_empty()).count());
         // ručně přidané / odebrané body mají přednost před pravidly
@@ -2042,12 +2042,12 @@ impl Pracovnik {
         }
         s.pridane = pridane.text();
         s.odebrane = odebrane.text();
-        k.zpet(tr("Skupina bodů"));
+        k.zpet(tr("Skupina bodů", "Point group"));
         cogo::uloz_skupinu(k, doc, &s)?;
         k.hotovo();
-        let mut t = trf!("Skupina „{}“: {} {} bodů", s.jmeno, if pridat { tr("přidáno") } else { tr("odebráno") }, cisla.len());
+        let mut t = trf!("Skupina „{}“: {} {} bodů", "Group \"{}\": {} {} points", s.jmeno, if pridat { tr("přidáno", "added") } else { tr("odebráno", "removed") }, cisla.len());
         if bez_cisla > 0 {
-            t.push_str(&trf!(" ({} bodů bez čísla nejde přidat)", bez_cisla));
+            t.push_str(&trf!(" ({} bodů bez čísla nejde přidat)", " ({} points without a number cannot be added)", bez_cisla));
         }
         Ok(Some(t))
     }
@@ -2070,15 +2070,15 @@ pub fn proved_hned(v: &mut dyn Vykres, a: Akce) -> Result<Option<String>, String
 /// Přehled výkresu jako text (pro `TER_AKCE PREHLED`).
 pub fn prehled_text(doc: &CadDocument) -> Vec<String> {
     let p = prehled(doc);
-    let mut out = vec![trf!("bodů {}, další číslo {}, soubory: {}, měřítko 1:{}, stylů bodů {}, stylů povrchů {}", p.body.len(), p.dalsi_cislo, p.zdroje.join(", "), nastaveni::meritko(doc), styly::styly_bodu(doc).len(), styly::styly_povrchu(doc).len())];
+    let mut out = vec![trf!("bodů {}, další číslo {}, soubory: {}, měřítko 1:{}, stylů bodů {}, stylů povrchů {}", "points {}, next number {}, files: {}, scale 1:{}, point styles {}, surface styles {}", p.body.len(), p.dalsi_cislo, p.zdroje.join(", "), nastaveni::meritko(doc), styly::styly_bodu(doc).len(), styly::styly_povrchu(doc).len())];
     let ro = styly::Rozlisovac::new(doc);
     let mut pocty: std::collections::BTreeMap<String, usize> = Default::default();
     for b in &p.body {
         *pocty.entry(ro.styl_bodu(b).id).or_default() += 1;
     }
-    out.push(format!("styly bodů: {pocty:?}"));
+    out.push(format!("styly bodů: {pocty:?}")); // i18n:ne
     for s in &p.skupiny {
-        out.push(trf!("skupina {} „{}“: {} bodů [{}] styl {} používá: {}", s.skupina.id, s.skupina.jmeno, s.pocet, s.skupina.kriteria(), s.skupina.styl, s.povrchy.join(", ")));
+        out.push(trf!("skupina {} „{}“: {} bodů [{}] styl {} používá: {}", "group {} \"{}\": {} points [{}] style {} used by: {}", s.skupina.id, s.skupina.jmeno, s.pocet, s.skupina.kriteria(), s.skupina.styl, s.povrchy.join(", ")));
     }
     for z in &p.povrchy {
         let sk: Vec<String> = z.skupiny.iter().map(|g| format!("{}{}={}", if g.zapnuto { "" } else { "-" }, g.id, g.pocet)).collect();
@@ -2087,7 +2087,7 @@ pub fn prehled_text(doc: &CadDocument) -> Vec<String> {
             .iter()
             .map(|x| format!("{:?}{}{}:{:X}", x.druh, if x.zapnuto { "" } else { "(vyp)" }, if x.hrany { "+h" } else { "" }, x.handle.value()))
             .collect();
-        out.push(trf!("povrch {} „{}“ styl {}: {} trojúhelníků, bodů {} (vyl. {}), z {:.2}–{:.2}, plocha {:.1}, {}{}skupiny [{}] položky [{}] úprav {}", z.id, z.jmeno, z.styl, z.stat.trojuhelniku, z.pocet_bodu, z.vylouceno_bodu, z.stat.z_min, z.stat.z_max, z.stat.plocha_2d, if z.zastaraly { tr("ZASTARALÝ, ") } else { "" }, if z.auto { "auto, " } else { "" }, sk.join(" "), pol.join(" "), z.upravy.len()));
+        out.push(trf!("povrch {} „{}“ styl {}: {} trojúhelníků, bodů {} (vyl. {}), z {:.2}–{:.2}, plocha {:.1}, {}{}skupiny [{}] položky [{}] úprav {}", "surface {} \"{}\" style {}: {} triangles, points {} (excl. {}), z {:.2}–{:.2}, area {:.1}, {}{}groups [{}] items [{}] edits {}", z.id, z.jmeno, z.styl, z.stat.trojuhelniku, z.pocet_bodu, z.vylouceno_bodu, z.stat.z_min, z.stat.z_max, z.stat.plocha_2d, if z.zastaraly { tr("ZASTARALÝ, ", "OUT OF DATE, ") } else { "" }, if z.auto { "auto, " } else { "" }, sk.join(" "), pol.join(" "), z.upravy.len()));
     }
     out
 }
@@ -2097,7 +2097,7 @@ pub fn prehled_text(doc: &CadDocument) -> Vec<String> {
 pub fn po_zmene_meritka(v: &mut dyn Vykres) -> Result<String, String> {
     let doc = v.dokument()?;
     let m = nastaveni::meritko(&doc);
-    v.zpet(tr("Měřítko výkresu"));
+    v.zpet(tr("Měřítko výkresu", "Drawing scale"));
     let n = cogo::obnov_grafiku(v, &doc)?;
     let doc = v.dokument()?;
     let mut prepocteno = 0;
@@ -2107,7 +2107,7 @@ pub fn po_zmene_meritka(v: &mut dyn Vykres) -> Result<String, String> {
         }
     }
     v.hotovo();
-    Ok(trf!("měřítko 1:{} – překresleno {} bodů{}", povrchy::cislo_cz(m), n, if prepocteno > 0 { trf!(", přepočteno povrchů: {}", prepocteno) } else { String::new() }))
+    Ok(trf!("měřítko 1:{} – překresleno {} bodů{}", "scale 1:{} – {} points redrawn{}", povrchy::cislo_cz(m), n, if prepocteno > 0 { trf!(", přepočteno povrchů: {}", ", surfaces recalculated: {}", prepocteno) } else { String::new() }))
 }
 
 /// K čemu ve stromu patří vybrané objekty výkresu.
@@ -2117,7 +2117,7 @@ pub fn najdi_ve_strome(doc: &CadDocument, vyber: &[Handle]) -> Option<(Skok, Str
     for z in &vse {
         let zdroje = povrchy::definice(doc, z);
         if let Some(p) = zdroje.polozky.iter().find(|p| vyber.contains(&p.handle)) {
-            return Some((Skok::Polozka(z.id.clone(), p.handle), trf!("Položka definice povrchu „{}“", z.jmeno)));
+            return Some((Skok::Polozka(z.id.clone(), p.handle), trf!("Položka definice povrchu „{}“", "Definition item of surface \"{}\"", z.jmeno)));
         }
     }
     // povrch sám (blok nebo objekt na jeho hladinách)
@@ -2128,20 +2128,20 @@ pub fn najdi_ve_strome(doc: &CadDocument, vyber: &[Handle]) -> Option<(Skok, Str
                 .model_space_entities()
                 .any(|e| vyber.contains(&e.common().handle) && e.common().layer.to_uppercase().starts_with(&pref));
         if patri {
-            return Some((Skok::Povrch(z.id.clone()), trf!("Povrch „{}“", z.jmeno)));
+            return Some((Skok::Povrch(z.id.clone()), trf!("Povrch „{}“", "Surface \"{}\"", z.jmeno)));
         }
     }
     let body = cogo::body_z_vyberu(doc, vyber);
     if !body.is_empty() {
         let n = body.len();
-        return Some((Skok::Body(body), trf!("Vybráno bodů: {}", n)));
+        return Some((Skok::Body(body), trf!("Vybráno bodů: {}", "Points selected: {}", n)));
     }
     let (trasy, pohledy) = crate::tra::prospektor::z_vyberu(doc, vyber);
     if let Some(id) = pohledy.into_iter().next() {
-        return Some((Skok::Pohled(id.clone()), trf!("Pohled profilu {}", id)));
+        return Some((Skok::Pohled(id.clone()), trf!("Pohled profilu {}", "Profile view {}", id)));
     }
     if let Some(id) = trasy.into_iter().next() {
-        return Some((Skok::Trasa(id.clone()), trf!("Trasa {}", id)));
+        return Some((Skok::Trasa(id.clone()), trf!("Trasa {}", "Alignment {}", id)));
     }
     None
 }
@@ -2174,7 +2174,7 @@ pub fn prehled(doc: &CadDocument) -> Prehled {
                     let s = skupiny.iter().find(|s| s.id.eq_ignore_ascii_case(&g.id));
                     SkupinaPovrchu {
                         id: g.id.clone(),
-                        jmeno: s.map_or_else(|| trf!("{} (chybí)", g.id), |s| s.jmeno.clone()),
+                        jmeno: s.map_or_else(|| trf!("{} (chybí)", "{} (missing)", g.id), |s| s.jmeno.clone()),
                         zapnuto: g.zapnuto,
                         pocet: zdroje.body_skupin.iter().find(|(id, _)| id == &g.id).map_or(0, |x| x.1),
                         chybi: s.is_none(),
@@ -2234,7 +2234,7 @@ pub fn kontrola(v: &mut dyn Vykres) -> Result<String, String> {
         .filter(|e| e.common().layer.eq_ignore_ascii_case(H_KONTROLA))
         .map(|e| e.common().handle)
         .collect();
-    v.zpet(tr("Kontrola zaměření"));
+    v.zpet(tr("Kontrola zaměření", "Survey check"));
     cogo::smaz_objekty(v, stare);
     let seznam: Vec<PodezrelyBod> = nalez
         .iter()
@@ -2261,11 +2261,11 @@ pub fn kontrola(v: &mut dyn Vykres) -> Result<String, String> {
     }
     v.hotovo();
     let zprava = if seznam.is_empty() {
-        trf!("Kontrola zaměření: žádný podezřelý bod (práh {} m)", povrchy::cislo_cz(n.prah_kontroly))
+        trf!("Kontrola zaměření: žádný podezřelý bod (práh {} m)", "Survey check: no suspicious point (threshold {} m)", povrchy::cislo_cz(n.prah_kontroly))
     } else {
-        trf!("Kontrola zaměření: {} podezřelých bodů – označeny na hladině {}", seznam.len(), H_KONTROLA)
+        trf!("Kontrola zaměření: {} podezřelých bodů – označeny na hladině {}", "Survey check: {} suspicious points – marked on layer {}", seznam.len(), H_KONTROLA)
     };
-    v.info(&trf!("Terén: {}", zprava));
+    v.info(&trf!("Terén: {}", "Terén: {}", zprava));
     uprav_stav(|s| s.kontrola = Some(seznam));
     Ok(zprava)
 }
@@ -2273,32 +2273,32 @@ pub fn kontrola(v: &mut dyn Vykres) -> Result<String, String> {
 /// Název kroku Zpět pro akci z Prospektoru.
 fn nazev_kroku(a: &Akce) -> &'static str {
     match a {
-        Akce::Import(..) => tr("Terén: import bodů"),
-        Akce::Prepocitat(_) => tr("Terén: přepočet povrchu"),
-        Akce::Smazat(_) => tr("Terén: smazání povrchu"),
-        Akce::Nastav(..) => tr("Terén: vlastnosti povrchu"),
-        Akce::BodUpravit(..) => tr("Terén: úprava bodu"),
-        Akce::BodySmazat(_) => tr("Terén: smazání bodů"),
-        Akce::BodyPrecislovat(..) => tr("Terén: přečíslování bodů"),
-        Akce::BodyHromadne(..) => tr("Terén: úprava bodů"),
-        Akce::PopisyNaMisto(_) => tr("Terén: popisy na místo"),
-        Akce::BodyPanel(..) => tr("Terén: úprava bodů"),
-        Akce::Uchopy(_) | Akce::UkazatBody(_) | Akce::Hlaseni(_) => tr("Terén"),
-        Akce::ObnovitPopisy => tr("Terén: obnovení popisů"),
-        Akce::StylBodu(..) | Akce::UlozStylBodu(..) => tr("Terén: styl bodu"),
-        Akce::UlozStylPovrchu(..) => tr("Terén: styl povrchu"),
-        Akce::SablonaNacti => tr("Terén: šablona výkresu"),
-        Akce::Meritko(_) => tr("Terén: měřítko"),
-        Akce::PripravVykres => tr("Terén: příprava výkresu"),
-        Akce::NovyPovrch(_) | Akce::NovyPovrchPas(..) | Akce::PovrchZeSkupiny(..) => tr("Terén: nový povrch"),
-        Akce::SrovnatBody(_) => tr("Terén: srovnání bodů"),
-        Akce::TrasaNastav(..) => tr("Trasy: vlastnosti trasy"),
-        Akce::TrasaSmazat(_) => tr("Trasy: smazání trasy"),
-        Akce::PohledSmazat(_) => tr("Trasy: smazání pohledu profilu"),
-        Akce::PohledyPrekreslit(_) => tr("Trasy: překreslení pohledů"),
-        Akce::PohledUpravit(..) => tr("Trasy: úprava pohledu profilu"),
-        Akce::UlozStylProfilu(..) | Akce::SmazStylProfilu(_) => tr("Trasy: styl profilu"),
-        Akce::UlozStylTrasy(..) | Akce::SmazStylTrasy(_) => tr("Trasy: styl trasy"),
-        _ => tr("Terén"),
+        Akce::Import(..) => tr("Terén: import bodů", "Terén: point import"),
+        Akce::Prepocitat(_) => tr("Terén: přepočet povrchu", "Terén: surface recalculation"),
+        Akce::Smazat(_) => tr("Terén: smazání povrchu", "Terén: surface deletion"),
+        Akce::Nastav(..) => tr("Terén: vlastnosti povrchu", "Terén: surface properties"),
+        Akce::BodUpravit(..) => tr("Terén: úprava bodu", "Terén: point edit"),
+        Akce::BodySmazat(_) => tr("Terén: smazání bodů", "Terén: point deletion"),
+        Akce::BodyPrecislovat(..) => tr("Terén: přečíslování bodů", "Terén: point renumbering"),
+        Akce::BodyHromadne(..) => tr("Terén: úprava bodů", "Terén: edit points"),
+        Akce::PopisyNaMisto(_) => tr("Terén: popisy na místo", "Terén: reset labels"),
+        Akce::BodyPanel(..) => tr("Terén: úprava bodů", "Terén: edit points"),
+        Akce::Uchopy(_) | Akce::UkazatBody(_) | Akce::Hlaseni(_) => tr("Terén", "Terén"),
+        Akce::ObnovitPopisy => tr("Terén: obnovení popisů", "Terén: label refresh"),
+        Akce::StylBodu(..) | Akce::UlozStylBodu(..) => tr("Terén: styl bodu", "Terén: point style"),
+        Akce::UlozStylPovrchu(..) => tr("Terén: styl povrchu", "Terén: surface style"),
+        Akce::SablonaNacti => tr("Terén: šablona výkresu", "Terén: drawing template"),
+        Akce::Meritko(_) => tr("Terén: měřítko", "Terén: scale"),
+        Akce::PripravVykres => tr("Terén: příprava výkresu", "Terén: drawing preparation"),
+        Akce::NovyPovrch(_) | Akce::NovyPovrchPas(..) | Akce::PovrchZeSkupiny(..) => tr("Terén: nový povrch", "Terén: new surface"),
+        Akce::SrovnatBody(_) => tr("Terén: srovnání bodů", "Terén: point sync"),
+        Akce::TrasaNastav(..) => tr("Trasy: vlastnosti trasy", "Alignments: alignment properties"),
+        Akce::TrasaSmazat(_) => tr("Trasy: smazání trasy", "Alignments: delete alignment"),
+        Akce::PohledSmazat(_) => tr("Trasy: smazání pohledu profilu", "Alignments: delete profile view"),
+        Akce::PohledyPrekreslit(_) => tr("Trasy: překreslení pohledů", "Alignments: redraw views"),
+        Akce::PohledUpravit(..) => tr("Trasy: úprava pohledu profilu", "Alignments: editing profile view"),
+        Akce::UlozStylProfilu(..) | Akce::SmazStylProfilu(_) => tr("Trasy: styl profilu", "Alignments: profile style"),
+        Akce::UlozStylTrasy(..) | Akce::SmazStylTrasy(_) => tr("Trasy: styl trasy", "Alignments: alignment style"),
+        _ => tr("Terén", "Terén"),
     }
 }

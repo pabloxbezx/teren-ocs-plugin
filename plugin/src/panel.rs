@@ -10,7 +10,7 @@ use std::sync::Mutex;
 
 use ocs_plugin_api::dialog::{DialogControl, DialogValue, PanelDef};
 use ocs_plugin_api::host::{Document, Handle};
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 
 use crate::cogo::BodVykresu;
@@ -54,7 +54,7 @@ pub fn definice(styly: &[(String, String)]) -> PanelDef {
         s.styly = styly.iter().map(|(id, _)| id.clone()).collect();
         s.styl = 0;
     });
-    let mut volby = vec![tr("(beze změny)").to_string(), tr("podle skupiny / kódu").to_string()];
+    let mut volby = vec![tr("(beze změny)", "(unchanged)").to_string(), tr("podle skupiny / kódu", "by group / code").to_string()];
     volby.extend(styly.iter().map(|(_, j)| j.clone()));
     let text = |id: &str, label: &str| DialogControl::Text { id: id.into(), label: label.into(), default: String::new() };
     let tlacitko = |id: &str, label: &str, action: Option<&str>| DialogControl::Button {
@@ -64,43 +64,43 @@ pub fn definice(styly: &[(String, String)]) -> PanelDef {
         align_h: None,
         width: None,
     };
-    PanelDef::new(ID, tr("Vlastnosti bodu"))
+    PanelDef::new(ID, tr("Vlastnosti bodu", "Point properties"))
         .with_command(PRIKAZ)
         .with_width(260.0)
-        .with_control(text("vyber", tr("Vybráno")))
-        .with_control(text("cislo", tr("Číslo")))
-        .with_control(text("z", tr("Výška Z")))
-        .with_control(text("kod", tr("Kód")))
-        .with_control(DialogControl::Choice { id: "styl".into(), label: tr("Styl").into(), options: volby, default_index: 0 })
+        .with_control(text("vyber", tr("Vybráno", "Selected")))
+        .with_control(text("cislo", tr("Číslo", "Number")))
+        .with_control(text("z", tr("Výška Z", "Elevation Z")))
+        .with_control(text("kod", tr("Kód", "Code")))
+        .with_control(DialogControl::Choice { id: "styl".into(), label: tr("Styl", "Style").into(), options: volby, default_index: 0 })
         .with_control(DialogControl::Row {
-            controls: vec![tlacitko("ulozit", tr("Uložit"), None), tlacitko("ukazat", tr("Ukázat"), None)],
+            controls: vec![tlacitko("ulozit", tr("Uložit", "Save"), None), tlacitko("ukazat", tr("Ukázat", "Show"), None)],
             align_h: None,
             align_v: None,
         })
-        .with_control(DialogControl::Checkbox { id: "uchopy".into(), label: tr("Posun bodů úchopem").into(), default: false })
+        .with_control(DialogControl::Checkbox { id: "uchopy".into(), label: tr("Posun bodů úchopem", "Move points by grip").into(), default: false })
         .with_control(DialogControl::InfoText {
-            text: tr("Vyberte bod ve výkrese (klik na značku nebo popis). Více bodům najednou se uloží jen změněná pole; číslo jen u jednoho bodu.").into(),
+            text: tr("Vyberte bod ve výkrese (klik na značku nebo popis). Více bodům najednou se uloží jen změněná pole; číslo jen u jednoho bodu.", "Select a point in the drawing (click its marker or label). For several points only the changed fields are saved; the number only for a single point.").into(),
             align_h: None,
         })
         // aktivní povrch – jen prvky, které panel už používá (bez skupiny Fields)
-        .with_control(text("povrch", tr("Aktivní povrch")))
+        .with_control(text("povrch", tr("Aktivní povrch", "Active surface")))
         .with_control(DialogControl::Row {
             controls: vec![
-                tlacitko("prepocitat", tr("Přepočítat"), Some("TER_PREPOCITAT")),
-                tlacitko("pohled3d", tr("Prohlédnout ve 3D"), Some("TER_3D")),
+                tlacitko("prepocitat", tr("Přepočítat", "Recalculate"), Some("TER_PREPOCITAT")),
+                tlacitko("pohled3d", tr("Prohlédnout ve 3D", "View in 3D"), Some("TER_3D")),
             ],
             align_h: None,
             align_v: None,
         })
-        .with_control(tlacitko("prospektor", tr("Otevřít Prospektor"), Some("TER_PROSPEKTOR")))
+        .with_control(tlacitko("prospektor", tr("Otevřít Prospektor", "Open Prospector"), Some("TER_PROSPEKTOR")))
 }
 
 /// Aktivní povrch a jeho stav pro panel („Stávající terén · ● aktuální“).
 pub fn text_povrchu(doc: &Document) -> String {
     match crate::povrchy::aktivni(doc) {
-        Ok(z) if crate::povrchy::zastaraly(doc, &z) => trf!("{} · ⚠ zastaralý", z.jmeno),
-        Ok(z) => trf!("{} · ● aktuální", z.jmeno),
-        Err(_) => tr("žádný – vytvořte Nový povrch").to_string(),
+        Ok(z) if crate::povrchy::zastaraly(doc, &z) => trf!("{} · ⚠ zastaralý", "{} · ⚠ out of date", z.jmeno),
+        Ok(z) => trf!("{} · ● aktuální", "{} · ● up to date", z.jmeno),
+        Err(_) => tr("žádný – vytvořte Nový povrch", "none – create a New surface").to_string(),
     }
 }
 
@@ -113,9 +113,9 @@ pub fn jen_povrch(doc: &Document) -> HashMap<String, DialogValue> {
 pub fn hodnoty(body: &[&BodVykresu], povrch: String) -> HashMap<String, DialogValue> {
     let mut u: HashMap<String, String> = HashMap::new();
     let vyber = match body {
-        [] => tr("nic – vyberte bod").to_string(),
-        [b] => trf!("bod {}", b.bod.cislo),
-        _ => trf!("bodů: {}", body.len()),
+        [] => tr("nic – vyberte bod", "nothing – select a point").to_string(),
+        [b] => trf!("bod {}", "point {}", b.bod.cislo),
+        _ => trf!("bodů: {}", "points: {}", body.len()),
     };
     let spolecne = |f: &dyn Fn(&BodVykresu) -> String| -> String {
         let prvni = body.first().map(|b| f(b)).unwrap_or_default();
@@ -132,7 +132,7 @@ pub fn hodnoty(body: &[&BodVykresu], povrch: String) -> HashMap<String, DialogVa
     });
     let mut out: HashMap<String, DialogValue> = u.into_iter().map(|(k, v)| (k, DialogValue::Text(v))).collect();
     out.insert("vyber".into(), DialogValue::Text(vyber));
-    out.insert("styl".into(), DialogValue::Choice { index: 0, text: tr("(beze změny)").into() });
+    out.insert("styl".into(), DialogValue::Choice { index: 0, text: tr("(beze změny)", "(unchanged)").into() });
     out.insert("uchopy".into(), DialogValue::Bool(crate::uchopy::zapnuto()));
     out.insert("povrch".into(), DialogValue::Text(povrch));
     out
@@ -170,7 +170,7 @@ fn ulozit() {
         let z = match zmena("z") {
             Some(t) if !t.is_empty() => match t.replace(',', ".").parse::<f64>() {
                 Ok(z) if z.is_finite() => Some(z),
-                _ => return Some(Err(trf!("neplatná výška: {}", t))),
+                _ => return Some(Err(trf!("neplatná výška: {}", "invalid elevation: {}", t))),
             },
             _ => None,
         };
@@ -184,7 +184,7 @@ fn ulozit() {
     });
     match a {
         Some(Ok(a)) => spravce::posli(a),
-        Some(Err(e)) => spravce::posli(Akce::Hlaseni(trf!("Terén: {}", e))),
+        Some(Err(e)) => spravce::posli(Akce::Hlaseni(trf!("Terén: {}", "Terén: {}", e))),
         None => {}
     }
 }

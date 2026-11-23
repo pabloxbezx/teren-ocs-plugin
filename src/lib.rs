@@ -9,7 +9,11 @@ pub mod formaty;
 pub mod kodovani;
 pub mod kontrola;
 pub mod landxml;
-pub mod preklad;
+pub mod lang {
+    //! Jazyk rozhraní – dvojice `tr(cs, en)`, viz crate `teren_lang`.
+    pub use teren_lang::*;
+}
+pub use teren_lang::trf;
 pub mod povrch;
 pub mod rozpoznani;
 pub mod skupiny;

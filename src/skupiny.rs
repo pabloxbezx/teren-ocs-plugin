@@ -4,14 +4,14 @@
 //! body, kód, číslo / rozsah čísel, soubor importu) a žádné kritérium
 //! vyloučení (kód, číslo / rozsah čísel).
 
-use crate::preklad::tr;
+use crate::lang::tr;
 use crate::trf;
 use crate::body::Bod;
 
 /// Identifikátor vestavěné skupiny „Všechny body“.
 pub const VSECHNY: &str = "*";
 /// Původ ručně vytvořených bodů (místo jména souboru importu).
-pub const RUCNE: &str = "(ručně)";
+pub const RUCNE: &str = "(ručně)"; // i18n:ne
 
 // ── Seznam čísel bodů ─────────────────────────────────────────────────────────
 
@@ -237,7 +237,7 @@ impl Filtr<'_> {
 impl SkupinaBodu {
     /// Vestavěná skupina „Všechny body“.
     pub fn vsechny() -> Self {
-        Self { id: VSECHNY.into(), jmeno: tr("Všechny body").into(), vse: true, ..Default::default() }
+        Self { id: VSECHNY.into(), jmeno: tr("Všechny body", "All points").into(), vse: true, ..Default::default() }
     }
 
     pub fn filtr(&self) -> Filtr<'_> {
@@ -258,32 +258,32 @@ impl SkupinaBodu {
     pub fn kriteria(&self) -> String {
         let mut c = Vec::new();
         if self.vse {
-            c.push(tr("všechny body").to_string());
+            c.push(tr("všechny body", "all points").to_string());
         }
         if !self.kody.is_empty() {
-            c.push(trf!("kódy {}", self.kody.join(", ")));
+            c.push(trf!("kódy {}", "codes {}", self.kody.join(", ")));
         }
         if !self.cisla.trim().is_empty() {
-            c.push(trf!("čísla {}", self.cisla.trim()));
+            c.push(trf!("čísla {}", "numbers {}", self.cisla.trim()));
         }
         if !self.zdroje.is_empty() {
             c.push(format!("import {}", self.zdroje.join(", ")));
         }
-        let mut t = if c.is_empty() { tr("žádné kritérium").to_string() } else { c.join("; ") };
+        let mut t = if c.is_empty() { tr("žádné kritérium", "no criterion").to_string() } else { c.join("; ") };
         if !self.bez_kodu.is_empty() {
-            t.push_str(&trf!(" – bez kódů {}", self.bez_kodu.join(", ")));
+            t.push_str(&trf!(" – bez kódů {}", " – without codes {}", self.bez_kodu.join(", ")));
         }
         if !self.bez_cisel.trim().is_empty() {
-            t.push_str(&trf!(" – bez čísel {}", self.bez_cisel.trim()));
+            t.push_str(&trf!(" – bez čísel {}", " – without numbers {}", self.bez_cisel.trim()));
         }
         if self.bez_rucnich {
-            t.push_str(tr(" – bez ručně vytvořených"));
+            t.push_str(tr(" – bez ručně vytvořených", " – without manually created"));
         }
         if !self.pridane.trim().is_empty() {
-            t.push_str(&trf!(" + ručně {}", self.pridane.trim()));
+            t.push_str(&trf!(" + ručně {}", " + manually {}", self.pridane.trim()));
         }
         if !self.odebrane.trim().is_empty() {
-            t.push_str(&trf!(" − ručně {}", self.odebrane.trim()));
+            t.push_str(&trf!(" − ručně {}", " − manually {}", self.odebrane.trim()));
         }
         t
     }

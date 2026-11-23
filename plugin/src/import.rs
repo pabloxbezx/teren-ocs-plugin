@@ -4,7 +4,7 @@
 use std::sync::{Mutex, OnceLock};
 
 use ocs_plugin_api::host::{CommandStep, Document as CadDocument, EntityType, InteractiveCommand, PreviewWire};
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 
 use teren::body::{nacti_body, Bod, Desetinna, FormatBodu, Oddelovac};
@@ -32,11 +32,11 @@ pub fn skupina_importu(doc: &CadDocument, soubor: &str) -> Option<SkupinaBodu> {
         return None;
     }
     let kmen = std::path::Path::new(soubor).file_stem().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
-    let jmeno = cogo::volne_jmeno_skupiny(doc, &trf!("Import {}", kmen));
+    let jmeno = cogo::volne_jmeno_skupiny(doc, &trf!("Import {}", "Import {}", kmen));
     Some(SkupinaBodu {
         id: cogo::volne_id_skupiny(doc, &jmeno),
         jmeno,
-        popis: trf!("body ze souboru {}", soubor),
+        popis: trf!("body ze souboru {}", "points from file {}", soubor),
         zdroje: vec![soubor.to_string()],
         ..Default::default()
     })
@@ -45,7 +45,7 @@ pub fn skupina_importu(doc: &CadDocument, soubor: &str) -> Option<SkupinaBodu> {
 /// Načte soubor bodů (text v rozpoznaném kódování, nebo převedený
 /// LandXML / JobXML / GSI / Excel).
 pub fn nacti_zdroj(cesta: &str, kodovani: Option<teren::kodovani::Kodovani>, list: usize) -> Result<formaty::Zdroj, String> {
-    let bajty = std::fs::read(cesta).map_err(|e| trf!("nelze číst soubor {}: {}", cesta, e))?;
+    let bajty = std::fs::read(cesta).map_err(|e| trf!("nelze číst soubor {}: {}", "cannot read file {}: {}", cesta, e))?;
     formaty::nacti(cesta, &bajty, kodovani, list)
 }
 
@@ -55,7 +55,7 @@ pub fn priprav(v: &mut dyn Vykres, cesta: &str, format: Option<(&str, Oddelovac,
     let zdroj = match nacti_zdroj(cesta, None, 0) {
         Ok(z) => z,
         Err(e) => {
-            v.chyba(&trf!("Terén: {}", e));
+            v.chyba(&trf!("Terén: {}", "Terén: {}", e));
             return None;
         }
     };
@@ -65,26 +65,26 @@ pub fn priprav(v: &mut dyn Vykres, cesta: &str, format: Option<(&str, Oddelovac,
         Some((f, o, hl)) => match FormatBodu::z_retezce(f, o) {
             Ok(mut fb) => {
                 fb.preskocit_radku = if hl == 0 { s_formatem(&text, &fb, Puvod::Vzor).hlavicka } else { hl };
-                (fb, trf!("{}, oddělovač {} (zvoleno ručně)", f, nazev_oddelovace(o)))
+                (fb, trf!("{}, oddělovač {} (zvoleno ručně)", "{}, delimiter {} (chosen manually)", f, nazev_oddelovace(o)))
             }
             Err(e) => {
-                v.chyba(&trf!("Terén: {}", e));
+                v.chyba(&trf!("Terén: {}", "Terén: {}", e));
                 return None;
             }
         },
         None => {
             let kandidati = rozpoznej(&text);
             let Some(k) = kandidati.first() else {
-                v.chyba(tr("Terén: v souboru se nepodařilo najít body v žádném podporovaném formátu."));
-                v.vystup(tr("  podporované formáty: PNEZD, PENZD, PYXZD, NEZ, ENZ, YXZ; oddělovač mezera, čárka, středník, tabulátor"));
+                v.chyba(tr("Terén: v souboru se nepodařilo najít body v žádném podporovaném formátu.", "Terén: no points in a supported format were found in the file."));
+                v.vystup(tr("  podporované formáty: PNEZD, PENZD, PYXZD, NEZ, ENZ, YXZ; oddělovač mezera, čárka, středník, tabulátor", "  supported formats: PNEZD, PENZD, PYXZD, NEZ, ENZ, YXZ; delimiter space, comma, semicolon, tab"));
                 return None;
             };
-            let mut popis = trf!("{}, oddělovač {}{} (rozpoznáno automaticky)", k.format, nazev_oddelovace(k.oddelovac), if k.hlavicka > 0 { trf!(", hlavička {} ř.", k.hlavicka) } else { String::new() });
+            let mut popis = trf!("{}, oddělovač {}{} (rozpoznáno automaticky)", "{}, delimiter {}{} (detected automatically)", k.format, nazev_oddelovace(k.oddelovac), if k.hlavicka > 0 { trf!(", hlavička {} ř.", ", header {} lines", k.hlavicka) } else { String::new() });
             if zdroj.druh != DruhZdroje::Text {
-                popis = trf!("{} převedený na {}", zdroj.druh.nazev(), popis);
+                popis = trf!("{} převedený na {}", "{} converted to {}", zdroj.druh.nazev(), popis);
             }
             if !k.sjtsk() {
-                popis.push_str(tr(" – body neleží v S-JTSK pro ČR, formát ověřte"));
+                popis.push_str(tr(" – body neleží v S-JTSK pro ČR, formát ověřte", " – the points do not lie in S-JTSK for the Czech Republic, check the format"));
             }
             (k.format_bodu(), popis)
         }
@@ -92,7 +92,7 @@ pub fn priprav(v: &mut dyn Vykres, cesta: &str, format: Option<(&str, Oddelovac,
 
     let import = nacti_body(&text, &fmt);
     if import.body.is_empty() {
-        v.chyba(&trf!("Terén: v souboru nebyl nalezen žádný bod ({}).", popis_formatu));
+        v.chyba(&trf!("Terén: v souboru nebyl nalezen žádný bod ({}).", "Terén: no point was found in the file ({}).", popis_formatu));
         for ch in import.chyby.iter().take(5) {
             v.vystup(&format!("  {ch}"));
         }
@@ -101,24 +101,24 @@ pub fn priprav(v: &mut dyn Vykres, cesta: &str, format: Option<(&str, Oddelovac,
     let s = souhrn(&import);
     let preskoceno = match import.chyby.first() {
         None => String::new(),
-        Some(ch) if s.chyby == 1 => trf!(" · 1 řádek přeskočen ({})", ch),
-        Some(ch) => trf!(" · {} řádků přeskočeno (první: {})", s.chyby, ch),
+        Some(ch) if s.chyby == 1 => trf!(" · 1 řádek přeskočen ({})", " · 1 line skipped ({})", ch),
+        Some(ch) => trf!(" · {} řádků přeskočeno (první: {})", " · {} lines skipped (first: {})", s.chyby, ch),
     };
-    v.info(&trf!("Terén: import {} bodů ze souboru {} – {}{}", s.pocet, jmeno_souboru(cesta), popis_formatu, preskoceno));
+    v.info(&trf!("Terén: import {} bodů ze souboru {} – {}{}", "Terén: import of {} points from file {} – {}{}", s.pocet, jmeno_souboru(cesta), popis_formatu, preskoceno));
     if s.mimo_cr > 0 {
-        v.chyba(&trf!("  pozor: {} bodů leží mimo území ČR v S-JTSK", s.mimo_cr));
+        v.chyba(&trf!("  pozor: {} bodů leží mimo území ČR v S-JTSK", "  warning: {} points lie outside the Czech Republic in S-JTSK", s.mimo_cr));
     }
     if s.podezrele_z > 0 {
-        v.chyba(&trf!("  pozor: {} bodů má nesmyslnou výšku (mimo −50 až 1700 m)", s.podezrele_z));
+        v.chyba(&trf!("  pozor: {} bodů má nesmyslnou výšku (mimo −50 až 1700 m)", "  warning: {} points have an implausible elevation (outside −50 to 1700 m)", s.podezrele_z));
     }
     if !s.duplicitni_cisla.is_empty() {
         let ukazka: Vec<&str> = s.duplicitni_cisla.iter().take(8).map(String::as_str).collect();
-        v.vystup(&trf!("  opakující se čísla bodů ({}): {}", s.duplicitni_cisla.len(), ukazka.join(", ")));
+        v.vystup(&trf!("  opakující se čísla bodů ({}): {}", "  repeated point numbers ({}): {}", s.duplicitni_cisla.len(), ukazka.join(", ")));
     }
     if let Ok(doc) = v.dokument() {
         let n = shodne_s_existujicimi(&import.body, &povrchy::body_z_vykresu(&doc));
         if n > 0 {
-            v.chyba(&trf!("  pozor: {} bodů už ve výkrese je na stejném místě (import dvakrát?)", n));
+            v.chyba(&trf!("  pozor: {} bodů už ve výkrese je na stejném místě (import dvakrát?)", "  warning: {} points are already in the drawing at the same place (imported twice?)", n));
         }
     }
     nastaveni::pridej_posledni(cesta);
@@ -178,8 +178,8 @@ impl PotvrditImport {
 
 impl InteractiveCommand for PotvrditImport {
     fn prompt(&self) -> String {
-        let skupina = self.skupina.as_ref().map(|s| trf!(" do skupiny „{}“", s)).unwrap_or_default();
-        trf!("Importovat {} bodů{}? Enter = ano, Esc = zrušit (pohnutím myší se zobrazí náhled):", self.pocet, skupina)
+        let skupina = self.skupina.as_ref().map(|s| trf!(" do skupiny „{}“", " to group \"{}\"", s)).unwrap_or_default();
+        trf!("Importovat {} bodů{}? Enter = ano, Esc = zrušit (pohnutím myší se zobrazí náhled):", "Import {} points{}? Enter = yes, Esc = cancel (move the mouse to see a preview):", self.pocet, skupina)
     }
     fn on_point(&mut self, _pt: [f64; 3]) -> CommandStep {
         self.on_enter()
@@ -239,7 +239,7 @@ pub fn proved_import(k: &mut dyn Vykres, n: NastaveniImportu) -> Result<String, 
     let body: Vec<Bod> = v.body.into_iter().zip(v.radky).filter(|(_, r)| !n.vynechat.contains(r)).map(|(b, _)| b).collect();
     let vynechano = n.vynechat.len();
     if body.is_empty() {
-        return Err(tr("není co importovat – žádný bod se nenačetl").into());
+        return Err(tr("není co importovat – žádný bod se nenačetl", "nothing to import – no point was read").into());
     }
     cogo::priprav_vykres(k)?;
     let doc = k.dokument()?;
@@ -282,14 +282,14 @@ pub fn proved_import(k: &mut dyn Vykres, n: NastaveniImportu) -> Result<String, 
                 (bv, novy, styl)
             })
             .collect();
-        cogo::uprav_body(k, &doc, &zmeny, tr("Přepsat body"))?;
+        cogo::uprav_body(k, &doc, &zmeny, tr("Přepsat body", "Overwrite points"))?;
     }
     if !plan.pridat.is_empty() {
         let doc = k.dokument()?;
         let ro = styly::Rozlisovac::new(&doc).s_skupinou(nova_skupina.as_ref());
         let m = nastaveni::meritko(&doc);
         let obj = objekty_importu(&plan.pridat, &ro, m, &n.soubor, nova_skupina, &n.styl);
-        k.zpet(tr("Import bodů"));
+        k.zpet(tr("Import bodů", "Import points"));
         k.pridej(obj)?;
     }
     k.hotovo();
@@ -312,23 +312,23 @@ pub fn proved_import(k: &mut dyn Vykres, n: NastaveniImportu) -> Result<String, 
     }
 
     let mut t = match jmeno_skupiny {
-        Some(s) => trf!("Importováno {} bodů do skupiny „{}“", plan.pridat.len(), s),
-        None => trf!("Importováno {} bodů ze zdroje {}", plan.pridat.len(), n.soubor),
+        Some(s) => trf!("Importováno {} bodů do skupiny „{}“", "Imported {} points into group \"{}\"", plan.pridat.len(), s),
+        None => trf!("Importováno {} bodů ze zdroje {}", "Imported {} points from source {}", plan.pridat.len(), n.soubor),
     };
     if !plan.prepsat.is_empty() {
-        t.push_str(&trf!(" · přepsáno {}", plan.prepsat.len()));
+        t.push_str(&trf!(" · přepsáno {}", " · overwritten {}", plan.prepsat.len()));
     }
     if plan.preskoceno > 0 {
-        t.push_str(&trf!(" · duplicit přeskočeno {}", plan.preskoceno));
+        t.push_str(&trf!(" · duplicit přeskočeno {}", " · duplicates skipped {}", plan.preskoceno));
     }
     if !plan.precislovano.is_empty() {
-        t.push_str(&trf!(" · přečíslováno {}", plan.precislovano.len()));
+        t.push_str(&trf!(" · přečíslováno {}", " · renumbered {}", plan.precislovano.len()));
     }
     if chyb > 0 {
-        t.push_str(&trf!(" · nečitelných řádků {}", chyb));
+        t.push_str(&trf!(" · nečitelných řádků {}", " · unreadable lines {}", chyb));
     }
     if vynechano > 0 {
-        t.push_str(&trf!(" · vyřazeno {}", vynechano));
+        t.push_str(&trf!(" · vyřazeno {}", " · excluded {}", vynechano));
     }
     Ok(t)
 }
@@ -413,7 +413,7 @@ pub fn priprav_z_vykresu(k: &mut dyn Vykres, hladina: Option<&str>, jen_vyber: b
     if !jen_vyber {
         let ocs = crate::cogo::body_ocs(&doc);
         if !ocs.is_empty() {
-            let skupina = tr(HLADINA_BODU_OCS).to_string();
+            let skupina = crate::lang::tr_tab(HLADINA_BODU_OCS).to_string();
             *hladiny.entry(skupina.clone()).or_default() += ocs.len();
             if hladina.is_none_or(|h| h == skupina) {
                 znacky.extend(ocs.into_iter().map(|b| {
@@ -432,7 +432,7 @@ pub fn priprav_z_vykresu(k: &mut dyn Vykres, hladina: Option<&str>, jen_vyber: b
     let pocet = statistika.znacek;
     *slot_z_vykresu().lock().unwrap_or_else(|e| e.into_inner()) =
         Some(Ok(ZVykresu { text, statistika, hladiny: hladiny.into_iter().collect() }));
-    Ok(trf!("Z výkresu připraveno {} bodů k náhledu", pocet))
+    Ok(trf!("Z výkresu připraveno {} bodů k náhledu", "{} points from the drawing prepared for preview", pocet))
 }
 
 #[cfg(test)]

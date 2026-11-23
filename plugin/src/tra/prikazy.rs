@@ -10,7 +10,7 @@ use ocs_plugin_api::dialog::{DialogDef, DialogResponse, DialogValue};
 
 use ocs_plugin_api::host::{CommandStep, Handle, InteractiveCommand, PreviewWire};
 use trasy::geometrie::{geometrie, Prvek, Vrchol};
-use trasy::preklad::tr;
+use crate::lang::tr;
 use trasy::trf;
 
 /// Vybere jeden objekt kliknutím a spustí `prikaz <handle>`.
@@ -21,7 +21,7 @@ pub struct VyberObjektu {
 
 impl InteractiveCommand for VyberObjektu {
     fn prompt(&self) -> String {
-        tr(self.vyzva).to_string()
+        crate::lang::tr_tab(self.vyzva).to_string()
     }
     fn needs_object_pick(&self) -> bool {
         true
@@ -45,7 +45,7 @@ pub struct VyberBoduJeden {
 
 impl InteractiveCommand for VyberBoduJeden {
     fn prompt(&self) -> String {
-        tr(self.vyzva).to_string()
+        crate::lang::tr_tab(self.vyzva).to_string()
     }
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {
         CommandStep::Dispatch(format!("{} {:.4} {:.4}", self.prikaz, pt[0], pt[1]))
@@ -67,7 +67,7 @@ pub struct VyberBodu {
 
 impl InteractiveCommand for VyberBodu {
     fn prompt(&self) -> String {
-        trf!("{} – vybráno {} (Enter = provést, Esc = zrušit)", tr(self.vyzva), self.body.len())
+        trf!("{} – vybráno {} (Enter = provést, Esc = zrušit)", "{} – selected {} (Enter = apply, Esc = cancel)", crate::lang::tr_tab(self.vyzva), self.body.len())
     }
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {
         self.body.push([pt[0], pt[1]]);
@@ -144,9 +144,9 @@ impl InteractiveCommand for KresleniTrasy {
     fn prompt(&self) -> String {
         let r = crate::tra::editor::polomer();
         if self.body.is_empty() {
-            tr("Trasa: klikněte začátek trasy").to_string()
+            tr("Trasa: klikněte začátek trasy", "Alignment: click the start point").to_string()
         } else {
-            trf!("Trasa: klikněte vrchol č. {} (R = {} m z panelu; Enter = hotovo, Esc = zrušit)", self.body.len() + 1, r)
+            trf!("Trasa: klikněte vrchol č. {} (R = {} m z panelu; Enter = hotovo, Esc = zrušit)", "Alignment: click vertex no. {} (R = {} m from the panel; Enter = finish, Esc = cancel)", self.body.len() + 1, r)
         }
     }
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {
@@ -238,7 +238,7 @@ impl DialogPrikaz {
 impl InteractiveCommand for DialogPrikaz {
     fn prompt(&self) -> String {
         match (self.hotovo, self.klik) {
-            (true, Some(v)) => tr(v).to_string(),
+            (true, Some(v)) => crate::lang::tr_tab(v).to_string(),
             _ => self.def.title.clone(),
         }
     }
@@ -292,9 +292,9 @@ impl ObloukVeVrcholu {
 impl InteractiveCommand for ObloukVeVrcholu {
     fn prompt(&self) -> String {
         match self.vybrany {
-            None => tr("Oblouk: klikněte na vrchol trasy").to_string(),
+            None => tr("Oblouk: klikněte na vrchol trasy", "Curve: click an alignment vertex").to_string(),
             Some((_, i, _)) => trf!(
-                "Oblouk ve vrcholu {}: napište poloměr R a Enter (nebo klikněte – R = vzdálenost od vrcholu; jen Enter = R {} m z panelu)",
+                "Oblouk ve vrcholu {}: napište poloměr R a Enter (nebo klikněte – R = vzdálenost od vrcholu; jen Enter = R {} m z panelu)", "Curve at vertex {}: type radius R and Enter (or click – R = distance from the vertex; Enter alone = R {} m from the panel)",
                 i + 1,
                 crate::tra::editor::polomer()
             ),
@@ -404,9 +404,9 @@ impl KresleniNivelety {
 impl InteractiveCommand for KresleniNivelety {
     fn prompt(&self) -> String {
         if self.body.is_empty() {
-            tr("Niveleta: klikněte v pohledu profilu začátek nivelety").to_string()
+            tr("Niveleta: klikněte v pohledu profilu začátek nivelety", "Design profile: click the start of the design profile in a profile view").to_string()
         } else {
-            trf!("Niveleta: klikněte vrchol č. {} (oblouky R = {} m; Enter = hotovo, Esc = zrušit)", self.body.len() + 1, R_NIVELETY)
+            trf!("Niveleta: klikněte vrchol č. {} (oblouky R = {} m; Enter = hotovo, Esc = zrušit)", "Design profile: click vertex no. {} (curves R = {} m; Enter = finish, Esc = cancel)", self.body.len() + 1, R_NIVELETY)
         }
     }
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {
@@ -492,11 +492,11 @@ impl VrcholSklonem {
 impl InteractiveCommand for VrcholSklonem {
     fn prompt(&self) -> String {
         match self.klik {
-            None => tr("Vrchol sklonem: klikněte v pohledu profilu staničení nového vrcholu").to_string(),
+            None => tr("Vrchol sklonem: klikněte v pohledu profilu staničení nového vrcholu", "Vertex by grade: click the station of the new vertex in the profile view").to_string(),
             Some((_, s, od, _)) => {
                 let i = (self.polygon(s) - self.vrcholy[od].z) / (s - self.vrcholy[od].s);
                 trf!(
-                    "Sklon od vrcholu {} [‰]: napište číslo a Enter (kurzor nad kliknutím = stoupání, pod = klesání), nebo klikněte výšku; jen Enter = {} ‰ (na niveletě)",
+                    "Sklon od vrcholu {} [‰]: napište číslo a Enter (kurzor nad kliknutím = stoupání, pod = klesání), nebo klikněte výšku; jen Enter = {} ‰ (na niveletě)", "Grade from vertex {} [‰]: type a number and Enter (cursor above the click = rising, below = falling), or click the elevation; Enter alone = {} ‰ (on the design profile)",
                     od + 1,
                     trasy::stanice::cislo(i * 1000.0, 2, true)
                 )
@@ -568,7 +568,7 @@ impl PridatVrcholyNivelety {
 
 impl InteractiveCommand for PridatVrcholyNivelety {
     fn prompt(&self) -> String {
-        trf!("Přidat vrchol nivelety: klikněte do pohledu profilu (přidáno {}; Enter = hotovo, Esc = zrušit)", self.pridane.len())
+        trf!("Přidat vrchol nivelety: klikněte do pohledu profilu (přidáno {}; Enter = hotovo, Esc = zrušit)", "Add design profile vertex: click in the profile view (added {}; Enter = done, Esc = cancel)", self.pridane.len())
     }
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {
         if let Some(p) = self.pohledy.iter().find(|p| p.obsahuje([pt[0], pt[1]])) {
@@ -615,15 +615,15 @@ const ZADANI_OBLOUKU: [&str; 3] = ["L", "R", "K"];
 impl InteractiveCommand for ZmenitObloukNivelety {
     fn prompt(&self) -> String {
         match self.vybrany {
-            None => tr("Změnit oblouk: klikněte na vrchol nivelety v pohledu profilu").to_string(),
+            None => tr("Změnit oblouk: klikněte na vrchol nivelety v pohledu profilu", "Change curve: click a design profile vertex in the profile view").to_string(),
             Some((k, _, m)) => {
                 let nes = matches!(self.vrcholy[k].typ, trasy::niveleta::TypOblouku::Nesoumerny { .. });
                 let dalsi = ZADANI_OBLOUKU[(m + 1) % 3];
                 if nes {
-                    trf!("Nesouměrný oblouk ve vrcholu {}: napište L [m] a Enter (L1 : L2 zůstane; 0 = bez oblouku)", k + 1)
+                    trf!("Nesouměrný oblouk ve vrcholu {}: napište L [m] a Enter (L1 : L2 zůstane; 0 = bez oblouku)", "Unsymmetrical curve at vertex {}: type L [m] and Enter (L1 : L2 is kept; 0 = no curve)", k + 1)
                 } else {
                     trf!(
-                        "Oblouk ve vrcholu {}: {} = ? – napište číslo a Enter (0 = bez oblouku; jen Enter = přepnout na {})",
+                        "Oblouk ve vrcholu {}: {} = ? – napište číslo a Enter (0 = bez oblouku; jen Enter = přepnout na {})", "Curve at vertex {}: {} = ? – type a number and Enter (0 = no curve; Enter alone = switch to {})",
                         k + 1,
                         ZADANI_OBLOUKU[m],
                         dalsi
@@ -715,22 +715,22 @@ impl InteractiveCommand for UsekNivelety {
     fn prompt(&self) -> String {
         let v = &self.vrcholy;
         match (self.usek, self.druh) {
-            (None, DruhUseku::Sklon) => tr("Změnit sklon: klikněte na úsek nivelety v pohledu profilu").to_string(),
-            (None, DruhUseku::Delka) => tr("Změnit délku: klikněte na úsek nivelety v pohledu profilu").to_string(),
-            (None, DruhUseku::Bodem) => tr("Úsek bodem: klikněte na úsek nivelety v pohledu profilu").to_string(),
+            (None, DruhUseku::Sklon) => tr("Změnit sklon: klikněte na úsek nivelety v pohledu profilu", "Change grade: click a design profile segment in the profile view").to_string(),
+            (None, DruhUseku::Delka) => tr("Změnit délku: klikněte na úsek nivelety v pohledu profilu", "Change length: click a design profile segment in the profile view").to_string(),
+            (None, DruhUseku::Bodem) => tr("Úsek bodem: klikněte na úsek nivelety v pohledu profilu", "Segment through point: click a design profile segment in the profile view").to_string(),
             (Some((_, k, _)), DruhUseku::Sklon) => trf!(
-                "Sklon úseku {}–{} [‰] (teď {}): napište číslo a Enter (kurzor nad kliknutím = stoupání, pod = klesání)",
+                "Sklon úseku {}–{} [‰] (teď {}): napište číslo a Enter (kurzor nad kliknutím = stoupání, pod = klesání)", "Grade of segment {}–{} [‰] (now {}): type a number and Enter (cursor above the click = rising, below = falling)",
                 k + 1,
                 k + 2,
                 trasy::stanice::cislo((v[k + 1].z - v[k].z) / (v[k + 1].s - v[k].s) * 1000.0, 2, true)
             ),
             (Some((_, k, _)), DruhUseku::Delka) => trf!(
-                "Délka úseku {}–{} [m] (teď {}): napište číslo a Enter",
+                "Délka úseku {}–{} [m] (teď {}): napište číslo a Enter", "Length of segment {}–{} [m] (now {}): type a number and Enter",
                 k + 1,
                 k + 2,
                 trasy::stanice::cislo(v[k + 1].s - v[k].s, 2, true)
             ),
-            (Some((_, k, _)), DruhUseku::Bodem) => trf!("Úsek {}–{}: klikněte bod, kterým má projít (začátek úseku drží)", k + 1, k + 2),
+            (Some((_, k, _)), DruhUseku::Bodem) => trf!("Úsek {}–{}: klikněte bod, kterým má projít (začátek úseku drží)", "Segment {}–{}: click the point it should pass through (the segment start is kept)", k + 1, k + 2),
         }
     }
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {
@@ -793,13 +793,13 @@ pub struct ZvednoutVrchol {
 impl InteractiveCommand for ZvednoutVrchol {
     fn prompt(&self) -> String {
         match self.vybrany {
-            None => tr("Zvednout / snížit: klikněte na vrchol nivelety, nebo do pohledu mimo vrcholy = celá niveleta").to_string(),
+            None => tr("Zvednout / snížit: klikněte na vrchol nivelety, nebo do pohledu mimo vrcholy = celá niveleta", "Raise / lower: click a design profile vertex, or in the view away from vertices = whole profile").to_string(),
             Some((Some(k), _)) => trf!(
-                "Vrchol {}: o kolik zvednout [m] – napište číslo a Enter (kurzor nad kliknutím = nahoru, pod = dolů)",
+                "Vrchol {}: o kolik zvednout [m] – napište číslo a Enter (kurzor nad kliknutím = nahoru, pod = dolů)", "Vertex {}: raise by [m] – type a number and Enter (cursor above the click = up, below = down)",
                 k + 1
             ),
             Some((None, _)) => {
-                tr("Celá niveleta: o kolik zvednout [m] – napište číslo a Enter (kurzor nad kliknutím = nahoru, pod = dolů)").to_string()
+                tr("Celá niveleta: o kolik zvednout [m] – napište číslo a Enter (kurzor nad kliknutím = nahoru, pod = dolů)", "Whole profile: raise by [m] – type a number and Enter (cursor above the click = up, below = down)").to_string()
             }
         }
     }
@@ -860,13 +860,13 @@ impl InteractiveCommand for ProdlouzitNiveletu {
     fn prompt(&self) -> String {
         let konec = self.vrcholy.last().map_or(0.0, |v| v.s);
         match (self.klik, self.sklon) {
-            (None, _) => tr("Prodloužit: klikněte v pohledu profilu za konec nivelety (přibližné místo nového konce)").to_string(),
+            (None, _) => tr("Prodloužit: klikněte v pohledu profilu za konec nivelety (přibližné místo nového konce)", "Extend: click in the profile view beyond the design profile end (approximate place of the new end)").to_string(),
             (Some(_), None) => trf!(
-                "Sklon nového úseku [‰]: napište číslo a Enter (kurzor nad kliknutím = stoupání, pod = klesání; jen Enter = {} ‰)",
+                "Sklon nového úseku [‰]: napište číslo a Enter (kurzor nad kliknutím = stoupání, pod = klesání; jen Enter = {} ‰)", "Grade of the new segment [‰]: type a number and Enter (cursor above the click = rising, below = falling; Enter alone = {} ‰)",
                 trasy::stanice::cislo(self.posledni_sklon() * 1000.0, 2, true)
             ),
             (Some((s, _, _)), Some(_)) => trf!(
-                "Délka nového úseku [m]: napište číslo a Enter (jen Enter = {} m podle kliknutí)",
+                "Délka nového úseku [m]: napište číslo a Enter (jen Enter = {} m podle kliknutí)", "Length of the new segment [m]: type a number and Enter (Enter alone = {} m from the click)",
                 trasy::stanice::cislo((s - konec).max(0.0), 2, true)
             ),
         }
@@ -923,8 +923,8 @@ pub struct PosunVrcholu {
 impl InteractiveCommand for PosunVrcholu {
     fn prompt(&self) -> String {
         match self.vybrany {
-            None => tr("Posunout vrchol: klikněte na vrchol trasy").to_string(),
-            Some((_, i)) => trf!("Vrchol {}: klikněte nové místo, nebo napište souřadnice X,Y a Enter (Esc = zrušit)", i + 1),
+            None => tr("Posunout vrchol: klikněte na vrchol trasy", "Move vertex: click an alignment vertex").to_string(),
+            Some((_, i)) => trf!("Vrchol {}: klikněte nové místo, nebo napište souřadnice X,Y a Enter (Esc = zrušit)", "Vertex {}: click the new location, or type X,Y and Enter (Esc = cancel)", i + 1),
         }
     }
     fn on_point(&mut self, pt: [f64; 3]) -> CommandStep {

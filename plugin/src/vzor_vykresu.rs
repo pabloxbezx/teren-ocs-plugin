@@ -53,14 +53,14 @@ fn sestav_v(v: &mut PresHost) -> Result<(), String> {
     let doc = v.dokument()?;
     let body = cogo::body(&doc);
     if body.len() < 30 {
-        return Err("ve výkrese nejsou body".into());
+        return Err("ve výkrese nejsou body".into()); // i18n:ne
     }
     let mut ys: Vec<f64> = body.iter().map(|b| b.bod.y).collect();
     let h = hranice_oblasti(&mut ys);
     // oblasti číslované od severu (Area 1 = nejvyšší Y); jména anglicky,
     // aby byly anglické i hladiny povrchů (TER-SRF-Area1-…)
     let jmena = ["Area 1", "Area 2", "Area 3"];
-    v.zpet("Vzorový výkres");
+    v.zpet("Vzorový výkres"); // i18n:ne
 
     // 1. skupiny bodů
     let mut id_skupin = Vec::new();
@@ -77,7 +77,7 @@ fn sestav_v(v: &mut PresHost) -> Result<(), String> {
         };
         let doc = v.dokument()?;
         cogo::uloz_skupinu(v, &doc, &s)?;
-        v.info(&format!("Vzor: skupina „{}“ ({} bodů)", s.jmeno, cisla.len()));
+        v.info(&format!("Vzor: skupina „{}“ ({} bodů)", s.jmeno, cisla.len())); // i18n:ne
         id_skupin.push(s.id);
     }
 
@@ -166,15 +166,15 @@ fn sestav_v(v: &mut PresHost) -> Result<(), String> {
             trasy::niveleta::VrcholNivelety::new(l, (z2 * 100.0).round() / 100.0, 0.0),
         ],
     )];
-    v.zpet("Vzorová trasa");
+    v.zpet("Vzorová trasa"); // i18n:ne
     let ins = crate::tra::objekt::uloz(v, Some(&doc), None, def)?;
-    v.info(&format!("Vzor: trasa T1, délka {:.2} m", l));
+    v.info(&format!("Vzor: trasa T1, délka {:.2} m", l)); // i18n:ne
 
     // 4. pohled profilu vedle oblasti (styl Jednoduchý)
     let doc = v.dokument()?;
     let _ = ins;
     let styly = crate::styly::styly_profilu(&doc);
-    let styl = styly.iter().find(|s| s.id == "JEDNODUCHY").cloned().ok_or("styl Jednoduchý chybí")?;
+    let styl = styly.iter().find(|s| s.id == "JEDNODUCHY").cloned().ok_or("styl Jednoduchý chybí")?; // i18n:ne
     let mut dp = trasy::pohled::DefinicePohledu::podle_stylu("P1", "T1", &id_povrchu[1], &styl);
     dp.meritko = 250.0;
     dp.prevyseni = 1.0;
@@ -183,6 +183,6 @@ fn sestav_v(v: &mut PresHost) -> Result<(), String> {
     crate::tra::pohled::uloz(v, &doc, None, &dp, [xmax + 25.0, ymin])?;
     v.hotovo();
     v.konec_kroku();
-    v.info("Vzor: hotovo – uložte výkres (QSAVE).");
+    v.info("Vzor: hotovo – uložte výkres (QSAVE)."); // i18n:ne
     Ok(())
 }

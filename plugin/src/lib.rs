@@ -6,6 +6,10 @@
 //! automatický přepočet, kontrola zaměření.
 //! Výpočty dělá knihovna `teren`; plugin čte a zapisuje výkres.
 
+pub mod lang {
+    //! Jazyk rozhraní – dvojice `tr(cs, en)`, viz crate `teren_lang`.
+    pub use teren_lang::*;
+}
 mod cogo;
 mod import;
 mod interaktivni;
@@ -29,7 +33,7 @@ mod vzor_vykresu;
 #[doc(hidden)]
 pub use okno::ukazka_importu;
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 use std::sync::{Mutex, OnceLock};
 
@@ -81,7 +85,7 @@ fn tridy() -> &'static ocs_plugin_api::manifest::EntityClasses {
             ("POHLED", "Pohled podélného profilu"),
         ]
         .into_iter()
-        .map(|(k, v)| (k, tr(v)))
+        .map(|(k, v)| (k, crate::lang::tr_tab(v)))
         .collect();
         ocs_plugin_api::manifest::EntityClasses {
             app_id: povrchy::APP_BOD,
@@ -116,15 +120,15 @@ pub(crate) fn quad_panel() -> ocs_plugin_api::dialog::QuadPanelDef {
         icon: OwnedIconKind::Svg(svg.to_vec()),
         action: QuadActionDef::Command(id.into()),
     };
-    let mut q = QuadPanelDef::new("teren", tr("Terén")).with_applies_to(
+    let mut q = QuadPanelDef::new("teren", tr("Terén", "Terén")).with_applies_to(
         ["Point", "Insert", "Text", "Line", "LwPolyline", "Circle"].iter().map(|s| s.to_string()).collect(),
     );
     q.items = vec![
-        p("TER_PANEL", tr("Vlastnosti bodu"), include_bytes!("../assets/ter_vlastnosti_bodu.svg")),
-        p("TER_UCHOPY", tr("Posun bodů úchopem"), include_bytes!("../assets/ter_posun_bodu.svg")),
-        p("TER_PRIDAT_BOD", tr("Přidat bod do povrchu"), include_bytes!("../assets/ter_pridat_bod.svg")),
-        p("TER_PREPOCITAT", tr("Přepočítat povrch"), include_bytes!("../assets/ter_prepocitat.svg")),
-        p("TER_PROSPEKTOR", tr("Prospektor"), include_bytes!("../assets/ter_prospektor.svg")),
+        p("TER_PANEL", tr("Vlastnosti bodu", "Point properties"), include_bytes!("../assets/ter_vlastnosti_bodu.svg")),
+        p("TER_UCHOPY", tr("Posun bodů úchopem", "Move points by grip"), include_bytes!("../assets/ter_posun_bodu.svg")),
+        p("TER_PRIDAT_BOD", tr("Přidat bod do povrchu", "Add point to surface"), include_bytes!("../assets/ter_pridat_bod.svg")),
+        p("TER_PREPOCITAT", tr("Přepočítat povrch", "Recalculate surface"), include_bytes!("../assets/ter_prepocitat.svg")),
+        p("TER_PROSPEKTOR", tr("Prospektor", "Prospector"), include_bytes!("../assets/ter_prospektor.svg")),
     ];
     q
 }
@@ -148,7 +152,7 @@ impl CadModule for TerenModule {
         "teren"
     }
     fn title(&self) -> &'static str {
-        tr("Terén")
+        tr("Terén", "Terén")
     }
     fn ribbon_groups(&self) -> &[RibbonGroup] {
         // Pořadí skupin podle práce: Prospektor (začátek) → Body → Povrch →
@@ -159,8 +163,8 @@ impl CadModule for TerenModule {
             let styl = ikona!("ter_styl");
             let sb = ikona!("ter_styl_bodu");
             let mut klik = vec![
-                ("TER_POVRCH_KLIK_VYP", tr("Povrch: klik projde na body"), ikona!("ter_povrch_klik_vyp")),
-                ("TER_POVRCH_KLIK_ZAP", tr("Povrch: vybírat klikem"), ikona!("ter_povrch_klik_zap")),
+                ("TER_POVRCH_KLIK_VYP", tr("Povrch: klik projde na body", "Surface: clicks pass to points"), ikona!("ter_povrch_klik_vyp")),
+                ("TER_POVRCH_KLIK_ZAP", tr("Povrch: vybírat klikem", "Surface: select by click"), ikona!("ter_povrch_klik_zap")),
             ];
             if !nastaveni::akt().povrch_nevybirat {
                 klik.reverse();
@@ -168,64 +172,64 @@ impl CadModule for TerenModule {
             let klik_default = klik[0].0;
             let mut skupiny = vec![
                 RibbonGroup {
-                    title: tr("Prospektor"),
+                    title: tr("Prospektor", "Prospector"),
                     tools: vec![
-                        RibbonItem::LargeTool(tool("TER_PROSPEKTOR", tr("Prospektor"), ikona!("ter_prospektor"))),
+                        RibbonItem::LargeTool(tool("TER_PROSPEKTOR", tr("Prospektor", "Prospector"), ikona!("ter_prospektor"))),
                         RibbonItem::LargeTool(ToolDef {
                             id: "TER_IMPORT",
-                            label: tr("Import bodů"),
+                            label: tr("Import bodů", "Import points"),
                             icon: ikona!("ter_body_import"),
                             // okno importu s volbou zdroje (soubor, schránka, výkres…)
                             event: ModuleEvent::Command("TER_IMPORT".into()),
                         }),
                         RibbonItem::LabeledDropdown {
                             id: "TER_DD_SABLONA",
-                            label: tr("Šablona výkresu"),
+                            label: tr("Šablona výkresu", "Drawing template"),
                             icon: ikona!("ter_sablona"),
                             items: vec![
-                                ("TER_PRIPRAVIT", tr("Připravit výkres ze šablony"), ikona!("ter_sablona")),
-                                ("TER_SABLONA_ULOZ", tr("Uložit tento výkres jako šablonu"), ikona!("ter_sablona_ulozit")),
+                                ("TER_PRIPRAVIT", tr("Připravit výkres ze šablony", "Prepare the drawing from the template"), ikona!("ter_sablona")),
+                                ("TER_SABLONA_ULOZ", tr("Uložit tento výkres jako šablonu", "Save this drawing as the template"), ikona!("ter_sablona_ulozit")),
                             ],
                             default: "TER_PRIPRAVIT",
                         },
-                        RibbonItem::LabeledTool(tool("TER_NAPOVEDA", tr("Nápověda"), ikona!("ter_napoveda"))),
+                        RibbonItem::LabeledTool(tool("TER_NAPOVEDA", tr("Nápověda", "Help"), ikona!("ter_napoveda"))),
                     ],
                 },
                 RibbonGroup {
                     // ne „Body“ – OCS by ho přeložil jako anglické „Body“ (Těleso)
-                    title: tr("Body zaměření"),
+                    title: tr("Body zaměření", "Survey points"),
                     tools: vec![
                         RibbonItem::LargeDropdown {
                             id: "TER_DD_BOD",
-                            label: tr("Nový bod"),
+                            label: tr("Nový bod", "New point"),
                             icon: ikona!("ter_bod_novy"),
                             items: vec![
-                                ("TER_BOD", tr("Ruční bod (klik nebo x,y,z)"), ikona!("ter_bod_novy")),
-                                ("TER_BOD_POVRCH", tr("Bod na povrchu"), ikona!("ter_bod_na_povrchu")),
+                                ("TER_BOD", tr("Ruční bod (klik nebo x,y,z)", "Manual point (click or x,y,z)"), ikona!("ter_bod_novy")),
+                                ("TER_BOD_POVRCH", tr("Bod na povrchu", "Point on surface"), ikona!("ter_bod_na_povrchu")),
                             ],
                             default: "TER_BOD",
                         },
-                        RibbonItem::LabeledTool(tool("TER_PANEL", tr("Vlastnosti bodu"), ikona!("ter_vlastnosti_bodu"))),
+                        RibbonItem::LabeledTool(tool("TER_PANEL", tr("Vlastnosti bodu", "Point properties"), ikona!("ter_vlastnosti_bodu"))),
                         RibbonItem::LabeledDropdown {
                             id: "TER_DD_STYL_BODU",
-                            label: tr("Styl bodu"),
+                            label: tr("Styl bodu", "Point style"),
                             icon: sb,
                             items: vec![
-                                ("TER_SB_STANDARD", tr("Standard (číslo a výška)"), ikona!("ter_sb_standard")),
-                                ("TER_SB_SKUPINA", tr("Podle skupiny / kódu"), ikona!("ter_sb_skupina")),
-                                ("TER_SB_KRIZ_VYSKA", tr("Křížek s výškou"), ikona!("ter_sb_kriz_vyska")),
-                                ("TER_SB_KRIZ_RADEK", tr("Křížek, číslo a výška vedle sebe"), ikona!("ter_sb_kriz_radek")),
-                                ("TER_SB_JEN_ZNACKA", tr("Jen značka"), ikona!("ter_sb_jen_znacka")),
-                                ("TER_SB_STROM_L", tr("Strom listnatý"), ikona!("ter_sb_strom_l")),
-                                ("TER_SB_STROM_J", tr("Strom jehličnatý"), ikona!("ter_sb_strom_j")),
-                                ("TER_SB_KER", tr("Keř"), ikona!("ter_sb_ker")),
-                                ("TER_SB_SLOUP", tr("Sloup"), ikona!("ter_sb_sloup")),
-                                ("TER_SB_HYDRANT", tr("Hydrant"), ikona!("ter_sb_hydrant")),
-                                ("TER_SB_SACHTA", tr("Šachta"), ikona!("ter_sb_sachta")),
-                                ("TER_SB_VPUST", tr("Vpusť"), ikona!("ter_sb_vpust")),
-                                ("TER_SB_SOUPE", tr("Šoupě"), ikona!("ter_sb_soupe")),
-                                ("TER_SB_SKRYT", tr("Nezobrazovat"), ikona!("ter_sb_skryt")),
-                                ("TER_SB_DALSI", tr("Další styly… (Prospektor)"), sb),
+                                ("TER_SB_STANDARD", tr("Standard (číslo a výška)", "Standard (number and elevation)"), ikona!("ter_sb_standard")),
+                                ("TER_SB_SKUPINA", tr("Podle skupiny / kódu", "By group / code"), ikona!("ter_sb_skupina")),
+                                ("TER_SB_KRIZ_VYSKA", tr("Křížek s výškou", "Cross with elevation"), ikona!("ter_sb_kriz_vyska")),
+                                ("TER_SB_KRIZ_RADEK", tr("Křížek, číslo a výška vedle sebe", "Cross, number and elevation side by side"), ikona!("ter_sb_kriz_radek")),
+                                ("TER_SB_JEN_ZNACKA", tr("Jen značka", "Marker only"), ikona!("ter_sb_jen_znacka")),
+                                ("TER_SB_STROM_L", tr("Strom listnatý", "Deciduous tree"), ikona!("ter_sb_strom_l")),
+                                ("TER_SB_STROM_J", tr("Strom jehličnatý", "Conifer"), ikona!("ter_sb_strom_j")),
+                                ("TER_SB_KER", tr("Keř", "Shrub"), ikona!("ter_sb_ker")),
+                                ("TER_SB_SLOUP", tr("Sloup", "Pole"), ikona!("ter_sb_sloup")),
+                                ("TER_SB_HYDRANT", tr("Hydrant", "Hydrant"), ikona!("ter_sb_hydrant")),
+                                ("TER_SB_SACHTA", tr("Šachta", "Manhole"), ikona!("ter_sb_sachta")),
+                                ("TER_SB_VPUST", tr("Vpusť", "Gully"), ikona!("ter_sb_vpust")),
+                                ("TER_SB_SOUPE", tr("Šoupě", "Valve"), ikona!("ter_sb_soupe")),
+                                ("TER_SB_SKRYT", tr("Nezobrazovat", "Do not display"), ikona!("ter_sb_skryt")),
+                                ("TER_SB_DALSI", tr("Další styly… (Prospektor)", "More styles… (Prospector)"), sb),
                             ],
                             default: "TER_SB_STANDARD",
                         },
@@ -235,51 +239,51 @@ impl CadModule for TerenModule {
                             label: "",
                             icon: ikona!("ter_posun_bodu_vyp"),
                             items: vec![
-                                ("TER_UCHOPY_VYP", tr("Posun bodů: vypnuto"), ikona!("ter_posun_bodu_vyp")),
-                                ("TER_UCHOPY_ZAP", tr("Posun bodů: zapnuto"), ikona!("ter_posun_bodu")),
+                                ("TER_UCHOPY_VYP", tr("Posun bodů: vypnuto", "Move points: off"), ikona!("ter_posun_bodu_vyp")),
+                                ("TER_UCHOPY_ZAP", tr("Posun bodů: zapnuto", "Move points: on"), ikona!("ter_posun_bodu")),
                             ],
                             default: "TER_UCHOPY_VYP",
                         },
-                        RibbonItem::LabeledTool(tool("TER_SROVNAT", tr("Srovnat body"), ikona!("ter_srovnat_body"))),
-                        RibbonItem::LabeledTool(tool("TER_POPISY_NA_MISTO", tr("Popisy na místo"), ikona!("ter_popisy_na_misto"))),
-                        RibbonItem::LabeledTool(tool("TER_SKUPINA_Z_VYBERU", tr("Skupina z výběru"), ikona!("ter_skupina_bodu"))),
+                        RibbonItem::LabeledTool(tool("TER_SROVNAT", tr("Srovnat body", "Sync points"), ikona!("ter_srovnat_body"))),
+                        RibbonItem::LabeledTool(tool("TER_POPISY_NA_MISTO", tr("Popisy na místo", "Reset labels"), ikona!("ter_popisy_na_misto"))),
+                        RibbonItem::LabeledTool(tool("TER_SKUPINA_Z_VYBERU", tr("Skupina z výběru", "Group from selection"), ikona!("ter_skupina_bodu"))),
                     ],
                 },
                 RibbonGroup {
-                    title: tr("Povrch"),
+                    title: tr("Povrch", "Surface"),
                     tools: vec![
                         RibbonItem::LargeDropdown {
                             id: "TER_DD_NOVY",
-                            label: tr("Nový povrch"),
+                            label: tr("Nový povrch", "New surface"),
                             icon: ikona!("ter_povrch_novy"),
                             items: vec![
-                                ("TER_NOVY_STAV", tr("Stávající terén (z bodů)"), ikona!("ter_povrch_novy")),
-                                ("TER_NOVY_NAVRH", tr("Návrh (z vybraných 3D čar)"), ikona!("ter_povrch_navrh")),
-                                ("TER_NOVY_KLIK", tr("Z naklikaných bodů"), ikona!("ter_povrch_z_bodu")),
-                                ("TER_NOVY", tr("Další povrch z bodů (jiné jméno)"), ikona!("ter_povrch_novy")),
-                                ("TER_PRUVODCE", tr("Průvodce novým povrchem…"), ikona!("ter_prospektor")),
+                                ("TER_NOVY_STAV", tr("Stávající terén (z bodů)", "Existing ground (from points)"), ikona!("ter_povrch_novy")),
+                                ("TER_NOVY_NAVRH", tr("Návrh (z vybraných 3D čar)", "Design (from selected 3D lines)"), ikona!("ter_povrch_navrh")),
+                                ("TER_NOVY_KLIK", tr("Z naklikaných bodů", "From clicked points"), ikona!("ter_povrch_z_bodu")),
+                                ("TER_NOVY", tr("Další povrch z bodů (jiné jméno)", "Another surface from points (new name)"), ikona!("ter_povrch_novy")),
+                                ("TER_PRUVODCE", tr("Průvodce novým povrchem…", "New surface wizard…"), ikona!("ter_prospektor")),
                             ],
                             default: "TER_NOVY_STAV",
                         },
                         RibbonItem::LargeDropdown {
                             id: "TER_DD_STYL",
-                            label: tr("Styl povrchu"),
+                            label: tr("Styl povrchu", "Surface style"),
                             icon: styl,
                             items: vec![
-                                ("TER_SP_VRSTP", tr("Vrstevnice s popisem"), ikona!("ter_vrstevnice")),
-                                ("TER_SP_VRST", tr("Vrstevnice"), ikona!("ter_vrstevnice")),
-                                ("TER_SP_TINVRST", tr("Trojúhelníky + vrstevnice"), ikona!("ter_sp_tin_vrst")),
-                                ("TER_SP_TIN", tr("Trojúhelníky"), ikona!("ter_sp_tin")),
-                                ("TER_SP_OBRYS", tr("Obrys"), ikona!("ter_hranice")),
-                                ("TER_SP_SPAD", tr("Spád (šipky)"), ikona!("ter_sp_spad")),
-                                ("TER_SP_SKRYT", tr("Nezobrazovat"), ikona!("ter_sp_skryt")),
-                                ("TER_SP_DALSI", tr("Další styly… (Prospektor)"), styl),
+                                ("TER_SP_VRSTP", tr("Vrstevnice s popisem", "Contours with labels"), ikona!("ter_vrstevnice")),
+                                ("TER_SP_VRST", tr("Vrstevnice", "Contours"), ikona!("ter_vrstevnice")),
+                                ("TER_SP_TINVRST", tr("Trojúhelníky + vrstevnice", "Triangles + contours"), ikona!("ter_sp_tin_vrst")),
+                                ("TER_SP_TIN", tr("Trojúhelníky", "Triangles"), ikona!("ter_sp_tin")),
+                                ("TER_SP_OBRYS", tr("Obrys", "Outline"), ikona!("ter_hranice")),
+                                ("TER_SP_SPAD", tr("Spád (šipky)", "Slope (arrows)"), ikona!("ter_sp_spad")),
+                                ("TER_SP_SKRYT", tr("Nezobrazovat", "Do not display"), ikona!("ter_sp_skryt")),
+                                ("TER_SP_DALSI", tr("Další styly… (Prospektor)", "More styles… (Prospector)"), styl),
                             ],
                             default: "TER_SP_VRSTP",
                         },
-                        RibbonItem::LabeledTool(tool("TER_PREPOCITAT", tr("Přepočítat povrch"), ikona!("ter_prepocitat"))),
-                        RibbonItem::LabeledTool(tool("TER_POVRCH_OCS", tr("Povrch OCS z bodů OCS"), ikona!("ter_povrch_novy"))),
-                        RibbonItem::LabeledTool(tool("TER_NAJIT", tr("Ukázat v Prospektoru"), ikona!("ter_ukazat_v_prospektoru"))),
+                        RibbonItem::LabeledTool(tool("TER_PREPOCITAT", tr("Přepočítat povrch", "Recalculate surface"), ikona!("ter_prepocitat"))),
+                        RibbonItem::LabeledTool(tool("TER_POVRCH_OCS", tr("Povrch OCS z bodů OCS", "OCS surface from OCS points"), ikona!("ter_povrch_novy"))),
+                        RibbonItem::LabeledTool(tool("TER_NAJIT", tr("Ukázat v Prospektoru", "Show in Prospector"), ikona!("ter_ukazat_v_prospektoru"))),
                         RibbonItem::LabeledDropdown {
                             id: "TER_DD_KLIK",
                             label: "",
@@ -290,34 +294,34 @@ impl CadModule for TerenModule {
                     ],
                 },
                 RibbonGroup {
-                    title: tr("Definice povrchu"),
+                    title: tr("Definice povrchu", "Surface definition"),
                     tools: vec![
-                        RibbonItem::LargeTool(tool("TER_SPOJNICE", tr("Spojnice přes body"), ikona!("ter_spojnice_body"))),
-                        RibbonItem::LabeledTool(tool("TER_PRIDAT_SPOJNICI", tr("Přidat spojnici"), ikona!("ter_pridat_spojnici"))),
-                        RibbonItem::LabeledTool(tool("TER_HRANICE", tr("Hranice"), ikona!("ter_hranice"))),
-                        RibbonItem::LabeledTool(tool("TER_DIRA", tr("Díra"), ikona!("ter_dira"))),
+                        RibbonItem::LargeTool(tool("TER_SPOJNICE", tr("Spojnice přes body", "Breakline through points"), ikona!("ter_spojnice_body"))),
+                        RibbonItem::LabeledTool(tool("TER_PRIDAT_SPOJNICI", tr("Přidat spojnici", "Add breakline"), ikona!("ter_pridat_spojnici"))),
+                        RibbonItem::LabeledTool(tool("TER_HRANICE", tr("Hranice", "Boundary"), ikona!("ter_hranice"))),
+                        RibbonItem::LabeledTool(tool("TER_DIRA", tr("Díra", "Hole"), ikona!("ter_dira"))),
                     ],
                 },
                 RibbonGroup {
-                    title: tr("Úpravy trojúhelníků"),
+                    title: tr("Úpravy trojúhelníků", "Triangle edits"),
                     tools: vec![
-                        RibbonItem::LargeTool(tool("TER_OTOCIT", tr("Otočit hranu"), ikona!("ter_otocit_hranu"))),
-                        RibbonItem::LabeledTool(tool("TER_PRIDAT_HRANU", tr("Přidat hranu"), ikona!("ter_zlomova_hrana"))),
-                        RibbonItem::LabeledTool(tool("TER_SMAZAT_HRANU", tr("Smazat hranu"), ikona!("ter_smazat_hranu"))),
-                        RibbonItem::LabeledTool(tool("TER_SMAZAT_TROJ", tr("Smazat trojúhelník"), ikona!("ter_smazat_troj"))),
-                        RibbonItem::LabeledTool(tool("TER_PRIDAT_BOD", tr("Přidat bod do povrchu"), ikona!("ter_pridat_bod"))),
-                        RibbonItem::LabeledTool(tool("TER_ODEBRAT_BOD", tr("Odebrat bod z povrchu"), ikona!("ter_odebrat_bod"))),
-                        RibbonItem::LabeledTool(tool("TER_ZRUSIT_UPRAVY", tr("Zrušit úpravy povrchu"), ikona!("ter_zrusit_upravy"))),
+                        RibbonItem::LargeTool(tool("TER_OTOCIT", tr("Otočit hranu", "Swap edge"), ikona!("ter_otocit_hranu"))),
+                        RibbonItem::LabeledTool(tool("TER_PRIDAT_HRANU", tr("Přidat hranu", "Add edge"), ikona!("ter_zlomova_hrana"))),
+                        RibbonItem::LabeledTool(tool("TER_SMAZAT_HRANU", tr("Smazat hranu", "Delete edge"), ikona!("ter_smazat_hranu"))),
+                        RibbonItem::LabeledTool(tool("TER_SMAZAT_TROJ", tr("Smazat trojúhelník", "Delete triangle"), ikona!("ter_smazat_troj"))),
+                        RibbonItem::LabeledTool(tool("TER_PRIDAT_BOD", tr("Přidat bod do povrchu", "Add point to surface"), ikona!("ter_pridat_bod"))),
+                        RibbonItem::LabeledTool(tool("TER_ODEBRAT_BOD", tr("Odebrat bod z povrchu", "Remove point from surface"), ikona!("ter_odebrat_bod"))),
+                        RibbonItem::LabeledTool(tool("TER_ZRUSIT_UPRAVY", tr("Zrušit úpravy povrchu", "Undo surface edits"), ikona!("ter_zrusit_upravy"))),
                     ],
                 },
                 RibbonGroup {
-                    title: tr("Výstupy"),
+                    title: tr("Výstupy", "Outputs"),
                     tools: vec![
-                        RibbonItem::LargeTool(tool("TER_EXPORT_POVRCHU", tr("Export povrchu"), ikona!("ter_export_povrchu"))),
-                        RibbonItem::LargeTool(tool("TER_3D", tr("Prohlížeč 3D"), ikona!("ter_3d"))),
-                        RibbonItem::LabeledTool(tool("TER_EXPORT_BODU", tr("Export bodů"), ikona!("ter_export_bodu"))),
-                        RibbonItem::LabeledTool(tool("TER_VYSKA", tr("Výška v bodě"), ikona!("ter_vyska_v_bode"))),
-                        RibbonItem::LabeledTool(tool("TER_KONTROLA", tr("Kontrola zaměření"), ikona!("ter_kontrola"))),
+                        RibbonItem::LargeTool(tool("TER_EXPORT_POVRCHU", tr("Export povrchu", "Surface export"), ikona!("ter_export_povrchu"))),
+                        RibbonItem::LargeTool(tool("TER_3D", tr("Prohlížeč 3D", "3D viewer"), ikona!("ter_3d"))),
+                        RibbonItem::LabeledTool(tool("TER_EXPORT_BODU", tr("Export bodů", "Point export"), ikona!("ter_export_bodu"))),
+                        RibbonItem::LabeledTool(tool("TER_VYSKA", tr("Výška v bodě", "Elevation at point"), ikona!("ter_vyska_v_bode"))),
+                        RibbonItem::LabeledTool(tool("TER_KONTROLA", tr("Kontrola zaměření", "Survey check"), ikona!("ter_kontrola"))),
                     ],
                 },
             ];
@@ -333,14 +337,14 @@ fn aktivni(v: &mut dyn Vykres) -> Option<(ZaznamPovrchu, ocs_plugin_api::host::D
     let doc = match v.dokument() {
         Ok(d) => d,
         Err(e) => {
-            v.chyba(&trf!("Terén: {}", e));
+            v.chyba(&trf!("Terén: {}", "Terén: {}", e));
             return None;
         }
     };
     match povrchy::aktivni(&doc) {
         Ok(z) => Some((z, doc)),
         Err(e) => {
-            v.chyba(&trf!("Terén: {}", e));
+            v.chyba(&trf!("Terén: {}", "Terén: {}", e));
             None
         }
     }
@@ -351,7 +355,7 @@ fn prestav_a_vypis(v: &mut dyn Vykres, z: &mut ZaznamPovrchu, popis: &str) -> Op
     let r = match povrchy::prestav(v, z) {
         Ok(r) => r,
         Err(e) => {
-            v.chyba(&trf!("Terén: {}", e));
+            v.chyba(&trf!("Terén: {}", "Terén: {}", e));
             return None;
         }
     };
@@ -371,10 +375,10 @@ fn novy_povrch(host: &mut dyn HostApi, zaklad: &str, jmeno: &str, body: bool) {
 pub(crate) fn novy_povrch_v(v: &mut dyn vykres::Vykres, vyber: &[Handle], zaklad: &str, jmeno: &str, body: bool) {
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => return v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     };
     if body && povrchy::body_z_vykresu(&doc).len() < 3 {
-        return v.chyba(tr("Terén: ve výkrese nejsou body zaměření. Nejdřív importujte body (Import bodů)."));
+        return v.chyba(tr("Terén: ve výkrese nejsou body zaměření. Nejdřív importujte body (Import bodů).", "Terén: there are no survey points in the drawing. Import points first (Import points)."));
     }
     let cary: Vec<_> = doc
         .model_space_entities()
@@ -385,13 +389,13 @@ pub(crate) fn novy_povrch_v(v: &mut dyn vykres::Vykres, vyber: &[Handle], zaklad
     if !body && cary.is_empty() {
         return v.info(
             tr("Terén: návrhový povrch vzniká z 3D čar (hrany, paty a koruny svahů, osy). \
-             Vyberte je ve výkrese a zvolte Nový povrch → Návrh znovu."),
+             Vyberte je ve výkrese a zvolte Nový povrch → Návrh znovu.", "Terén: a design surface is made from 3D lines (edges, toes and tops of slopes, centrelines). Select them in the drawing and choose New surface → Design again."),
         );
     }
     let id = povrchy::volne_id(&doc, zaklad);
     let poradi = if id == zaklad { String::new() } else { format!(" {}", &id[zaklad.len()..]) };
     let mut z = ZaznamPovrchu::novy(id, format!("{jmeno}{poradi}"), body);
-    v.zpet(tr("Nový povrch"));
+    v.zpet(tr("Nový povrch", "New surface"));
     if body {
         // povrch z bodů zaměření – skupina „Zaměření“ (všechny body kromě ručně vytvořených)
         let zamereni = match cogo::ulozene_skupiny(&doc).into_iter().map(|(_, s)| s).find(|s| s.id == cogo::ZAMERENI) {
@@ -399,7 +403,7 @@ pub(crate) fn novy_povrch_v(v: &mut dyn vykres::Vykres, vyber: &[Handle], zaklad
             None => {
                 let s = cogo::skupina_zamereni();
                 if let Err(e) = cogo::uloz_skupinu(v, &doc, &s) {
-                    return v.chyba(&trf!("Terén: {}", e));
+                    return v.chyba(&trf!("Terén: {}", "Terén: {}", e));
                 }
                 s
             }
@@ -419,7 +423,7 @@ pub(crate) fn novy_povrch_v(v: &mut dyn vykres::Vykres, vyber: &[Handle], zaklad
             v.hotovo();
             spravce::posli(spravce::Akce::Obnovit);
         }
-        Err(e) => v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     }
 }
 
@@ -436,9 +440,9 @@ fn spust_editaci(host: &mut dyn HostApi, druh: DruhEditace) {
     let def = povrchy::definice(&doc, &z).definice;
     let povrch = match Povrch::z_definice(&def, 0.001) {
         Ok(p) => p,
-        Err(e) => return host.push_error(&trf!("Terén: {}", e)),
+        Err(e) => return host.push_error(&trf!("Terén: {}", "Terén: {}", e)),
     };
-    host.push_info(&trf!("Terén: úpravy povrchu „{}“ – každý klik se hned projeví ve výkrese, Enter = konec.", z.jmeno));
+    host.push_info(&trf!("Terén: úpravy povrchu „{}“ – každý klik se hned projeví ve výkrese, Enter = konec.", "Terén: editing surface \"{}\" – each click applies immediately in the drawing, Enter = finish.", z.jmeno));
     spust(host, Box::new(interaktivni::EditacePovrchu::new(z, def, povrch, druh)));
 }
 
@@ -475,7 +479,7 @@ fn uvod_nastroje(host: &mut dyn HostApi, cmd: &str) {
     let mut u = UKAZANE.lock().unwrap_or_else(|e| e.into_inner());
     if !u.contains(&id) {
         u.push(id);
-        host.push_info(&trf!("Terén: {} ({}; nápověda: tlačítko Nápověda)", tr(popis), tr(ovladani)));
+        host.push_info(&trf!("Terén: {} ({}; nápověda: tlačítko Nápověda)", "Terén: {} ({}; help: the Help button)", crate::lang::tr_tab(popis), crate::lang::tr_tab(ovladani)));
     }
 }
 
@@ -483,9 +487,9 @@ fn uvod_nastroje(host: &mut dyn HostApi, cmd: &str) {
 fn prirad_vyber(host: &mut dyn HostApi, druh: DruhCary) {
     let vyber = host.selection();
     let nazev = match druh {
-        DruhCary::Spojnice => tr("spojnice"),
-        DruhCary::Hranice => tr("hranice"),
-        DruhCary::Dira => tr("díry"),
+        DruhCary::Spojnice => tr("spojnice", "breaklines"),
+        DruhCary::Hranice => tr("hranice", "boundary"),
+        DruhCary::Dira => tr("díry", "holes"),
     };
     let mut v = PresHost(host);
     let Some((mut z, doc)) = aktivni(&mut v) else { return };
@@ -493,12 +497,12 @@ fn prirad_vyber(host: &mut dyn HostApi, druh: DruhCary) {
         let rada = match druh {
             DruhCary::Spojnice => {
                 tr("Vyberte ve výkrese 3D křivky (hrany, paty a koruny svahů) a klikněte znovu na Přidat spojnici. \
-                 Spojnici přes body zaměření naklikáte nástrojem Spojnice přes body.")
+                 Spojnici přes body zaměření naklikáte nástrojem Spojnice přes body.", "Select 3D polylines in the drawing (edges, toes and tops of slopes) and click Add breakline again. To draw a breakline through survey points use the Breakline through points tool.")
             }
-            DruhCary::Hranice => tr("Nakreslete nebo vyberte uzavřenou křivku kolem území a klikněte znovu na Hranice."),
-            DruhCary::Dira => tr("Vyberte uzavřenou křivku kolem místa, které má v povrchu chybět, a klikněte znovu na Díra."),
+            DruhCary::Hranice => tr("Nakreslete nebo vyberte uzavřenou křivku kolem území a klikněte znovu na Hranice.", "Draw or select a closed polyline around the area and click Boundary again."),
+            DruhCary::Dira => tr("Vyberte uzavřenou křivku kolem místa, které má v povrchu chybět, a klikněte znovu na Díra.", "Select a closed polyline around the place that should be missing from the surface and click Hole again."),
         };
-        return v.info(&trf!("Terén: pro {} povrchu „{}“ nejsou vybrané žádné čáry. {}", nazev, z.jmeno, rada));
+        return v.info(&trf!("Terén: pro {} povrchu „{}“ nejsou vybrané žádné čáry. {}", "Terén: no lines are selected for the {} of surface \"{}\". {}", nazev, z.jmeno, rada));
     }
     let h = z.hladiny();
     let (cil, barva) = match druh {
@@ -507,7 +511,7 @@ fn prirad_vyber(host: &mut dyn HostApi, druh: DruhCary) {
         DruhCary::Dira => (h.diry, 5),
     };
     povrchy::zajisti_hladinu(&mut v, &doc, &cil, barva);
-    v.zpet(tr("Přiřadit čáry k povrchu"));
+    v.zpet(tr("Přiřadit čáry k povrchu", "Assign lines to surface"));
     let (mut ok, mut jine) = (0, 0);
     for e in doc.model_space_entities().filter(|e| vyber.contains(&e.common().handle)) {
         let vhodna = match e {
@@ -524,11 +528,11 @@ fn prirad_vyber(host: &mut dyn HostApi, druh: DruhCary) {
         }
     }
     if jine > 0 {
-        v.vystup(&trf!("  {} vybraných objektů nejsou vhodné čáry – vynechány", jine));
+        v.vystup(&trf!("  {} vybraných objektů nejsou vhodné čáry – vynechány", "  {} selected objects are not suitable lines – skipped", jine));
     }
     if ok > 0 {
-        v.vystup(&trf!("  {} čar přidáno jako {} povrchu „{}“", ok, nazev, z.jmeno));
-        prestav_a_vypis(&mut v, &mut z, tr("Přepočítat povrch"));
+        v.vystup(&trf!("  {} čar přidáno jako {} povrchu „{}“", "  {} lines added as {} of surface \"{}\"", ok, nazev, z.jmeno));
+        prestav_a_vypis(&mut v, &mut z, tr("Přepočítat povrch", "Recalculate surface"));
     }
 }
 
@@ -538,14 +542,14 @@ fn odebrat_z_povrchu(host: &mut dyn HostApi) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => return v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     };
     if vyber.is_empty() {
-        return v.info(tr("Terén: vyberte spojnice, hranice nebo díry, které mají přestat patřit k povrchu, a klikněte znovu."));
+        return v.info(tr("Terén: vyberte spojnice, hranice nebo díry, které mají přestat patřit k povrchu, a klikněte znovu.", "Terén: select the breaklines, boundaries or holes that should no longer belong to the surface and click again."));
     }
     let vse = povrchy::povrchy(&doc);
     let mut dotcene: Vec<ZaznamPovrchu> = Vec::new();
-    v.zpet(tr("Odebrat z povrchu"));
+    v.zpet(tr("Odebrat z povrchu", "Remove from surface"));
     let mut pocet = 0;
     for e in doc.model_space_entities().filter(|e| vyber.contains(&e.common().handle)) {
         let vrstva = e.common().layer.to_uppercase();
@@ -563,11 +567,11 @@ fn odebrat_z_povrchu(host: &mut dyn HostApi) {
         }
     }
     if pocet == 0 {
-        return v.info(tr("Terén: ve výběru není žádná čára patřící k povrchu."));
+        return v.info(tr("Terén: ve výběru není žádná čára patřící k povrchu.", "Terén: the selection contains no line belonging to a surface."));
     }
-    v.vystup(&trf!("  {} čar odebráno z definice povrchů", pocet));
+    v.vystup(&trf!("  {} čar odebráno z definice povrchů", "  {} lines removed from surface definitions", pocet));
     for mut z in dotcene {
-        prestav_a_vypis(&mut v, &mut z, tr("Přepočítat povrch"));
+        prestav_a_vypis(&mut v, &mut z, tr("Přepočítat povrch", "Recalculate surface"));
     }
 }
 
@@ -576,11 +580,11 @@ fn vybrat(host: &mut dyn HostApi) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => return v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     };
     let vse = povrchy::povrchy(&doc);
     if vse.is_empty() {
-        return v.info(tr("Terén: ve výkrese není žádný povrch."));
+        return v.info(tr("Terén: ve výkrese není žádný povrch.", "Terén: there is no surface in the drawing."));
     }
     let mut objekty = Vec::new();
     for z in &vse {
@@ -596,7 +600,7 @@ fn vybrat(host: &mut dyn HostApi) {
         povrchy::nastav_aktivni(id);
         spravce::skoc(spravce::Skok::Povrch(id.clone()));
         spravce::posli(spravce::Akce::Obnovit);
-        return v.info(&trf!("Terén: aktivní povrch je „{}“.", jmeno));
+        return v.info(&trf!("Terén: aktivní povrch je „{}“.", "Terén: the active surface is \"{}\".", jmeno));
     }
     spust(host, Box::new(interaktivni::VybratPovrch { objekty, vybrano: None, zprava: String::new() }));
 }
@@ -607,15 +611,15 @@ fn akce_z_textu(t: &str) -> Result<spravce::Akce, String> {
     use spravce::Akce;
     let slova: Vec<&str> = t.split_whitespace().collect();
     let co = slova.first().map(|s| s.to_uppercase()).unwrap_or_default();
-    let arg = |i: usize| slova.get(i).copied().ok_or_else(|| trf!("{}: chybí parametr {}", co, i));
+    let arg = |i: usize| slova.get(i).copied().ok_or_else(|| trf!("{}: chybí parametr {}", "{}: missing parameter {}", co, i));
     let zbytek = |i: usize| slova.get(i..).map(|s| s.join(" ")).unwrap_or_default();
-    let h = |s: &str| u64::from_str_radix(s, 16).map(Handle::new).map_err(|_| trf!("neplatný handle {}", s));
+    let h = |s: &str| u64::from_str_radix(s, 16).map(Handle::new).map_err(|_| trf!("neplatný handle {}", "invalid handle {}", s));
     let hs = |s: &str| s.split(',').filter(|x| !x.is_empty()).map(h).collect::<Result<Vec<_>, _>>();
     let ano = |s: &str| s == "1";
     Ok(match co.as_str() {
         "SKUPINA" => {
             let radky: Vec<String> = zbytek(1).split(';').map(|x| x.trim().to_string()).collect();
-            Akce::SkupinaUlozit(teren::skupiny::SkupinaBodu::precti(&radky).ok_or(tr("SKUPINA: chybí id=…"))?)
+            Akce::SkupinaUlozit(teren::skupiny::SkupinaBodu::precti(&radky).ok_or(tr("SKUPINA: chybí id=…", "SKUPINA: missing id=…"))?)
         }
         "SKUPINA_NOVA" => Akce::SkupinaNova(slova.get(1).map(|x| hs(x)).transpose()?.unwrap_or_default()),
         "SKUPINA_SMAZAT" => Akce::SkupinaSmazat(arg(1)?.into()),
@@ -635,20 +639,20 @@ fn akce_z_textu(t: &str) -> Result<spravce::Akce, String> {
         }
         "OBJEKTY" => Akce::PridatObjekty(
             arg(1)?.into(),
-            povrchy::TypObjektu::z_kodu(arg(2)?).ok_or(tr("typ objektu P, B, C nebo F"))?,
+            povrchy::TypObjektu::z_kodu(arg(2)?).ok_or(tr("typ objektu P, B, C nebo F", "object type P, B, C or F"))?,
             ano(arg(3)?),
         ),
         "POLOZKA" => Akce::PolozkaZapnout(arg(1)?.into(), h(arg(2)?)?, ano(arg(3)?)),
         "ODEBRAT_POLOZKU" => Akce::OdebratPolozku(arg(1)?.into(), h(arg(2)?)?),
         "BOD" => {
             let doc_h = h(arg(1)?)?;
-            let z: f64 = arg(3)?.replace(',', ".").parse().map_err(|_| "neplatná výška")?;
+            let z: f64 = arg(3)?.replace(',', ".").parse().map_err(|_| tr("neplatná výška", "invalid elevation"))?;
             Akce::BodUpravit(doc_h, teren::body::Bod { cislo: arg(2)?.into(), x: f64::NAN, y: f64::NAN, z, popis: zbytek(4) })
         }
         "PRECISLOVAT" => Akce::BodyPrecislovat(
             hs(arg(3)?)?,
-            arg(1)?.parse().map_err(|_| "neplatné číslo")?,
-            arg(2)?.parse().map_err(|_| "neplatný krok")?,
+            arg(1)?.parse().map_err(|_| tr("neplatné číslo", "invalid number"))?,
+            arg(2)?.parse().map_err(|_| tr("neplatný krok", "invalid step"))?,
         ),
         "SMAZAT_BODY" => Akce::BodySmazat(hs(arg(1)?)?),
         "EXPORT" => Akce::Export(arg(1)?.into(), zbytek(3), arg(2)?.to_uppercase(), Oddelovac::Mezera, true),
@@ -675,7 +679,7 @@ fn akce_z_textu(t: &str) -> Result<spravce::Akce, String> {
         "SABLONA_NACTI" => Akce::SablonaNacti,
         "SMAZ_KONTROLU" => Akce::SmazatKontrolu,
         "SROVNAT" => Akce::SrovnatBody(slova.get(1) == Some(&"?")),
-        _ => return Err(trf!("neznámá akce {}", co)),
+        _ => return Err(trf!("neznámá akce {}", "unknown action {}", co)),
     })
 }
 
@@ -684,11 +688,11 @@ fn najit(host: &mut dyn HostApi) {
     let vyber = host.selection();
     let mut v = PresHost(host);
     if vyber.is_empty() {
-        return v.info(tr("Terén: vyberte ve výkrese bod, čáru nebo trojúhelník povrchu a klikněte znovu – Prospektor na něj skočí."));
+        return v.info(tr("Terén: vyberte ve výkrese bod, čáru nebo trojúhelník povrchu a klikněte znovu – Prospektor na něj skočí.", "Terén: select a point, line or surface triangle in the drawing and click again – the Prospector will jump to it."));
     }
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => return v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     };
     match spravce::najdi_ve_strome(&doc, &vyber) {
         Some((skok, popis)) => {
@@ -698,9 +702,9 @@ fn najit(host: &mut dyn HostApi) {
             spravce::skoc(skok);
             okno::otevri();
             spravce::posli(spravce::Akce::Obnovit);
-            v.info(&trf!("Terén: {} – zobrazeno v Prospektoru.", popis));
+            v.info(&trf!("Terén: {} – zobrazeno v Prospektoru.", "Terén: {} – shown in the Prospector.", popis));
         }
-        None => v.info(tr("Terén: vybrané objekty nepatří k žádnému bodu ani povrchu.")),
+        None => v.info(tr("Terén: vybrané objekty nepatří k žádnému bodu ani povrchu.", "Terén: the selected objects belong to no point or surface.")),
     }
 }
 
@@ -716,17 +720,17 @@ fn styl_bodu_vyberu(host: &mut dyn HostApi, id: &str) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => return v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     };
     let body = cogo::body_z_vyberu(&doc, &vyber);
     if body.is_empty() {
-        return v.info(tr("Terén: nejdřív vyberte body ve výkrese (stačí kliknout na značku nebo popis) a pak zvolte styl."));
+        return v.info(tr("Terén: nejdřív vyberte body ve výkrese (stačí kliknout na značku nebo popis) a pak zvolte styl.", "Terén: first select points in the drawing (clicking a marker or label is enough), then choose a style."));
     }
     let styl = if id == "SKUPINA" { String::new() } else { id.to_string() };
     match spravce::proved_hned(&mut v, spravce::Akce::StylBodu(body.clone(), styl)) {
-        Ok(Some(t)) => v.info(&trf!("Terén: {}", t)),
+        Ok(Some(t)) => v.info(&trf!("Terén: {}", "Terén: {}", t)),
         Ok(None) => {}
-        Err(e) => v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     }
     spravce::obnov_vyber(&mut v, &body, &[]);
     spravce::posli(spravce::Akce::Obnovit);
@@ -744,20 +748,20 @@ fn styl_povrchu_vyberu(host: &mut dyn HostApi, id: &str) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => return v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     };
     let mut ids = povrchy::povrchy_z_vyberu(&doc, &vyber);
     if ids.is_empty() {
         match povrchy::aktivni(&doc) {
             Ok(z) => ids.push(z.id),
-            Err(e) => return v.chyba(&trf!("Terén: {}", e)),
+            Err(e) => return v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
         }
     }
     let vybrane = !vyber.is_empty();
     match spravce::proved_hned(&mut v, spravce::Akce::Nastav(ids.clone(), spravce::Zmena::Styl(id.to_string()))) {
-        Ok(Some(t)) => v.info(&trf!("Terén: {}", t)),
+        Ok(Some(t)) => v.info(&trf!("Terén: {}", "Terén: {}", t)),
         Ok(None) => {}
-        Err(e) => v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     }
     if vybrane {
         spravce::obnov_vyber(&mut v, &[], &ids);
@@ -771,29 +775,29 @@ fn novy_bod(host: &mut dyn HostApi, druh: interaktivni::DruhBodu) {
     let n = nastaveni::akt();
     let mut v = PresHost(host);
     if let Err(e) = cogo::priprav_vykres(&mut v) {
-        return v.chyba(&trf!("Terén: {}", e));
+        return v.chyba(&trf!("Terén: {}", "Terén: {}", e));
     }
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => return v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     };
     let povrch = povrchy::aktivni(&doc).ok().and_then(|z| {
         let def = povrchy::definice(&doc, &z).definice;
         Povrch::z_definice(&def, 0.001).ok().map(|p| (z.jmeno.clone(), p))
     });
     if druh == DruhBodu::NaPovrchu && povrch.is_none() {
-        return v.chyba(tr("Terén: bod na povrchu potřebuje aktivní povrch – vytvořte ho nebo vyberte."));
+        return v.chyba(tr("Terén: bod na povrchu potřebuje aktivní povrch – vytvořte ho nebo vyberte.", "Terén: a point on surface needs an active surface – create or select one."));
     }
     let (skupina, jmeno_povrchu) = if druh == DruhBodu::ProPovrch {
         let jmeno = {
             let vse = povrchy::povrchy(&doc);
-            (1..).map(|i| trf!("Plocha {}", i)).find(|j| !vse.iter().any(|z| z.jmeno.eq_ignore_ascii_case(j))).unwrap()
+            (1..).map(|i| trf!("Plocha {}", "Face {}", i)).find(|j| !vse.iter().any(|z| z.jmeno.eq_ignore_ascii_case(j))).unwrap()
         };
-        let jmeno_skupiny = cogo::volne_jmeno_skupiny(&doc, &trf!("Body {}", jmeno));
+        let jmeno_skupiny = cogo::volne_jmeno_skupiny(&doc, &trf!("Body {}", "Points {}", jmeno));
         let s = teren::skupiny::SkupinaBodu {
             id: cogo::volne_id_skupiny(&doc, &jmeno_skupiny),
             jmeno: jmeno_skupiny,
-            popis: trf!("naklikané body povrchu {}", jmeno),
+            popis: trf!("naklikané body povrchu {}", "clicked points of surface {}", jmeno),
             ..Default::default()
         };
         (Some(s), jmeno)
@@ -801,18 +805,18 @@ fn novy_bod(host: &mut dyn HostApi, druh: interaktivni::DruhBodu) {
         (None, String::new())
     };
     let vyska = match n.vyska_bodu_nova {
-        Some(z) => trf!("předvolená výška {}", povrchy::cislo_cz(z)),
-        None if druh == DruhBodu::ProPovrch => tr("výšku zadejte jako x,y,z (další body převezmou předchozí)").into(),
-        None => tr("výška ze zadání x,y,z, jinak z aktivního povrchu").into(),
+        Some(z) => trf!("předvolená výška {}", "preset elevation {}", povrchy::cislo_cz(z)),
+        None if druh == DruhBodu::ProPovrch => tr("výšku zadejte jako x,y,z (další body převezmou předchozí)", "enter the elevation as x,y,z (next points take the previous one)").into(),
+        None => tr("výška ze zadání x,y,z, jinak z aktivního povrchu", "elevation from x,y,z input, otherwise from the active surface").into(),
     };
-    let kod = if n.kod_bodu.is_empty() { String::new() } else { trf!(", kód {}", n.kod_bodu) };
+    let kod = if n.kod_bodu.is_empty() { String::new() } else { trf!(", kód {}", ", code {}", n.kod_bodu) };
     let co = match druh {
-        DruhBodu::Rucne => tr("nové body").to_string(),
-        DruhBodu::NaPovrchu => tr("body na povrchu").to_string(),
-        DruhBodu::ProPovrch => trf!("body pro povrch „{}“", jmeno_povrchu),
+        DruhBodu::Rucne => tr("nové body", "new points").to_string(),
+        DruhBodu::NaPovrchu => tr("body na povrchu", "points on surface").to_string(),
+        DruhBodu::ProPovrch => trf!("body pro povrch „{}“", "points for surface \"{}\"", jmeno_povrchu),
     };
     let dalsi = cogo::dalsi_cislo(&doc);
-    v.info(&trf!("Terén: {} od čísla {}{}{} (nastavení v Prospektoru → Body).", co, dalsi, kod, if druh == DruhBodu::NaPovrchu { String::new() } else { format!(", {vyska}") }));
+    v.info(&trf!("Terén: {} od čísla {}{}{} (nastavení v Prospektoru → Body).", "Terén: {} from number {}{}{} (settings in the Prospector → Points).", co, dalsi, kod, if druh == DruhBodu::NaPovrchu { String::new() } else { format!(", {vyska}") }));
     spust(host, Box::new(interaktivni::NovyBod {
         druh,
         dalsi,
@@ -842,8 +846,8 @@ pub(crate) fn zmen_meritko_v(v: &mut dyn Vykres, m: u32) {
     // se obě nastavení nehádala
     let _ = v.prikaz(&format!("CANNOSCALE 1:{m}"));
     match spravce::po_zmene_meritka(v) {
-        Ok(t) => v.info(&trf!("Terén: {}", t)),
-        Err(e) => v.chyba(&trf!("Terén: {}", e)),
+        Ok(t) => v.info(&trf!("Terén: {}", "Terén: {}", t)),
+        Err(e) => v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     }
     spravce::posli(spravce::Akce::Obnovit);
 }
@@ -855,21 +859,21 @@ fn nastaveni_cmd(host: &mut dyn HostApi, cmd: &str) -> bool {
             _ => None,
         };
         host.push_info(&match &f {
-            Some(f) => trf!("Terén: formát bodů {} (oddělovač podle nabídky Oddělovač)", f),
-            None => tr("Terén: formát bodů se rozpozná automaticky").into(),
+            Some(f) => trf!("Terén: formát bodů {} (oddělovač podle nabídky Oddělovač)", "Terén: point format {} (delimiter from the Delimiter menu)", f),
+            None => tr("Terén: formát bodů se rozpozná automaticky", "Terén: the point format is detected automatically").into(),
         });
         nastaveni::zmen(|n| n.format = f);
         return true;
     }
     if let Some(o) = cmd.strip_prefix("TER_ODD_") {
         let (o, t) = match o {
-            "CARKA" => (Oddelovac::Carka, tr("čárka")),
-            "STREDNIK" => (Oddelovac::Strednik, tr("středník")),
-            "TAB" => (Oddelovac::Tabulator, tr("tabulátor")),
+            "CARKA" => (Oddelovac::Carka, tr("čárka", "comma")),
+            "STREDNIK" => (Oddelovac::Strednik, tr("středník", "semicolon")),
+            "TAB" => (Oddelovac::Tabulator, tr("tabulátor", "tab")),
             _ => (Oddelovac::Mezera, "mezera"),
         };
         nastaveni::zmen(|n| n.oddelovac = o);
-        host.push_info(&trf!("Terén: oddělovač {} (platí pro ručně zvolený formát)", t));
+        host.push_info(&trf!("Terén: oddělovač {} (platí pro ručně zvolený formát)", "Terén: delimiter {} (applies to a manually chosen format)", t));
         return true;
     }
     // starší názvy příkazů stylu povrchu
@@ -894,7 +898,7 @@ fn nastaveni_cmd(host: &mut dyn HostApi, cmd: &str) -> bool {
             "200" => (2.0, 10.0),
             _ => (0.5, 2.5),
         };
-        nastav_povrch(host, tr("Interval vrstevnic"), |z| {
+        nastav_povrch(host, tr("Interval vrstevnic", "Contour interval"), |z| {
             z.interval = iv;
             z.hlavni = hl;
         });
@@ -902,7 +906,7 @@ fn nastaveni_cmd(host: &mut dyn HostApi, cmd: &str) -> bool {
     }
     if let Some(m) = cmd.strip_prefix("TER_HRANA_") {
         let m: f64 = m.parse().unwrap_or(0.0);
-        nastav_povrch(host, tr("Max. hrana"), |z| z.max_hrana = (m > 0.0).then_some(m));
+        nastav_povrch(host, tr("Max. hrana", "Max. edge"), |z| z.max_hrana = (m > 0.0).then_some(m));
         return true;
     }
     if let Some(m) = cmd.strip_prefix("TER_MERITKO_").and_then(|m| m.parse::<u32>().ok()) {
@@ -1023,7 +1027,7 @@ fn hladiny_starsi_verze(host: &mut dyn HostApi) {
     if hladiny::ma_stare(&doc) {
         let ids: Vec<String> = povrchy::povrchy(&doc).into_iter().map(|z| z.id).collect();
         if hladiny::prejmenuj_stare(&mut v, &doc, &ids) {
-            v.info(tr("Terén: hladiny ze starší verze přejmenovány na nové (anglické) názvy."));
+            v.info(tr("Terén: hladiny ze starší verze přejmenovány na nové (anglické) názvy.", "Terén: layers from an older version renamed to the new (English) names."));
         }
     }
 }
@@ -1052,20 +1056,20 @@ impl TerenPlugin {
                 let cesta = zbytek.trim_matches('"');
                 if n.nahled_importu {
                     okno::otevri_import(cesta);
-                    host.push_info(tr("Terén: náhled importu je v okně Prospektoru – zkontrolujte formát a klikněte Importovat."));
+                    host.push_info(tr("Terén: náhled importu je v okně Prospektoru – zkontrolujte formát a klikněte Importovat.", "Terén: the import preview is in the Prospector window – check the format and click Import."));
                     return true;
                 }
                 let fmt = n.format.as_deref().map(|f| (f, n.oddelovac, 0));
                 if let Some(body) = import::priprav(&mut v, cesta, fmt) {
                     if let Err(e) = cogo::priprav_vykres(&mut v) {
-                        v.chyba(&trf!("Terén: {}", e));
+                        v.chyba(&trf!("Terén: {}", "Terén: {}", e));
                         return true;
                     }
                     let soubor = import::jmeno_souboru(cesta);
                     let doc = match v.dokument() {
                         Ok(d) => d,
                         Err(e) => {
-                            v.chyba(&trf!("Terén: {}", e));
+                            v.chyba(&trf!("Terén: {}", "Terén: {}", e));
                             return true;
                         }
                     };
@@ -1079,7 +1083,7 @@ impl TerenPlugin {
                 // z náhledu importu: TER_IMPORT_F <formát> <oddělovač> <hlavička> <cesta>
                 let mut casti = zbytek.splitn(4, char::is_whitespace);
                 let (Some(f), Some(o), Some(hl), Some(cesta)) = (casti.next(), casti.next(), casti.next(), casti.next()) else {
-                    host.push_error(tr("Terén: TER_IMPORT_F <formát> <oddělovač> <hlavička> <cesta>"));
+                    host.push_error(tr("Terén: TER_IMPORT_F <formát> <oddělovač> <hlavička> <cesta>", "Terén: TER_IMPORT_F <format> <delimiter> <header> <path>"));
                     return true;
                 };
                 let cesta = cesta.trim().trim_matches('"').to_string();
@@ -1088,14 +1092,14 @@ impl TerenPlugin {
                 let mut v = PresHost(host);
                 if let Some(body) = import::priprav(&mut v, &cesta, Some((f, o, hl))) {
                     if let Err(e) = cogo::priprav_vykres(&mut v) {
-                        v.chyba(&trf!("Terén: {}", e));
+                        v.chyba(&trf!("Terén: {}", "Terén: {}", e));
                         return true;
                     }
                     let soubor = import::jmeno_souboru(&cesta);
                     let doc = match v.dokument() {
                         Ok(d) => d,
                         Err(e) => {
-                            v.chyba(&trf!("Terén: {}", e));
+                            v.chyba(&trf!("Terén: {}", "Terén: {}", e));
                             return true;
                         }
                     };
@@ -1105,12 +1109,12 @@ impl TerenPlugin {
                     spust(host, Box::new(import::PotvrditImport::new(&body, &ro, m, &soubor, skupina)));
                 }
             }
-            "TER_NOVY_STAV" => novy_povrch(host, "Stavajici", tr("Stávající terén"), true),
-            "TER_NOVY_NAVRH" => novy_povrch(host, "Navrh", tr("Návrh"), false),
-            "TER_NOVY" => novy_povrch(host, "Povrch", tr("Povrch"), true),
+            "TER_NOVY_STAV" => novy_povrch(host, "Stavajici", tr("Stávající terén", "Existing ground"), true),
+            "TER_NOVY_NAVRH" => novy_povrch(host, "Navrh", tr("Návrh", "Design"), false),
+            "TER_NOVY" => novy_povrch(host, "Povrch", tr("Povrch", "Surface"), true),
             "TER_PROSPEKTOR" | "TER_SPRAVCE" | "TER_SEZNAM" => {
                 okno::otevri();
-                host.push_info(tr("Terén: Prospektor se otevírá ve vlastním okně."));
+                host.push_info(tr("Terén: Prospektor se otevírá ve vlastním okně.", "Terén: the Prospector opens in its own window."));
             }
             "TER_NAJIT" | "TER_STYL_BODU" => najit(host),
             #[cfg(feature = "ukazka")]
@@ -1121,7 +1125,7 @@ impl TerenPlugin {
                     spravce::skoc(spravce::Skok::Povrch(z.id.clone()));
                     okno::otevri();
                     spravce::posli(spravce::Akce::Obnovit);
-                    v.info(&trf!("Terén: export povrchu „{}“ (LandXML nebo DXF) je v Prospektoru u povrchu – Export povrchu.", z.jmeno));
+                    v.info(&trf!("Terén: export povrchu „{}“ (LandXML nebo DXF) je v Prospektoru u povrchu – Export povrchu.", "Terén: the export of surface \"{}\" (LandXML or DXF) is in the Prospector at the surface – Surface export.", z.jmeno));
                 }
             }
             "TER_PRIPRAVIT" => {
@@ -1129,11 +1133,11 @@ impl TerenPlugin {
             }
             "TER_PRUVODCE" => {
                 okno::otevri_pruvodce();
-                host.push_info(tr("Terén: průvodce novým povrchem je v okně Prospektoru."));
+                host.push_info(tr("Terén: průvodce novým povrchem je v okně Prospektoru.", "Terén: the new surface wizard is in the Prospector window."));
             }
             "TER_NAPOVEDA" => {
                 okno::otevri_napovedu("teren");
-                host.push_info(tr("Terén: nápověda je v okně Prospektoru (v něm také klávesa F1)."));
+                host.push_info(tr("Terén: nápověda je v okně Prospektoru (v něm také klávesa F1).", "Terén: help is in the Prospector window (also the F1 key there)."));
             }
             "TER_AKCE" => {
                 let mut v = PresHost(host);
@@ -1143,7 +1147,7 @@ impl TerenPlugin {
                         let body = cogo::body(&doc);
                         let vse = cogo::grafika_bodu(&doc, &body.iter().map(|b| [b.bod.x, b.bod.y]).collect::<Vec<_>>());
                         let znacek = doc.model_space_entities().filter(|e| e.common().layer.eq_ignore_ascii_case(cogo::H_ZNACKA)).count();
-                        v.vystup(&trf!("  značek {}, grafika přiřazená bodům {}", znacek, vse.len()));
+                        v.vystup(&trf!("  značek {}, grafika přiřazená bodům {}", "  markers {}, graphics assigned to points {}", znacek, vse.len()));
                     }
                     return true;
                 }
@@ -1154,40 +1158,40 @@ impl TerenPlugin {
                                 v.vystup(&format!("  {r}"));
                             }
                         }
-                        Err(e) => v.chyba(&trf!("Terén: {}", e)),
+                        Err(e) => v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
                     }
                     return true;
                 }
                 match akce_z_textu(zbytek).and_then(|a| spravce::proved_hned(&mut v, a)) {
-                    Ok(Some(t)) => v.info(&trf!("Terén: {}", t)),
+                    Ok(Some(t)) => v.info(&trf!("Terén: {}", "Terén: {}", t)),
                     Ok(None) => {}
-                    Err(e) => v.chyba(&trf!("Terén: {}", e)),
+                    Err(e) => v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
                 }
             }
             "TER_BOD" => novy_bod(host, interaktivni::DruhBodu::Rucne),
             "TER_BOD_POVRCH" => novy_bod(host, interaktivni::DruhBodu::NaPovrchu),
             "TER_NOVY_KLIK" => novy_bod(host, interaktivni::DruhBodu::ProPovrch),
-            "TER_PREPOCITAT" | "TER_POVRCH" => nastav_povrch(host, tr("Přepočítat povrch"), |_| {}),
+            "TER_PREPOCITAT" | "TER_POVRCH" => nastav_povrch(host, tr("Přepočítat povrch", "Recalculate surface"), |_| {}),
             "TER_VYBRAT" => vybrat(host),
             "TER_SMAZAT" => {
                 let mut v = PresHost(host);
                 if let Some((z, doc)) = aktivni(&mut v) {
-                    v.zpet(tr("Smazat povrch"));
+                    v.zpet(tr("Smazat povrch", "Delete surface"));
                     match povrchy::smaz(&mut v, &doc, &z) {
                         Ok(()) => {
                             v.hotovo();
-                            v.info(&trf!("Terén: povrch „{}“ smazán (spojnice, hranice a body zůstaly).", z.jmeno));
+                            v.info(&trf!("Terén: povrch „{}“ smazán (spojnice, hranice a body zůstaly).", "Terén: surface \"{}\" deleted (breaklines, boundaries and points remain).", z.jmeno));
                             spravce::posli(spravce::Akce::Obnovit);
                         }
-                        Err(e) => v.chyba(&trf!("Terén: {}", e)),
+                        Err(e) => v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
                     }
                 }
             }
-            "TER_ZRUSIT_UPRAVY" => nastav_povrch(host, tr("Zrušit úpravy povrchu"), |z| z.upravy.clear()),
+            "TER_ZRUSIT_UPRAVY" => nastav_povrch(host, tr("Zrušit úpravy povrchu", "Undo surface edits"), |z| z.upravy.clear()),
             "TER_KONTROLA" => {
                 let mut v = PresHost(host);
                 if let Err(e) = spravce::kontrola(&mut v) {
-                    v.chyba(&trf!("Terén: {}", e));
+                    v.chyba(&trf!("Terén: {}", "Terén: {}", e));
                 }
             }
             "TER_SPOJNICE" => {
@@ -1195,12 +1199,12 @@ impl TerenPlugin {
                 let Some((z, doc)) = aktivni(&mut v) else { return true };
                 let body = povrchy::body_z_vykresu(&doc);
                 if body.is_empty() {
-                    v.chyba(tr("Terén: ve výkrese nejsou body zaměření, na které by šlo klikat."));
+                    v.chyba(tr("Terén: ve výkrese nejsou body zaměření, na které by šlo klikat.", "Terén: there are no survey points in the drawing to click on."));
                     return true;
                 }
                 let h = z.hladiny();
                 povrchy::zajisti_hladinu(&mut v, &doc, &h.spojnice, 1);
-                v.info(&trf!("Terén: spojnice povrchu „{}“ – klikejte na body (výška z bodu), Enter = hotovo{}.", z.jmeno, if z.auto { "" } else { tr(", pak Přepočítat") }));
+                v.info(&trf!("Terén: spojnice povrchu „{}“ – klikejte na body (výška z bodu), Enter = hotovo{}.", "Terén: breakline of surface \"{}\" – click points (elevation from the point), Enter = done{}.", z.jmeno, if z.auto { "" } else { tr(", pak Přepočítat", ", then Recalculate") }));
                 spust(host, Box::new(interaktivni::SpojnicePresBody {
                     hladina: h.spojnice,
                     jmeno_povrchu: z.jmeno.clone(),
@@ -1232,15 +1236,15 @@ impl TerenPlugin {
                 prepocet::nastav(r);
                 nastaveni::zmen(|n| n.prepocet = r.klic().into());
                 host.push_info(match r {
-                    prepocet::Rezim::Automaticky => tr("Terén: přepočet povrchů a profilů hned po každé změně."),
-                    prepocet::Rezim::PoDokonceni => tr("Terén: přepočet povrchů a profilů až po dokončení úprav (po chvíli klidu)."),
-                    prepocet::Rezim::Pozastaveno => tr("Terén: přepočet povrchů a profilů pozastaven – přepočítáte ho tlačítkem Přepočítat teď."),
+                    prepocet::Rezim::Automaticky => tr("Terén: přepočet povrchů a profilů hned po každé změně.", "Terrain: surfaces and profiles are recalculated right after each change."),
+                    prepocet::Rezim::PoDokonceni => tr("Terén: přepočet povrchů a profilů až po dokončení úprav (po chvíli klidu).", "Terrain: surfaces and profiles are recalculated when you finish editing (after a short pause)."),
+                    prepocet::Rezim::Pozastaveno => tr("Terén: přepočet povrchů a profilů pozastaven – přepočítáte ho tlačítkem Přepočítat teď.", "Terrain: recalculation of surfaces and profiles is paused – use Recalculate now."),
                 });
                 spravce::posli(spravce::Akce::Obnovit);
             }
             "TER_PREPOCET_TED" => {
                 prepocet::pozadej();
-                host.push_info(tr("Terén: přepočítávám zastaralé povrchy a profily…"));
+                host.push_info(tr("Terén: přepočítávám zastaralé povrchy a profily…", "Terrain: recalculating outdated surfaces and profiles…"));
             }
             "TER_POVRCH_KLIK_ZAP" | "TER_POVRCH_KLIK_VYP" => {
                 spravce::posli(spravce::Akce::PovrchyNevybirat(nazev == "TER_POVRCH_KLIK_VYP"));
@@ -1264,13 +1268,13 @@ impl TerenPlugin {
                 let doc = match v.dokument() {
                     Ok(d) => d,
                     Err(e) => {
-                        v.chyba(&trf!("Terén: {}", e));
+                        v.chyba(&trf!("Terén: {}", "Terén: {}", e));
                         return true;
                     }
                 };
                 let body = cogo::body_z_vyberu(&doc, &vyber);
                 if body.is_empty() {
-                    v.info(tr("Terén: nejdřív vyberte body ve výkrese (stačí kliknout na značku nebo popis) a klikněte znovu."));
+                    v.info(tr("Terén: nejdřív vyberte body ve výkrese (stačí kliknout na značku nebo popis) a klikněte znovu.", "Terén: first select points in the drawing (clicking a marker or label is enough) and click again."));
                     return true;
                 }
                 if nazev == "TER_POPISY_NA_MISTO" {
@@ -1287,13 +1291,13 @@ impl TerenPlugin {
                 spravce::skoc(spravce::Skok::Skupina(teren::skupiny::VSECHNY.to_string()));
                 okno::otevri();
                 spravce::posli(spravce::Akce::Obnovit);
-                host.push_info(tr("Terén: export bodů je v Prospektoru u skupiny bodů (Všechny body nebo jiná skupina) – Export bodů skupiny."));
+                host.push_info(tr("Terén: export bodů je v Prospektoru u skupiny bodů (Všechny body nebo jiná skupina) – Export bodů skupiny.", "Terén: point export is in the Prospector at a point group (All points or another group) – Export the group's points."));
             }
             "TER_3D" => {
                 let mut v = PresHost(host);
                 if let Some((z, _)) = aktivni(&mut v) {
                     okno::otevri_3d(vec![z.id.clone()]);
-                    v.info(&trf!("Terén: povrch „{}“ ve 3D – v okně Prospektoru.", z.jmeno));
+                    v.info(&trf!("Terén: povrch „{}“ ve 3D – v okně Prospektoru.", "Terén: surface \"{}\" in 3D – in the Prospector window.", z.jmeno));
                 }
             }
             "TER_SABLONA_ULOZ" => {
@@ -1321,7 +1325,7 @@ impl TerenPlugin {
                 match Povrch::z_definice(&povrchy::definice(&doc, &z).definice, 0.001) {
                     Ok(povrch) => {
                         povrchy::zajisti_hladinu(&mut v, &doc, cogo::H_VYSKA, 7);
-                        host.push_info(&trf!("Terén: výška v povrchu „{}“ – klikejte, Enter = konec.", z.jmeno));
+                        host.push_info(&trf!("Terén: výška v povrchu „{}“ – klikejte, Enter = konec.", "Terén: elevation on surface \"{}\" – click, Enter = finish.", z.jmeno));
                         spust(host, Box::new(interaktivni::VyskaVBode {
                             povrch,
                             hladina: cogo::H_VYSKA.into(),
@@ -1329,7 +1333,7 @@ impl TerenPlugin {
                             zprava: String::new(),
                         }));
                     }
-                    Err(e) => host.push_error(&trf!("Terén: {}", e)),
+                    Err(e) => host.push_error(&trf!("Terén: {}", "Terén: {}", e)),
                 }
             }
             other => return nastaveni_cmd(host, other),
@@ -1343,9 +1347,9 @@ ocs_plugin_api::export_plugin!(TerenPlugin);
 /// Provede akci Prospektoru z pásu karet a vypíše výsledek.
 fn proved(v: &mut dyn Vykres, a: spravce::Akce) {
     match spravce::proved_hned(v, a) {
-        Ok(Some(t)) => v.info(&trf!("Terén: {}", t)),
+        Ok(Some(t)) => v.info(&trf!("Terén: {}", "Terén: {}", t)),
         Ok(None) => {}
-        Err(e) => v.chyba(&trf!("Terén: {}", e)),
+        Err(e) => v.chyba(&trf!("Terén: {}", "Terén: {}", e)),
     }
 }
 
@@ -1356,11 +1360,11 @@ fn povrch_ocs(host: &mut dyn HostApi, doc: &ocs_plugin_api::host::Document) {
     use ocs_plugin_api::host::CommandRequest as R;
     let body = cogo::handly_bodu_ocs(doc);
     if body.len() < 3 {
-        host.push_error(&trf!("Terén: ve výkrese jsou {} nativní body Open CAD Studia – na povrch jsou potřeba aspoň 3.", body.len()));
+        host.push_error(&trf!("Terén: ve výkrese jsou {} nativní body Open CAD Studia – na povrch jsou potřeba aspoň 3.", "Terén: the drawing has {} native Open CAD Studio points – a surface needs at least 3.", body.len()));
         return;
     }
     if let Err(e) = host.set_selection(&body) {
-        host.push_error(&trf!("Terén: body nejde vybrat ({}).", e));
+        host.push_error(&trf!("Terén: body nejde vybrat ({}).", "Terén: the points cannot be selected ({}).", e));
         return;
     }
     let mut krok = host.run_command(R::Start { name: "CREATESURFACE".into() });
@@ -1376,15 +1380,15 @@ fn povrch_ocs(host: &mut dyn HostApi, doc: &ocs_plugin_api::host::Document) {
     }
     match krok {
         Ok(k) if k.status == "completed" && k.error.is_none() => {
-            host.push_info(&trf!("Terén: nativní povrch Open CAD Studia vytvořen z {} bodů.", body.len()))
+            host.push_info(&trf!("Terén: nativní povrch Open CAD Studia vytvořen z {} bodů.", "Terén: native Open CAD Studio surface created from {} points.", body.len()))
         }
         Ok(k) => {
             if k.status != "completed" {
                 let _ = host.run_command(R::Cancel);
             }
-            host.push_error(&trf!("Terén: CREATESURFACE neskončil ({}).", k.error.unwrap_or(k.prompt)));
+            host.push_error(&trf!("Terén: CREATESURFACE neskončil ({}).", "Terén: CREATESURFACE did not finish ({}).", k.error.unwrap_or(k.prompt)));
         }
-        Err(e) => host.push_error(&trf!("Terén: CREATESURFACE nejde spustit ({}).", e)),
+        Err(e) => host.push_error(&trf!("Terén: CREATESURFACE nejde spustit ({}).", "Terén: CREATESURFACE cannot be started ({}).", e)),
     }
 }
 
@@ -1401,9 +1405,7 @@ fn zaznam_padu() {
         std::panic::set_hook(Box::new(move |info| {
             let vlakno = std::thread::current().name().unwrap_or("?").to_string();
             let zprava = format!(
-                "[{}] vlákno {}: {}
-{}
-",
+                "[{}] vlákno {}: {}\n{}\n", // i18n:ne
                 std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs()),
                 vlakno,
                 info,

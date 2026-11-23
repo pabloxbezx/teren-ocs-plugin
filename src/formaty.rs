@@ -19,7 +19,7 @@ pub enum DruhZdroje {
 impl DruhZdroje {
     pub fn nazev(self) -> &'static str {
         match self {
-            DruhZdroje::Text => crate::preklad::tr("text"),
+            DruhZdroje::Text => crate::lang::tr("text", "text"),
             DruhZdroje::LandXml => "LandXML",
             DruhZdroje::JobXml => "Trimble JobXML",
             DruhZdroje::Gsi => "Leica GSI",
@@ -142,7 +142,7 @@ pub fn landxml(text: &str) -> Result<String, String> {
         n += 1;
     }
     if n == 0 {
-        return Err(crate::preklad::tr("v souboru LandXML nejsou body CgPoint").into());
+        return Err(crate::lang::tr("v souboru LandXML nejsou body CgPoint", "the LandXML file contains no CgPoint points").into());
     }
     Ok(out)
 }
@@ -165,7 +165,7 @@ pub fn jobxml(text: &str) -> Result<String, String> {
         n += 1;
     }
     if n == 0 {
-        return Err(crate::preklad::tr("v souboru JobXML nejsou redukované souřadnice bodů").into());
+        return Err(crate::lang::tr("v souboru JobXML nejsou redukované souřadnice bodů", "the JobXML file contains no reduced point coordinates").into());
     }
     Ok(out)
 }
@@ -230,7 +230,7 @@ pub fn gsi(text: &str) -> Result<String, String> {
         }
     }
     if n == 0 {
-        return Err(crate::preklad::tr("v souboru GSI nejsou souřadnice bodů (slova 81, 82)").into());
+        return Err(crate::lang::tr("v souboru GSI nejsou souřadnice bodů (slova 81, 82)", "the GSI file contains no point coordinates (words 81, 82)").into());
     }
     Ok(out)
 }
@@ -241,10 +241,10 @@ pub fn gsi(text: &str) -> Result<String, String> {
 /// vynechají, čísla s desetinnou tečkou).
 pub fn excel(bajty: &[u8], list: usize) -> Result<(Vec<String>, String), String> {
     use calamine::{open_workbook_auto_from_rs, Data, Reader};
-    let mut sesit = open_workbook_auto_from_rs(std::io::Cursor::new(bajty.to_vec())).map_err(|e| trf!("sešit nejde otevřít: {}", e))?;
+    let mut sesit = open_workbook_auto_from_rs(std::io::Cursor::new(bajty.to_vec())).map_err(|e| trf!("sešit nejde otevřít: {}", "the workbook cannot be opened: {}", e))?;
     let listy = sesit.sheet_names().to_vec();
-    let jmeno = listy.get(list).or(listy.first()).cloned().ok_or(crate::preklad::tr("sešit nemá žádný list"))?;
-    let oblast = sesit.worksheet_range(&jmeno).map_err(|e| trf!("list {} nejde přečíst: {}", jmeno, e))?;
+    let jmeno = listy.get(list).or(listy.first()).cloned().ok_or(crate::lang::tr("sešit nemá žádný list", "the workbook has no sheet"))?;
+    let oblast = sesit.worksheet_range(&jmeno).map_err(|e| trf!("list {} nejde přečíst: {}", "sheet {} cannot be read: {}", jmeno, e))?;
     let mut out = String::new();
     for r in oblast.rows() {
         let bunky: Vec<String> = r

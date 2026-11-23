@@ -19,7 +19,7 @@ use std::time::{Duration, Instant};
 use ocs_plugin_api::dialog::{DialogControl, DialogValue, PanelDef, TextStyle};
 use ocs_plugin_api::host::Document as CadDocument;
 use trasy::niveleta::{self, Niveleta, TypOblouku, VrcholNivelety, Zadani};
-use trasy::preklad::tr;
+use crate::lang::tr;
 use trasy::stanice::cislo;
 use trasy::trf;
 
@@ -221,116 +221,116 @@ fn sloupec(nazev: &str, c: Vec<DialogControl>) -> DialogControl {
 pub fn definice() -> PanelDef {
     OTEVREN.store(true, Ordering::SeqCst);
     let (n_typ, n_zad, n_hod, n_podil, n_l, posun, zvyraznit) = stav(|s| (s.n_typ, s.n_zad, s.n_hod, s.n_podil, s.n_l, s.posun, s.zvyraznit));
-    PanelDef::new(ID, tr("Editor nivelety"))
+    PanelDef::new(ID, tr("Editor nivelety", "Design profile editor"))
         .with_command(PRIKAZ)
         .with_width(540.0)
         .with_control(DialogControl::Label { id: "info".into(), text: String::new(), align_h: None })
-        .with_control(nadpis(tr("Vrcholy")))
+        .with_control(nadpis(tr("Vrcholy", "Vertices")))
         .with_control(DialogControl::Table {
             id: "vrcholy".into(),
             label: None,
             headers: vec![
                 "#".into(),
-                tr("Staničení").into(),
-                tr("Výška").into(),
-                tr("Typ").into(),
+                tr("Staničení", "Stationing").into(),
+                tr("Výška", "Elevation").into(),
+                tr("Typ", "Type").into(),
                 "R".into(),
                 "L".into(),
                 "K".into(),
-                tr("Sklon [‰]").into(),
-                tr("Délka [m]").into(),
+                tr("Sklon [‰]", "Grade [‰]").into(),
+                tr("Délka [m]", "Length [m]").into(),
             ],
             rows: Vec::new(),
             allow_add: false,
             allow_delete: false,
         })
-        .with_control(nadpis(tr("Vybraný vrchol")))
-        .with_control(DialogControl::Choice { id: "vrchol".into(), label: tr("Vrchol").into(), options: vec!["1".into()], default_index: 0 })
+        .with_control(nadpis(tr("Vybraný vrchol", "Selected vertex")))
+        .with_control(DialogControl::Choice { id: "vrchol".into(), label: tr("Vrchol", "Vertex").into(), options: vec!["1".into()], default_index: 0 })
         .with_control(radek(vec![
-            DialogControl::Button { id: "pred".into(), label: tr("◀ Předchozí").into(), action: None, align_h: None, width: None },
-            DialogControl::Button { id: "ukazat".into(), label: tr("Ukázat ve výkrese").into(), action: None, align_h: None, width: None },
-            DialogControl::Button { id: "dalsi".into(), label: tr("Další ▶").into(), action: None, align_h: None, width: None },
+            DialogControl::Button { id: "pred".into(), label: tr("◀ Předchozí", "◀ Previous").into(), action: None, align_h: None, width: None },
+            DialogControl::Button { id: "ukazat".into(), label: tr("Ukázat ve výkrese", "Show in drawing").into(), action: None, align_h: None, width: None },
+            DialogControl::Button { id: "dalsi".into(), label: tr("Další ▶", "Next ▶").into(), action: None, align_h: None, width: None },
         ]))
         // zaškrtávátko samostatně – v řádku s tlačítkem mu OCS neobnoví stav
-        .with_control(DialogControl::Checkbox { id: "zvyraznit".into(), label: tr("Zvýraznit v pohledu").into(), default: zvyraznit })
-        .with_control(DialogControl::Checkbox { id: "popisy".into(), label: tr("Popisy oblouků").into(), default: true })
+        .with_control(DialogControl::Checkbox { id: "zvyraznit".into(), label: tr("Zvýraznit v pohledu", "Highlight in view").into(), default: zvyraznit })
+        .with_control(DialogControl::Checkbox { id: "popisy".into(), label: tr("Popisy oblouků", "Curve labels").into(), default: true })
         .with_control(DialogControl::Fields {
             id: "detail".into(),
             title: None,
             controls: vec![
-                text("d_s", tr("Staničení [m]")),
-                text("d_z", tr("Výška [m n. m.]")),
-                text("d_ip", tr("Sklon před [‰]")),
-                text("d_dp", tr("Délka před [m]")),
-                text("d_iz", tr("Sklon za [‰]")),
-                text("d_dz", tr("Délka za [m]")),
+                text("d_s", tr("Staničení [m]", "Chainage [m]")),
+                text("d_z", tr("Výška [m n. m.]", "Elevation [m a.s.l.]")),
+                text("d_ip", tr("Sklon před [‰]", "Grade behind [‰]")),
+                text("d_dp", tr("Délka před [m]", "Length behind [m]")),
+                text("d_iz", tr("Sklon za [‰]", "Grade ahead [‰]")),
+                text("d_dz", tr("Délka za [m]", "Length ahead [m]")),
                 DialogControl::Choice {
                     id: "d_druh".into(),
-                    label: tr("Typ oblouku").into(),
-                    options: vec![tr("bez oblouku").into(), tr("parabola (souměrná)").into(), tr("nesouměrný").into(), tr("kružnice").into()],
+                    label: tr("Typ oblouku", "Curve type").into(),
+                    options: vec![tr("bez oblouku", "no curve").into(), tr("parabola (souměrná)", "parabola (symmetrical)").into(), tr("nesouměrný", "unsymmetrical").into(), tr("kružnice", "circle").into()],
                     default_index: 0,
                 },
                 DialogControl::Choice {
                     id: "d_typ".into(),
-                    label: tr("Oblouk zadán").into(),
-                    options: vec![tr("poloměrem R").into(), tr("délkou L").into(), tr("hodnotou K").into()],
+                    label: tr("Oblouk zadán", "Curve set by").into(),
+                    options: vec![tr("poloměrem R", "radius R").into(), tr("délkou L", "length L").into(), tr("hodnotou K", "K value").into()],
                     default_index: 0,
                 },
-                text("d_hod", tr("Hodnota (R / L / K)")),
-                text("d_l1", tr("L1 před vrcholem [m]")),
-                text("d_l2", tr("L2 za vrcholem [m]")),
+                text("d_hod", tr("Hodnota (R / L / K)", "Value (R / L / K)")),
+                text("d_l1", tr("L1 před vrcholem [m]", "L1 before vertex [m]")),
+                text("d_l2", tr("L2 za vrcholem [m]", "L2 after vertex [m]")),
                 DialogControl::Label { id: "d_ty".into(), text: String::new(), align_h: None },
             ],
             collapsed: false,
         })
-        .with_control(nadpis(tr("Nástroje")))
+        .with_control(nadpis(tr("Nástroje", "Tools")))
         .with_control(radek_nahore(vec![
-            sloupec(tr("Vrcholy"), vec![
-                tlacitko("pridat", tr("+ Přidat vrchol"), "TRA_NIV_PRIDAT"),
-                tlacitko("smazat", tr("✕ Smazat vrchol"), "TRA_NIVELETA_SMAZAT"),
-                tlacitko("zvednout", tr("↑↓ Zvednout / snížit"), "TRA_NIV_ZVEDNOUT"),
-                tlacitko("nateren", tr("↓ Vrchol na terén"), "TRA_NIV_NATEREN"),
+            sloupec(tr("Vrcholy", "Vertices"), vec![
+                tlacitko("pridat", tr("+ Přidat vrchol", "+ Add vertex"), "TRA_NIV_PRIDAT"),
+                tlacitko("smazat", tr("✕ Smazat vrchol", "✕ Delete vertex"), "TRA_NIVELETA_SMAZAT"),
+                tlacitko("zvednout", tr("↑↓ Zvednout / snížit", "↑↓ Raise / lower"), "TRA_NIV_ZVEDNOUT"),
+                tlacitko("nateren", tr("↓ Vrchol na terén", "↓ Vertex to terrain"), "TRA_NIV_NATEREN"),
             ]),
-            sloupec(tr("Oblouky"), vec![
-                tlacitko("vlozit", tr("⌒ Vložit oblouk"), "TRA_NIV_VLOZIT_OBLOUK"),
-                tlacitko("odstranit", tr("✕ Odstranit oblouk"), "TRA_NIV_ODSTRANIT_OBLOUK"),
-                tlacitko("vsechny", tr("⌒⌒ Do všech vrcholů"), "TRA_NIV_OBLOUKY_VSE"),
+            sloupec(tr("Oblouky", "Curves"), vec![
+                tlacitko("vlozit", tr("⌒ Vložit oblouk", "⌒ Insert curve"), "TRA_NIV_VLOZIT_OBLOUK"),
+                tlacitko("odstranit", tr("✕ Odstranit oblouk", "✕ Remove curve"), "TRA_NIV_ODSTRANIT_OBLOUK"),
+                tlacitko("vsechny", tr("⌒⌒ Do všech vrcholů", "⌒⌒ At all vertices"), "TRA_NIV_OBLOUKY_VSE"),
             ]),
-            sloupec(tr("Úseky"), vec![
-                tlacitko("sklon_u", tr("∠ Změnit sklon"), "TRA_NIV_USEK_SKLON"),
-                tlacitko("delka_u", tr("↔ Změnit délku"), "TRA_NIV_USEK_DELKA"),
-                tlacitko("bodem", tr("• Úsek bodem"), "TRA_NIV_USEK_BODEM"),
-                tlacitko("prodlouzit", tr("→ Prodloužit"), "TRA_NIV_PRODLOUZIT"),
+            sloupec(tr("Úseky", "Segments"), vec![
+                tlacitko("sklon_u", tr("∠ Změnit sklon", "∠ Change grade"), "TRA_NIV_USEK_SKLON"),
+                tlacitko("delka_u", tr("↔ Změnit délku", "↔ Change length"), "TRA_NIV_USEK_DELKA"),
+                tlacitko("bodem", tr("• Úsek bodem", "• Segment through point"), "TRA_NIV_USEK_BODEM"),
+                tlacitko("prodlouzit", tr("→ Prodloužit", "→ Extend"), "TRA_NIV_PRODLOUZIT"),
             ]),
         ]))
-        .with_control(DialogControl::Checkbox { id: "drzet".into(), label: tr("Držet konec nivelety").into(), default: !posun })
+        .with_control(DialogControl::Checkbox { id: "drzet".into(), label: tr("Držet konec nivelety", "Keep profile end").into(), default: !posun })
         .with_control(DialogControl::StyledText {
-            text: tr("Při změně sklonu nebo délky úseku se posune jen konec úseku. Nezaškrtnuto: posune se celý zbytek nivelety.").into(),
+            text: tr("Při změně sklonu nebo délky úseku se posune jen konec úseku. Nezaškrtnuto: posune se celý zbytek nivelety.", "When a segment grade or length changes, only the segment end moves. Unchecked: the whole rest of the profile moves.").into(),
             style: TextStyle::Muted,
             align_h: None,
         })
-        .with_control(nadpis(tr("Nastavení oblouku při vložení")))
+        .with_control(nadpis(tr("Nastavení oblouku při vložení", "Curve settings for inserting")))
         .with_control(DialogControl::Fields {
             id: "nastaveni".into(),
             title: None,
             controls: vec![
                 DialogControl::Choice {
                     id: "n_typ".into(),
-                    label: tr("Typ").into(),
-                    options: vec![tr("parabola").into(), tr("nesouměrný").into(), tr("kružnice").into()],
+                    label: tr("Typ", "Type").into(),
+                    options: vec![tr("parabola", "parabola").into(), tr("nesouměrný", "unsymmetrical").into(), tr("kružnice", "circle").into()],
                     default_index: n_typ,
                 },
                 DialogControl::Choice {
                     id: "n_zad".into(),
-                    label: tr("Zadání").into(),
-                    options: vec![tr("poloměr R").into(), tr("délka L").into(), tr("hodnota K").into()],
+                    label: tr("Zadání", "Input").into(),
+                    options: vec![tr("poloměr R", "radius R").into(), tr("délka L", "length L").into(), tr("hodnota K", "K value").into()],
                     default_index: n_zad,
                 },
-                DialogControl::Text { id: "n_hod".into(), label: tr("Hodnota").into(), default: cislo(n_hod, 2, false) },
-                DialogControl::Text { id: "n_l".into(), label: tr("Délka L [m]").into(), default: cislo(n_l, 2, false) },
+                DialogControl::Text { id: "n_hod".into(), label: tr("Hodnota", "Value").into(), default: cislo(n_hod, 2, false) },
+                DialogControl::Text { id: "n_l".into(), label: tr("Délka L [m]", "Length L [m]").into(), default: cislo(n_l, 2, false) },
                 DialogControl::Text {
                     id: "n_pom".into(),
-                    label: tr("L1 : L2").into(),
+                    label: tr("L1 : L2", "L1 : L2").into(),
                     default: format!("{} : {}", cislo(n_podil * 100.0, 0, false), cislo(100.0 - n_podil * 100.0, 0, false)),
                 },
             ],
@@ -389,9 +389,9 @@ fn zadan_oblouk(n: &Niveleta, k: usize) -> bool {
 /// Zkratka typu oblouku do tabulky.
 fn nazev_typu(t: TypOblouku) -> &'static str {
     match t {
-        TypOblouku::Parabola => tr("parabola"),
-        TypOblouku::Nesoumerny { .. } => tr("nesoum."),
-        TypOblouku::Kruh => tr("kružnice"),
+        TypOblouku::Parabola => tr("parabola", "parabola"),
+        TypOblouku::Nesoumerny { .. } => tr("nesoum.", "unsym."),
+        TypOblouku::Kruh => tr("kružnice", "circle"),
     }
 }
 
@@ -520,7 +520,7 @@ pub fn radky(n: &Niveleta) -> Vec<Vec<String>> {
 pub fn hodnoty_trasy(doc: &CadDocument, t: Option<&ObjektTrasy>) -> HashMap<String, DialogValue> {
     let mut m = HashMap::new();
     let Some((t, n)) = t.and_then(|t| t.def.nivelety.first().map(|n| (t, n))) else {
-        m.insert("info".into(), DialogValue::Text(tr("Žádná niveleta – klikněte na pohled profilu s niveletou, nebo ji nakreslete tlačítkem Niveleta.").into()));
+        m.insert("info".into(), DialogValue::Text(tr("Žádná niveleta – klikněte na pohled profilu s niveletou, nebo ji nakreslete tlačítkem Niveleta.", "No design profile – click a profile view with a design profile, or draw one with the Design profile button.").into()));
         m.insert("vrcholy".into(), DialogValue::Table(Vec::new()));
         return m;
     };
@@ -532,7 +532,7 @@ pub fn hodnoty_trasy(doc: &CadDocument, t: Option<&ObjektTrasy>) -> HashMap<Stri
     m.insert(
         "info".into(),
         DialogValue::Text(trf!(
-            "Trasa {} · pohled {} · délka {} m · vrcholů {}",
+            "Trasa {} · pohled {} · délka {} m · vrcholů {}", "Alignment {} · view {} · length {} m · vertices {}",
             t.def.jmeno,
             pohled.as_ref().map_or("–".to_string(), |p| p.def.id.clone()),
             cislo(delka, 2, true),
@@ -546,11 +546,11 @@ pub fn hodnoty_trasy(doc: &CadDocument, t: Option<&ObjektTrasy>) -> HashMap<Stri
         .enumerate()
         .map(|(i, x)| {
             let typ = if i == 0 || i + 1 == n.vrcholy.len() {
-                tr("konec").to_string()
+                tr("konec", "end").to_string()
             } else if zadan_oblouk(n, i) {
                 nazev_typu(x.typ).to_string()
             } else {
-                tr("bez oblouku").to_string()
+                tr("bez oblouku", "no curve").to_string()
             };
             format!("{} – {} m ({})", i + 1, cislo(x.s, 3, true), typ)
         })
@@ -569,24 +569,24 @@ pub fn hodnoty_trasy(doc: &CadDocument, t: Option<&ObjektTrasy>) -> HashMap<Stri
     let delka = |a: usize, b: usize| n.vrcholy.get(b).filter(|_| b > a).map_or(String::new(), |x| cislo(x.s - n.vrcholy[a].s, 2, false));
     m.insert("d_dp".into(), DialogValue::Text(if k > 0 { delka(k - 1, k) } else { String::new() }));
     m.insert("d_dz".into(), DialogValue::Text(delka(k, k + 1)));
-    let druhy = [tr("bez oblouku"), tr("parabola (souměrná)"), tr("nesouměrný"), tr("kružnice")];
+    let druhy = [tr("bez oblouku", "no curve"), tr("parabola (souměrná)", "parabola (symmetrical)"), tr("nesouměrný", "unsymmetrical"), tr("kružnice", "circle")];
     let ma = zadan_oblouk(n, k);
     let di = if ma { v.typ.index() + 1 } else { 0 };
     m.insert("d_druh".into(), DialogValue::Choice { index: di, text: druhy[di].into() });
     let zi = index_zadani(v.zadani);
-    let moznosti = [tr("poloměrem R"), tr("délkou L"), tr("hodnotou K")];
+    let moznosti = [tr("poloměrem R", "radius R"), tr("délkou L", "length L"), tr("hodnotou K", "K value")];
     m.insert("d_typ".into(), DialogValue::Choice { index: zi, text: moznosti[zi].into() });
     let h = if ma && nes.is_none() { cislo(rlk(n, k)[zi], 2, false) } else { String::new() };
     m.insert("d_hod".into(), DialogValue::Text(h));
     m.insert("d_l1".into(), DialogValue::Text(nes.map_or(String::new(), |x| cislo(x.0, 2, false))));
     m.insert("d_l2".into(), DialogValue::Text(nes.map_or(String::new(), |x| cislo(x.1, 2, false))));
     let ty = if !vnitrni {
-        tr("Krajní vrchol – bez oblouku.").to_string()
+        tr("Krajní vrchol – bez oblouku.", "End vertex – no curve.").to_string()
     } else if let Some(o) = n.oblouky().into_iter().find(|o| o.vrchol == k) {
-        let druh = if o.vypukly { tr("Vypuklý") } else { tr("Údolnicový") };
+        let druh = if o.vypukly { tr("Vypuklý", "Crest") } else { tr("Údolnicový", "Sag") };
         match o.typ {
             TypOblouku::Nesoumerny { .. } => trf!(
-                "{} nesouměrný oblouk: L1 = {} m · L2 = {} m · L = {} m · y = {} m (R a K se u nesouměrného neuvádějí)",
+                "{} nesouměrný oblouk: L1 = {} m · L2 = {} m · L = {} m · y = {} m (R a K se u nesouměrného neuvádějí)", "{} unsymmetrical curve: L1 = {} m · L2 = {} m · L = {} m · y = {} m (R and K are not given for unsymmetrical curves)",
                 druh,
                 cislo(o.t1, 2, true),
                 cislo(o.t2, 2, true),
@@ -594,7 +594,7 @@ pub fn hodnoty_trasy(doc: &CadDocument, t: Option<&ObjektTrasy>) -> HashMap<Stri
                 cislo(o.vzepeti, 3, true)
             ),
             _ => trf!(
-                "{} oblouk: R = {} m · L = {} m · K = {} · T = {} m · y = {} m",
+                "{} oblouk: R = {} m · L = {} m · K = {} · T = {} m · y = {} m", "{} curve: R = {} m · L = {} m · K = {} · T = {} m · y = {} m",
                 druh,
                 cislo(o.r, 1, true),
                 cislo(o.delka, 2, true),
@@ -604,7 +604,7 @@ pub fn hodnoty_trasy(doc: &CadDocument, t: Option<&ObjektTrasy>) -> HashMap<Stri
             ),
         }
     } else {
-        tr("Bez oblouku.").to_string()
+        tr("Bez oblouku.", "No curve.").to_string()
     };
     m.insert("d_ty".into(), DialogValue::Text(ty));
     // pole, která pro vybraný vrchol nejdou vyplnit, se skryjí
@@ -729,7 +729,7 @@ fn nove_vrcholy(n: &Niveleta, k: usize, z: &Zmena) -> Result<Option<Vec<VrcholNi
             let mut sklony_delky: Vec<(usize, Option<f64>, Option<f64>)> = Vec::new();
             for (i, r) in rows.iter().enumerate() {
                 let (Some(s), Some(zz)) = (r.get(1).and_then(|c| cti(c)), r.get(2).and_then(|c| cti(c))) else {
-                    return Err(trf!("řádek {} nemá platné staničení a výšku", i + 1));
+                    return Err(trf!("řádek {} nemá platné staničení a výšku", "row {} has no valid station and elevation", i + 1));
                 };
                 // nepřepsaná buňka drží přesnou hodnotu (tabulka ukazuje jen 3 desetinná místa)
                 let s = if r[1] == puvodni[i][1] { n.vrcholy[i].s } else { s };
@@ -765,7 +765,7 @@ fn nove_vrcholy(n: &Niveleta, k: usize, z: &Zmena) -> Result<Option<Vec<VrcholNi
                 }
                 if let Some(x) = delka {
                     if !niveleta::nastav_delku_useku(&mut v, i, x, posun) {
-                        return Err(tr("délka úseku se nevejde – zkraťte ji, nebo přepněte na „posunout zbytek nivelety“").into());
+                        return Err(tr("délka úseku se nevejde – zkraťte ji, nebo přepněte na „posunout zbytek nivelety“", "the segment length does not fit – shorten it, or switch to “shift the rest of the profile”").into());
                     }
                 }
             }
@@ -781,7 +781,7 @@ fn nove_vrcholy(n: &Niveleta, k: usize, z: &Zmena) -> Result<Option<Vec<VrcholNi
                     let u = if id == "d_dp" { k.checked_sub(1) } else { Some(k) };
                     let Some(u) = u else { return Ok(None) };
                     if !niveleta::nastav_delku_useku(&mut v, u, x, posun_zbytku()) {
-                        return Err(tr("délka úseku se nevejde – zkraťte ji, nebo přepněte na „posunout zbytek nivelety“").into());
+                        return Err(tr("délka úseku se nevejde – zkraťte ji, nebo přepněte na „posunout zbytek nivelety“", "the segment length does not fit – shorten it, or switch to “shift the rest of the profile”").into());
                     }
                 }
                 "d_hod" if vnitrni => {
@@ -842,7 +842,7 @@ pub fn proved(k: &mut PresKanal) {
         match nove_vrcholy(n, i, &z) {
             Ok(Some(v)) => {
                 let s_vybrany = v.get(i).map(|x| x.s);
-                let r = crate::tra::uloz_niveletu_cmd(k, &doc, &t, v.clone(), tr("Úprava nivelety v editoru"));
+                let r = crate::tra::uloz_niveletu_cmd(k, &doc, &t, v.clone(), tr("Úprava nivelety v editoru", "Design profile edit"));
                 // z pracovního vlákna drží OCS krok Zpět otevřený, dokud ho nezavřeme –
                 // jinak by se další úpravy z panelu slily do jednoho kroku
                 k.konec_kroku();
@@ -854,13 +854,13 @@ pub fn proved(k: &mut PresKanal) {
                                 nastav_vybrany(j);
                             }
                         }
-                        k.info(&trf!("Trasy: niveleta trasy {} upravena, překresleno pohledů: {}.", t.def.jmeno, p));
+                        k.info(&trf!("Trasy: niveleta trasy {} upravena, překresleno pohledů: {}.", "Alignments: design profile of alignment {} updated, views redrawn: {}.", t.def.jmeno, p));
                     }
-                    Err(e) => k.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+                    Err(e) => k.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
                 }
             }
             Ok(None) => {}
-            Err(e) => k.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+            Err(e) => k.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
         }
     }
     if let Some(b) = stav(|s| s.popisy.take()) {
@@ -879,9 +879,9 @@ pub fn proved(k: &mut PresKanal) {
         k.hotovo();
         if n > 0 {
             k.info(&if b {
-                trf!("Trasy: popisy oblouků zapnuty (pohledů: {}).", n)
+                trf!("Trasy: popisy oblouků zapnuty (pohledů: {}).", "Alignments: curve labels on (views: {}).", n)
             } else {
-                trf!("Trasy: popisy oblouků vypnuty (pohledů: {}).", n)
+                trf!("Trasy: popisy oblouků vypnuty (pohledů: {}).", "Alignments: curve labels off (views: {}).", n)
             });
         }
     }

@@ -25,7 +25,7 @@ use ocs_plugin_api::ribbon::{IconKind, ModuleEvent, RibbonGroup, RibbonItem, Too
 
 use trasy::geometrie::{geometrie, z_polylinie, Chyba, Vrchol};
 use trasy::upravy::{nejblizsi_usek, nejblizsi_vrchol, smaz_vrchol, vloz_vrchol, vzdalenost};
-use trasy::preklad::{tr, tr_dyn};
+use crate::lang::{tr, tr_dyn};
 use trasy::stanice::{cislo, FormatStanice};
 use trasy::styl::vysledne;
 use trasy::trasa::{volne_id, DefiniceTrasy, SCHEMA, STYL_ZAKLAD};
@@ -50,69 +50,69 @@ fn tool(id: &'static str, label: &'static str, icon: IconKind) -> ToolDef {
 pub fn skupiny() -> Vec<RibbonGroup> {
     vec![
         RibbonGroup {
-            title: tr("Trasy"),
+            title: tr("Trasy", "Alignments"),
             tools: vec![
-                RibbonItem::LargeTool(tool("TRA_EDITOR", tr("Editor trasy"), ikona!("tra_editor"))),
+                RibbonItem::LargeTool(tool("TRA_EDITOR", tr("Editor trasy", "Alignment editor"), ikona!("tra_editor"))),
                 RibbonItem::LargeDropdown {
                     id: "TRA_DD_NOVA",
-                    label: tr("Nová trasa"),
+                    label: tr("Nová trasa", "New alignment"),
                     icon: ikona!("tra_kreslit"),
                     items: vec![
-                        ("TRA_KRESLIT", tr("Kreslit vrcholy"), ikona!("tra_kreslit")),
-                        ("TRA_Z_POLYLINIE", tr("Z polylinie"), ikona!("tra_z_polylinie")),
+                        ("TRA_KRESLIT", tr("Kreslit vrcholy", "Draw by vertices"), ikona!("tra_kreslit")),
+                        ("TRA_Z_POLYLINIE", tr("Z polylinie", "From polyline"), ikona!("tra_z_polylinie")),
                     ],
                     default: "TRA_KRESLIT",
                 },
                 RibbonItem::LabeledDropdown {
                     id: "TRA_DD_VRCHOLY",
-                    label: tr("Vrcholy trasy"),
+                    label: tr("Vrcholy trasy", "Alignment vertices"),
                     icon: ikona!("tra_vlozit"),
                     items: vec![
-                        ("TRA_VLOZIT_VRCHOL", tr("Vložit vrchol"), ikona!("tra_vlozit")),
-                        ("TRA_SMAZAT_VRCHOL", tr("Smazat vrchol"), ikona!("tra_smazat")),
-                        ("TRA_OBLOUK", tr("Oblouk ve vrcholu"), ikona!("tra_oblouk")),
-                        ("TRA_BEZ_OBLOUKU", tr("Smazat oblouk"), ikona!("tra_bez_oblouku")),
-                        ("TRA_PRODLOUZIT", tr("Prodloužit trasu"), ikona!("tra_prodlouzit")),
-                        ("TRA_POSUN_VRCHOL", tr("Posunout vrchol přesně"), ikona!("tra_uchopy")),
-                        ("TRA_VLOZIT_OBLOUK", tr("Vložit oblouk podle nastavení"), ikona!("tra_oblouk")),
-                        ("TRA_OBLOUKY_VSE", tr("Oblouky do všech vrcholů"), ikona!("tra_oblouk")),
-                        ("TRA_PRECH", tr("Přidat přechodnice"), ikona!("tra_oblouk")),
-                        ("TRA_BEZ_PRECH", tr("Odebrat přechodnice"), ikona!("tra_bez_oblouku")),
-                        ("TRA_PRECH_VSE", tr("Přechodnice všem obloukům"), ikona!("tra_oblouk")),
+                        ("TRA_VLOZIT_VRCHOL", tr("Vložit vrchol", "Insert vertex"), ikona!("tra_vlozit")),
+                        ("TRA_SMAZAT_VRCHOL", tr("Smazat vrchol", "Delete vertex"), ikona!("tra_smazat")),
+                        ("TRA_OBLOUK", tr("Oblouk ve vrcholu", "Curve at vertex"), ikona!("tra_oblouk")),
+                        ("TRA_BEZ_OBLOUKU", tr("Smazat oblouk", "Delete curve"), ikona!("tra_bez_oblouku")),
+                        ("TRA_PRODLOUZIT", tr("Prodloužit trasu", "Extend alignment"), ikona!("tra_prodlouzit")),
+                        ("TRA_POSUN_VRCHOL", tr("Posunout vrchol přesně", "Move vertex exactly"), ikona!("tra_uchopy")),
+                        ("TRA_VLOZIT_OBLOUK", tr("Vložit oblouk podle nastavení", "Insert curve by settings"), ikona!("tra_oblouk")),
+                        ("TRA_OBLOUKY_VSE", tr("Oblouky do všech vrcholů", "Curves at all vertices"), ikona!("tra_oblouk")),
+                        ("TRA_PRECH", tr("Přidat přechodnice", "Add transitions"), ikona!("tra_oblouk")),
+                        ("TRA_BEZ_PRECH", tr("Odebrat přechodnice", "Remove transitions"), ikona!("tra_bez_oblouku")),
+                        ("TRA_PRECH_VSE", tr("Přechodnice všem obloukům", "Transitions to all curves"), ikona!("tra_oblouk")),
                     ],
                     default: "TRA_VLOZIT_VRCHOL",
                 },
-                RibbonItem::LabeledTool(tool("TRA_VLASTNOSTI", tr("Vlastnosti trasy"), ikona!("tra_vlastnosti"))),
-                RibbonItem::LabeledTool(tool("TRA_UCHOPY", tr("Úchopy tras zap/vyp"), ikona!("tra_uchopy"))),
+                RibbonItem::LabeledTool(tool("TRA_VLASTNOSTI", tr("Vlastnosti trasy", "Alignment properties"), ikona!("tra_vlastnosti"))),
+                RibbonItem::LabeledTool(tool("TRA_UCHOPY", tr("Úchopy tras zap/vyp", "Alignment grips on/off"), ikona!("tra_uchopy"))),
             ],
         },
         RibbonGroup {
-            title: tr("Podélný profil"),
+            title: tr("Podélný profil", "Longitudinal profile"),
             tools: vec![
-                RibbonItem::LargeTool(tool("TRA_POHLED", tr("Podélný profil"), ikona!("tra_profil"))),
-                RibbonItem::LargeTool(tool("TRA_NIVELETA", tr("Niveleta"), ikona!("tra_niveleta"))),
-                RibbonItem::LargeTool(tool("TRA_EDITOR_NIVELETY", tr("Editor nivelety"), ikona!("tra_editor"))),
+                RibbonItem::LargeTool(tool("TRA_POHLED", tr("Podélný profil", "Longitudinal profile"), ikona!("tra_profil"))),
+                RibbonItem::LargeTool(tool("TRA_NIVELETA", tr("Niveleta", "Design profile"), ikona!("tra_niveleta"))),
+                RibbonItem::LargeTool(tool("TRA_EDITOR_NIVELETY", tr("Editor nivelety", "Design profile editor"), ikona!("tra_editor"))),
                 // jako u trasy: úpravy vrcholů v nabídce, pod ní vlastnosti
                 RibbonItem::LabeledDropdown {
                     id: "TRA_DD_VRCHOLY_NIV",
-                    label: tr("Vrcholy nivelety"),
+                    label: tr("Vrcholy nivelety", "Design profile vertices"),
                     icon: ikona!("tra_vlozit"),
                     items: vec![
-                        ("TRA_NIV_PRIDAT", tr("Přidat vrchol"), ikona!("tra_vlozit")),
-                        ("TRA_NIVELETA_SMAZAT", tr("Smazat vrchol"), ikona!("tra_smazat")),
-                        ("TRA_NIV_ZVEDNOUT", tr("Zvednout / snížit"), ikona!("tra_uchopy")),
-                        ("TRA_NIV_NATEREN", tr("Vrchol na terén"), ikona!("tra_profil")),
-                        ("TRA_NIV_VLOZIT_OBLOUK", tr("Vložit oblouk"), ikona!("tra_oblouk")),
-                        ("TRA_NIV_ODSTRANIT_OBLOUK", tr("Odstranit oblouk"), ikona!("tra_bez_oblouku")),
-                        ("TRA_NIV_OBLOUKY_VSE", tr("Oblouky do všech vrcholů"), ikona!("tra_oblouk")),
-                        ("TRA_NIV_USEK_SKLON", tr("Změnit sklon úseku"), ikona!("tra_niveleta")),
-                        ("TRA_NIV_USEK_DELKA", tr("Změnit délku úseku"), ikona!("tra_niveleta")),
-                        ("TRA_NIV_USEK_BODEM", tr("Úsek bodem"), ikona!("tra_niveleta")),
-                        ("TRA_NIV_PRODLOUZIT", tr("Prodloužit niveletu"), ikona!("tra_prodlouzit")),
+                        ("TRA_NIV_PRIDAT", tr("Přidat vrchol", "Add vertex"), ikona!("tra_vlozit")),
+                        ("TRA_NIVELETA_SMAZAT", tr("Smazat vrchol", "Delete vertex"), ikona!("tra_smazat")),
+                        ("TRA_NIV_ZVEDNOUT", tr("Zvednout / snížit", "Raise / lower"), ikona!("tra_uchopy")),
+                        ("TRA_NIV_NATEREN", tr("Vrchol na terén", "Vertex to terrain"), ikona!("tra_profil")),
+                        ("TRA_NIV_VLOZIT_OBLOUK", tr("Vložit oblouk", "Insert curve"), ikona!("tra_oblouk")),
+                        ("TRA_NIV_ODSTRANIT_OBLOUK", tr("Odstranit oblouk", "Remove curve"), ikona!("tra_bez_oblouku")),
+                        ("TRA_NIV_OBLOUKY_VSE", tr("Oblouky do všech vrcholů", "Curves at all vertices"), ikona!("tra_oblouk")),
+                        ("TRA_NIV_USEK_SKLON", tr("Změnit sklon úseku", "Change segment grade"), ikona!("tra_niveleta")),
+                        ("TRA_NIV_USEK_DELKA", tr("Změnit délku úseku", "Change segment length"), ikona!("tra_niveleta")),
+                        ("TRA_NIV_USEK_BODEM", tr("Úsek bodem", "Segment through point"), ikona!("tra_niveleta")),
+                        ("TRA_NIV_PRODLOUZIT", tr("Prodloužit niveletu", "Extend design profile"), ikona!("tra_prodlouzit")),
                     ],
                     default: "TRA_NIV_PRIDAT",
                 },
-                RibbonItem::LabeledTool(tool("TRA_NIVELETA_TABULKA", tr("Vlastnosti nivelety"), ikona!("tra_vlastnosti"))),
+                RibbonItem::LabeledTool(tool("TRA_NIVELETA_TABULKA", tr("Vlastnosti nivelety", "Design profile properties"), ikona!("tra_vlastnosti"))),
             ],
         },
     ]
@@ -127,7 +127,7 @@ fn handle_z_textu(t: &str) -> Option<Handle> {
 fn nova_definice(doc: &ocs_plugin_api::host::Document, vrcholy: Vec<trasy::geometrie::Vrchol>) -> DefiniceTrasy {
     let stavajici = objekt::trasy(doc);
     let id = volne_id(stavajici.iter().map(|t| t.def.id.as_str()));
-    let jmeno = trf!("Trasa {}", id.trim_start_matches('T'));
+    let jmeno = trf!("Trasa {}", "Alignment {}", id.trim_start_matches('T'));
     DefiniceTrasy::nova(&id, &jmeno, vrcholy, STYL_ZAKLAD)
 }
 
@@ -137,7 +137,7 @@ fn vybrana_trasa(host: &mut dyn HostApi, arg: &str, prikaz: &'static str) -> Opt
     let doc = match v.dokument() {
         Ok(d) => d,
         Err(e) => {
-            v.chyba(&trf!("Trasy: {}", e));
+            v.chyba(&trf!("Trasy: {}", "Alignments: {}", e));
             return None;
         }
     };
@@ -158,12 +158,12 @@ fn vybrana_trasa(host: &mut dyn HostApi, arg: &str, prikaz: &'static str) -> Opt
         }
     }
     if !arg.is_empty() {
-        v.chyba(tr("Trasy: vybraný objekt není trasa."));
+        v.chyba(tr("Trasy: vybraný objekt není trasa.", "Alignments: the selected object is not an alignment."));
         return None;
     }
     let vse = objekt::trasy(&doc);
     if vse.is_empty() {
-        v.chyba(tr("Trasy: ve výkrese není žádná trasa."));
+        v.chyba(tr("Trasy: ve výkrese není žádná trasa.", "Alignments: there is no alignment in the drawing."));
         return None;
     }
     if prikaz != "TRA_EDITOR_VYBRAT" {
@@ -173,7 +173,7 @@ fn vybrana_trasa(host: &mut dyn HostApi, arg: &str, prikaz: &'static str) -> Opt
         if let Some(t) = vse.iter().find(|t| Some(&t.def.id) == id.as_ref()).or(if vse.len() == 1 { vse.first() } else { None }) {
             return Some((t.clone(), doc));
         }
-        v.info(tr("Trasy: nejdřív klikněte na trasu (vybere se) a pak příkaz spusťte znovu."));
+        v.info(tr("Trasy: nejdřív klikněte na trasu (vybere se) a pak příkaz spusťte znovu.", "Alignments: first click the alignment (it gets selected), then run the command again."));
         return None;
     }
     host.start_interactive(vykres::hlidany(Box::new(prikazy::VyberObjektu { vyzva: "Trasy: klikněte na trasu", prikaz })));
@@ -186,7 +186,7 @@ fn z_polylinie_cmd(host: &mut dyn HostApi, arg: &str) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let kandidati: Vec<Handle> = match arg.split_whitespace().next().and_then(handle_z_textu) {
         Some(h) if !arg.is_empty() => vec![h],
@@ -221,7 +221,7 @@ fn z_polylinie_cmd(host: &mut dyn HostApi, arg: &str) {
     });
     let Some(pl) = pl else {
         if !arg.is_empty() {
-            return v.chyba(tr("Trasy: vybraný objekt není polylinie (2D křivka)."));
+            return v.chyba(tr("Trasy: vybraný objekt není polylinie (2D křivka).", "Alignments: the selected object is not a polyline (2D)."));
         }
         host.start_interactive(vykres::hlidany(Box::new(prikazy::VyberObjektu {
             vyzva: "Trasy: klikněte na polylinii osy",
@@ -234,23 +234,23 @@ fn z_polylinie_cmd(host: &mut dyn HostApi, arg: &str) {
         Ok(x) => x,
         Err(e) => {
             let (t, a) = e.popis();
-            let t = trasy::preklad::formatuj(tr(t), &a.iter().map(|s| s as &dyn std::fmt::Display).collect::<Vec<_>>());
-            return v.chyba(&trf!("Trasy: z této polylinie trasu udělat nejde – {}", t));
+            let t = crate::lang::formatuj(crate::lang::tr_tab(t), &a.iter().map(|s| s as &dyn std::fmt::Display).collect::<Vec<_>>());
+            return v.chyba(&trf!("Trasy: z této polylinie trasu udělat nejde – {}", "Alignments: this polyline cannot become an alignment – {}", t));
         }
     };
     let def = nova_definice(&doc, vrcholy);
-    v.zpet(tr("Trasa z polylinie"));
+    v.zpet(tr("Trasa z polylinie", "Alignment from polyline"));
     match objekt::uloz(&mut v, Some(&doc), None, def.clone()) {
         Ok(h) => {
             v.vyber(vec![h]);
             if let Ok(d) = v.dokument() {
                 if let Some(t) = objekt::trasy(&d).into_iter().find(|t| t.insert == h) {
-                    v.info(&trf!("Trasy: vytvořena {}", objekt::popis(&t)));
+                    v.info(&trf!("Trasy: vytvořena {}", "Alignments: created {}", objekt::popis(&t)));
                 }
             }
-            v.info(tr("Trasy: polylinie zůstala ve výkrese (můžete ji smazat nebo nechat jako podklad)."));
+            v.info(tr("Trasy: polylinie zůstala ve výkrese (můžete ji smazat nebo nechat jako podklad).", "Alignments: the polyline stays in the drawing (delete it or keep it as a reference)."));
         }
-        Err(e) => v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     }
 }
 
@@ -277,7 +277,7 @@ fn po_zmene(host: &mut dyn HostApi) {
 /// Uloží nové vrcholy trasy jedním krokem Zpět. Vrací true při úspěchu.
 fn uloz_vrcholy(host: &mut dyn HostApi, doc: &ocs_plugin_api::host::Document, t: &ObjektTrasy, vrcholy: Vec<Vrchol>, krok: &str) -> bool {
     if let Err(e) = geometrie(&vrcholy, t.def.pocatek) {
-        host.push_error(&trf!("Trasy: změna se nepřijala – {}", objekt::chyba_geometrie(e)));
+        host.push_error(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", objekt::chyba_geometrie(e)));
         return false;
     }
     let mut def = t.def.clone();
@@ -290,7 +290,7 @@ fn uloz_vrcholy(host: &mut dyn HostApi, doc: &ocs_plugin_api::host::Document, t:
             true
         }
         Err(e) => {
-            v.chyba(&trf!("Trasy: {}", e));
+            v.chyba(&trf!("Trasy: {}", "Alignments: {}", e));
             false
         }
     }
@@ -317,7 +317,7 @@ fn trasa_u_bodu(doc: &ocs_plugin_api::host::Document, p: [f64; 2]) -> Option<Obj
 fn kreslit_cmd(host: &mut dyn HostApi) {
     otevri_editor(host);
     host.push_info(&trf!(
-        "Trasy: klikejte vrcholy trasy. Poloměr dalšího oblouku je v panelu Editor trasy (teď R = {} m) a jde měnit i během kreslení.",
+        "Trasy: klikejte vrcholy trasy. Poloměr dalšího oblouku je v panelu Editor trasy (teď R = {} m) a jde měnit i během kreslení.", "Alignments: click the alignment vertices. The next curve radius is in the Alignment editor panel (now R = {} m) and can be changed while drawing.",
         editor::polomer()
     ));
     host.start_interactive(vykres::hlidany(Box::new(prikazy::KresleniTrasy::nova())));
@@ -341,7 +341,7 @@ fn prodlouzit_cmd(host: &mut dyn HostApi, arg: &str) {
     };
     otevri_editor(host);
     editor::nastav_aktivni(&t.def.id);
-    host.push_info(&trf!("Trasy: prodloužení trasy {} – klikejte další vrcholy od konce, Enter = hotovo.", t.def.jmeno));
+    host.push_info(&trf!("Trasy: prodloužení trasy {} – klikejte další vrcholy od konce, Enter = hotovo.", "Alignments: extending alignment {} – click further vertices from the end, Enter = finish.", t.def.jmeno));
     host.start_interactive(vykres::hlidany(Box::new(prikazy::KresleniTrasy::prodlouzeni(t.def.id.clone(), &t.vrcholy()))));
 }
 
@@ -350,7 +350,7 @@ fn kreslit_hotovo(host: &mut dyn HostApi) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     // poloměry, které se nevejdou, se zmenší na největší možné
     let zmensene: Vec<(usize, f64)> = trasy::geometrie::prizpusob_polomery(&mut vrcholy).into_iter().map(|i| (i, vrcholy[i].r)).collect();
@@ -362,12 +362,12 @@ fn kreslit_hotovo(host: &mut dyn HostApi) {
             Err(Chyba::Prekryv { a, b }) => {
                 let i = if vrcholy[b].r > 0.0 && b + 1 < vrcholy.len() { b } else { a };
                 if vrcholy[i].r <= 0.0 {
-                    return v.chyba(tr("Trasy: trasu nejde vytvořit."));
+                    return v.chyba(tr("Trasy: trasu nejde vytvořit.", "Alignments: the alignment cannot be created."));
                 }
                 vrcholy[i].r = 0.0;
                 bez_oblouku.push(i + 1);
             }
-            Err(e) => return v.chyba(&trf!("Trasy: {}", objekt::chyba_geometrie(e))),
+            Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", objekt::chyba_geometrie(e))),
         }
     }
     let stara = prodlouzena.and_then(|id| objekt::trasy(&doc).into_iter().find(|t| t.def.id == id));
@@ -380,29 +380,29 @@ fn kreslit_hotovo(host: &mut dyn HostApi) {
         None => nova_definice(&doc, vrcholy),
     };
     let id = def.id.clone();
-    v.zpet(if stara.is_some() { tr("Prodloužení trasy") } else { tr("Kreslení trasy") });
+    v.zpet(if stara.is_some() { tr("Prodloužení trasy", "Extend alignment") } else { tr("Kreslení trasy", "Draw alignment") });
     match objekt::uloz(&mut v, Some(&doc), stara.as_ref(), def) {
         Ok(h) => {
             editor::nastav_aktivni(&id);
             v.vyber(vec![h]);
             if let Ok(d) = v.dokument() {
                 if let Some(t) = objekt::trasy(&d).into_iter().find(|t| t.insert == h) {
-                    v.info(&trf!("Trasy: {}", objekt::popis(&t)));
+                    v.info(&trf!("Trasy: {}", "Alignments: {}", objekt::popis(&t)));
                 }
             }
             if !zmensene.is_empty() {
                 let s: Vec<String> = zmensene.iter().map(|(i, r)| format!("{} (R = {} m)", i + 1, cislo(*r, 1, true))).collect();
-                v.info(&trf!("Trasy: poloměr se nevešel – zmenšen na největší možný ve vrcholech {}.", s.join(", ")));
+                v.info(&trf!("Trasy: poloměr se nevešel – zmenšen na největší možný ve vrcholech {}.", "Alignments: the radius did not fit – reduced to the largest possible at vertices {}.", s.join(", ")));
             }
             if !bez_oblouku.is_empty() {
                 let s: Vec<String> = bez_oblouku.iter().map(|i| i.to_string()).collect();
                 v.info(&trf!(
-                    "Trasy: ve vrcholech {} se oblouk nevešel, jsou bez oblouku – zmenšete R a použijte Oblouk ve vrcholu.",
+                    "Trasy: ve vrcholech {} se oblouk nevešel, jsou bez oblouku – zmenšete R a použijte Oblouk ve vrcholu.", "Alignments: the curve did not fit at vertices {}; they have no curve – reduce R and use Curve at vertex.",
                     s.join(", ")
                 ));
             }
         }
-        Err(e) => v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     }
     po_zmene(host);
 }
@@ -422,14 +422,14 @@ fn nastroj_vrcholu(
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
         Err(e) => {
-            host.push_error(&trf!("Trasy: {}", e));
+            host.push_error(&trf!("Trasy: {}", "Alignments: {}", e));
             return None;
         }
     };
     match trasa_u_bodu(&doc, p) {
         Some(t) => Some((t, doc, p)),
         None => {
-            host.push_error(tr("Trasy: ve výkrese není žádná trasa."));
+            host.push_error(tr("Trasy: ve výkrese není žádná trasa.", "Alignments: there is no alignment in the drawing."));
             None
         }
     }
@@ -441,9 +441,9 @@ fn vlozit_vrchol_cmd(host: &mut dyn HostApi, arg: &str) {
         return;
     };
     let Some((v, i)) = vloz_vrchol(&t.vrcholy(), p, editor::polomer()) else { return };
-    if uloz_vrcholy(host, &doc, &t, v, tr("Vložení vrcholu")) {
+    if uloz_vrcholy(host, &doc, &t, v, tr("Vložení vrcholu", "Insert vertex")) {
         host.push_info(&trf!(
-            "Trasy: do trasy {} vložen vrchol {} – posuňte ho úchopem (Úchopy zap/vyp), oblouk R = {} m se objeví, až vrchol vybočí z přímky.",
+            "Trasy: do trasy {} vložen vrchol {} – posuňte ho úchopem (Úchopy zap/vyp), oblouk R = {} m se objeví, až vrchol vybočí z přímky.", "Alignments: vertex {1} inserted into alignment {0} – move it with a grip (Grips on/off); the curve R = {2} m appears once the vertex leaves the straight line.",
             t.def.jmeno,
             i + 1,
             editor::polomer()
@@ -459,11 +459,11 @@ fn smazat_vrchol_cmd(host: &mut dyn HostApi, arg: &str) {
     let v = t.vrcholy();
     let Some((i, _)) = nejblizsi_vrchol(&v, p) else { return };
     let Some(n) = smaz_vrchol(&v, i) else {
-        host.push_error(tr("Trasy: trasa musí mít aspoň dva vrcholy."));
+        host.push_error(tr("Trasy: trasa musí mít aspoň dva vrcholy.", "Alignments: an alignment needs at least two vertices."));
         return;
     };
-    if uloz_vrcholy(host, &doc, &t, n, tr("Smazání vrcholu")) {
-        host.push_info(&trf!("Trasy: z trasy {} smazán vrchol {}.", t.def.jmeno, i + 1));
+    if uloz_vrcholy(host, &doc, &t, n, tr("Smazání vrcholu", "Delete vertex")) {
+        host.push_info(&trf!("Trasy: z trasy {} smazán vrchol {}.", "Alignments: vertex {1} deleted from alignment {0}.", t.def.jmeno, i + 1));
     }
     po_zmene(host);
 }
@@ -471,12 +471,12 @@ fn smazat_vrchol_cmd(host: &mut dyn HostApi, arg: &str) {
 fn oblouk_cmd(host: &mut dyn HostApi) {
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let trasy: Vec<(Handle, Vec<Vrchol>, f64)> =
         objekt::trasy(&doc).into_iter().map(|t| (t.insert, t.vrcholy(), t.def.pocatek)).collect();
     if trasy.is_empty() {
-        return host.push_error(tr("Trasy: ve výkrese není žádná trasa."));
+        return host.push_error(tr("Trasy: ve výkrese není žádná trasa.", "Alignments: there is no alignment in the drawing."));
     }
     host.start_interactive(vykres::hlidany(Box::new(prikazy::ObloukVeVrcholu { trasy, vybrany: None })));
 }
@@ -497,7 +497,7 @@ fn oblouk_nastav_cmd(host: &mut dyn HostApi, arg: &str) {
 fn nastav_polomer(host: &mut dyn HostApi, h: Handle, i: usize, r: f64) {
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.insert == h) else { return };
     let mut v = t.vrcholy();
@@ -505,12 +505,12 @@ fn nastav_polomer(host: &mut dyn HostApi, h: Handle, i: usize, r: f64) {
         return;
     }
     v[i].r = r.max(0.0);
-    let krok = if r > 0.0 { tr("Oblouk ve vrcholu") } else { tr("Smazání oblouku") };
+    let krok = if r > 0.0 { tr("Oblouk ve vrcholu", "Curve at vertex") } else { tr("Smazání oblouku", "Delete curve") };
     if uloz_vrcholy(host, &doc, &t, v, krok) {
         if r > 0.0 {
-            host.push_info(&trf!("Trasy: vrchol {} trasy {} má poloměr R = {} m.", i + 1, t.def.jmeno, r));
+            host.push_info(&trf!("Trasy: vrchol {} trasy {} má poloměr R = {} m.", "Alignments: vertex {} of alignment {} has radius R = {} m.", i + 1, t.def.jmeno, r));
         } else {
-            host.push_info(&trf!("Trasy: ve vrcholu {} trasy {} už není oblouk.", i + 1, t.def.jmeno));
+            host.push_info(&trf!("Trasy: ve vrcholu {} trasy {} už není oblouk.", "Alignments: vertex {} of alignment {} no longer has a curve.", i + 1, t.def.jmeno));
         }
     }
     po_zmene(host);
@@ -523,7 +523,7 @@ fn bez_oblouku_cmd(host: &mut dyn HostApi, arg: &str) {
     let v = t.vrcholy();
     let Some((i, _)) = nejblizsi_vrchol(&v, p) else { return };
     if i == 0 || i + 1 == v.len() || v[i].r <= 0.0 {
-        host.push_info(tr("Trasy: v tomto vrcholu oblouk není."));
+        host.push_info(tr("Trasy: v tomto vrcholu oblouk není.", "Alignments: this vertex has no curve."));
         return;
     }
     nastav_polomer(host, t.insert, i, 0.0);
@@ -533,12 +533,12 @@ fn bez_oblouku_cmd(host: &mut dyn HostApi, arg: &str) {
 fn posun_vrchol_cmd(host: &mut dyn HostApi) {
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let trasy: Vec<(Handle, Vec<Vrchol>, f64)> =
         objekt::trasy(&doc).into_iter().map(|t| (t.insert, t.vrcholy(), t.def.pocatek)).collect();
     if trasy.is_empty() {
-        return host.push_error(tr("Trasy: ve výkrese není žádná trasa."));
+        return host.push_error(tr("Trasy: ve výkrese není žádná trasa.", "Alignments: there is no alignment in the drawing."));
     }
     otevri_editor(host);
     host.start_interactive(vykres::hlidany(Box::new(prikazy::PosunVrcholu { trasy, vybrany: None })));
@@ -556,7 +556,7 @@ fn posun_hotovo_cmd(host: &mut dyn HostApi, arg: &str) {
     };
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.insert == h) else { return };
     let mut v = t.vrcholy();
@@ -565,9 +565,9 @@ fn posun_hotovo_cmd(host: &mut dyn HostApi, arg: &str) {
     }
     v[i].x = x;
     v[i].y = y;
-    if uloz_vrcholy(host, &doc, &t, v, tr("Posun vrcholu")) {
+    if uloz_vrcholy(host, &doc, &t, v, tr("Posun vrcholu", "Vertex move")) {
         editor::vyber_a_obnov(i);
-        host.push_info(&trf!("Trasy: vrchol {} trasy {} posunut na {}; {}.", i + 1, t.def.jmeno, cislo(x, 3, true), cislo(y, 3, true)));
+        host.push_info(&trf!("Trasy: vrchol {} trasy {} posunut na {}; {}.", "Alignments: vertex {} of alignment {} moved to {}; {}.", i + 1, t.def.jmeno, cislo(x, 3, true), cislo(y, 3, true)));
     }
     po_zmene(host);
 }
@@ -575,7 +575,7 @@ fn posun_hotovo_cmd(host: &mut dyn HostApi, arg: &str) {
 /// Text výsledku vložení oblouku podle nastavení.
 fn text_vlozeni(r: editor::Vlozeni) -> &'static str {
     match r {
-        editor::Vlozeni::Zmenseno => tr(" (zmenšeno, aby se vešlo)"),
+        editor::Vlozeni::Zmenseno => tr(" (zmenšeno, aby se vešlo)", " (shrunk to fit)"),
         _ => "",
     }
 }
@@ -588,24 +588,24 @@ fn vlozit_oblouk_trasy_cmd(host: &mut dyn HostApi, arg: &str, prikaz: &'static s
     let mut v = t.vrcholy();
     let Some((i, _)) = nejblizsi_vrchol(&v, p) else { return };
     if i == 0 || i + 1 >= v.len() {
-        return host.push_info(tr("Trasy: krajní vrchol oblouk mít nemůže."));
+        return host.push_info(tr("Trasy: krajní vrchol oblouk mít nemůže.", "Alignments: an end vertex cannot have a curve."));
     }
     editor::vyber_a_obnov(i);
     let r = editor::dej_oblouk(&mut v, i, prechodnice);
     if r == editor::Vlozeni::Nevejde {
         host.push_error(&if prechodnice {
-            trf!("Trasy: přechodnice se do vrcholu {} nevejdou – zkraťte je v nastavení, nebo zapněte zmenšení.", i + 1)
+            trf!("Trasy: přechodnice se do vrcholu {} nevejdou – zkraťte je v nastavení, nebo zapněte zmenšení.", "Alignments: transitions do not fit into vertex {} – shorten them in the settings or turn on shrinking.", i + 1)
         } else {
-            trf!("Trasy: oblouk se do vrcholu {} nevejde – zmenšete R v nastavení, nebo zapněte zmenšení.", i + 1)
+            trf!("Trasy: oblouk se do vrcholu {} nevejde – zmenšete R v nastavení, nebo zapněte zmenšení.", "Alignments: the curve does not fit into vertex {} – reduce R in the settings or turn on shrinking.", i + 1)
         });
         return po_zmene(host);
     }
-    let krok = if prechodnice { tr("Přechodnice ve vrcholu") } else { tr("Oblouk ve vrcholu") };
+    let krok = if prechodnice { tr("Přechodnice ve vrcholu", "Transitions at vertex") } else { tr("Oblouk ve vrcholu", "Curve at vertex") };
     if uloz_vrcholy(host, &doc, &t, v.clone(), krok) {
         let x = v[i];
         host.push_info(&if x.ma_prechodnice() {
             trf!(
-                "Trasy: vrchol {} – R {} m, přechodnice L1 {} m, L2 {} m{}.",
+                "Trasy: vrchol {} – R {} m, přechodnice L1 {} m, L2 {} m{}.", "Alignments: vertex {} – R {} m, transitions L1 {} m, L2 {} m{}.",
                 i + 1,
                 cislo(x.r, 2, true),
                 cislo(x.l1, 2, true),
@@ -613,7 +613,7 @@ fn vlozit_oblouk_trasy_cmd(host: &mut dyn HostApi, arg: &str, prikaz: &'static s
                 text_vlozeni(r)
             )
         } else {
-            trf!("Trasy: vrchol {} – oblouk R {} m{}.", i + 1, cislo(x.r, 2, true), text_vlozeni(r))
+            trf!("Trasy: vrchol {} – oblouk R {} m{}.", "Alignments: vertex {} – curve R {} m{}.", i + 1, cislo(x.r, 2, true), text_vlozeni(r))
         });
     }
     po_zmene(host);
@@ -626,13 +626,13 @@ fn bez_prechodnic_cmd(host: &mut dyn HostApi, arg: &str) {
     let mut v = t.vrcholy();
     let Some((i, _)) = nejblizsi_vrchol(&v, p) else { return };
     if !v[i].ma_prechodnice() {
-        return host.push_info(tr("Trasy: v tomto vrcholu přechodnice nejsou."));
+        return host.push_info(tr("Trasy: v tomto vrcholu přechodnice nejsou.", "Alignments: this vertex has no transitions."));
     }
     editor::vyber_a_obnov(i);
     v[i].l1 = 0.0;
     v[i].l2 = 0.0;
-    if uloz_vrcholy(host, &doc, &t, v, tr("Odebrání přechodnic")) {
-        host.push_info(&trf!("Trasy: ve vrcholu {} zůstal kruhový oblouk bez přechodnic.", i + 1));
+    if uloz_vrcholy(host, &doc, &t, v, tr("Odebrání přechodnic", "Remove transitions")) {
+        host.push_info(&trf!("Trasy: ve vrcholu {} zůstal kruhový oblouk bez přechodnic.", "Alignments: vertex {} keeps a circular arc without transitions.", i + 1));
     }
     po_zmene(host);
 }
@@ -649,7 +649,7 @@ fn hromadne_cmd(host: &mut dyn HostApi, arg: &str, prikaz: &'static str, prechod
     };
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let mut v = t.vrcholy();
     let (mut ok, mut zm, mut ne) = (0, 0, 0);
@@ -669,12 +669,12 @@ fn hromadne_cmd(host: &mut dyn HostApi, arg: &str, prikaz: &'static str, prechod
         }
     }
     if ok == 0 {
-        host.push_info(&if ne > 0 { trf!("Trasy: nic se nevešlo ({} vrcholů).", ne) } else { tr("Trasy: není kam vkládat.").to_string() });
+        host.push_info(&if ne > 0 { trf!("Trasy: nic se nevešlo ({} vrcholů).", "Alignments: nothing fitted ({} vertices).", ne) } else { tr("Trasy: není kam vkládat.", "Alignments: nothing to insert into.").to_string() });
         return po_zmene(host);
     }
-    let krok = if prechodnice { tr("Přechodnice všem obloukům") } else { tr("Oblouky do všech vrcholů") };
+    let krok = if prechodnice { tr("Přechodnice všem obloukům", "Transitions to all curves") } else { tr("Oblouky do všech vrcholů", "Curves at all vertices") };
     if uloz_vrcholy(host, &doc, &t, v, krok) {
-        host.push_info(&trf!("Trasy: upraveno vrcholů {}, zmenšeno {}, nevešlo se {}.", ok, zm, ne));
+        host.push_info(&trf!("Trasy: upraveno vrcholů {}, zmenšeno {}, nevešlo se {}.", "Alignments: vertices changed {}, shrunk {}, did not fit {}.", ok, zm, ne));
     }
     po_zmene(host);
 }
@@ -683,12 +683,12 @@ fn editor_pouzit_cmd(host: &mut dyn HostApi) {
     let prvky = editor::vezmi_prvky();
     let vrcholy = editor::vezmi_tabulku();
     if prvky.is_none() && vrcholy.is_none() {
-        host.push_info(tr("Trasy: v tabulkách se nic nezměnilo."));
+        host.push_info(tr("Trasy: v tabulkách se nic nezměnilo.", "Alignments: nothing has changed in the tables."));
         return;
     }
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = editor::trasa_editoru(&doc) else { return };
     let Some(radky) = vrcholy else {
@@ -697,12 +697,12 @@ fn editor_pouzit_cmd(host: &mut dyn HostApi) {
         let Ok(g) = t.geometrie() else { return };
         match trasy::upravy::z_tabulky_prvku(&t.vrcholy(), &g, &radky) {
             Ok(v) => {
-                if uloz_vrcholy(host, &doc, &t, v, tr("Úprava oblouků trasy")) {
-                    host.push_info(&trf!("Trasy: oblouky trasy {} upraveny.", t.def.jmeno));
+                if uloz_vrcholy(host, &doc, &t, v, tr("Úprava oblouků trasy", "Edit alignment curves")) {
+                    host.push_info(&trf!("Trasy: oblouky trasy {} upraveny.", "Alignments: curves of alignment {} updated.", t.def.jmeno));
                 }
             }
-            Err(0) => host.push_error(tr("Trasy: tabulka prvků už neodpovídá trase – nic se nezměnilo.")),
-            Err(k) => host.push_error(&trf!("Trasy: řádek {} tabulky prvků nemá platné R nebo délku – nic se nezměnilo.", k)),
+            Err(0) => host.push_error(tr("Trasy: tabulka prvků už neodpovídá trase – nic se nezměnilo.", "Alignments: the element table no longer matches the alignment – nothing changed.")),
+            Err(k) => host.push_error(&trf!("Trasy: řádek {} tabulky prvků nemá platné R nebo délku – nic se nezměnilo.", "Alignments: row {} of the element table has no valid R or length – nothing changed.", k)),
         }
         po_zmene(host);
         return;
@@ -718,13 +718,13 @@ fn editor_pouzit_cmd(host: &mut dyn HostApi) {
         match (x, y) {
             (Some(x), Some(y)) => nove.push(Vrchol::new(x, y, rr)),
             _ => {
-                host.push_error(&trf!("Trasy: řádek {} tabulky vrcholů nemá platná čísla X a Y – nic se nezměnilo.", i + 1));
+                host.push_error(&trf!("Trasy: řádek {} tabulky vrcholů nemá platná čísla X a Y – nic se nezměnilo.", "Alignments: row {} of the vertex table has no valid X and Y – nothing changed.", i + 1));
                 return;
             }
         }
     }
-    if uloz_vrcholy(host, &doc, &t, nove, tr("Úprava vrcholů trasy")) {
-        host.push_info(&trf!("Trasy: vrcholy trasy {} upraveny.", t.def.jmeno));
+    if uloz_vrcholy(host, &doc, &t, nove, tr("Úprava vrcholů trasy", "Edit alignment vertices")) {
+        host.push_info(&trf!("Trasy: vrcholy trasy {} upraveny.", "Alignments: vertices of alignment {} updated.", t.def.jmeno));
     }
     po_zmene(host);
 }
@@ -753,16 +753,16 @@ fn vlastnosti_cmd(host: &mut dyn HostApi, arg: &str) {
     let formaty = FormatStanice::VSE;
     let i_formatu = formaty.iter().position(|f| f.kod() == h.text("format")).unwrap_or(0);
     let oznac = |k: &str, popis: &'static str| -> String {
-        if h.vyjimky.iter().any(|x| x == k) { format!("{} ●", tr(popis)) } else { tr(popis).to_string() }
+        if h.vyjimky.iter().any(|x| x == k) { format!("{} ●", crate::lang::tr_tab(popis)) } else { crate::lang::tr_tab(popis).to_string() }
     };
     let vrcholy = t.vrcholy();
     let radky: Vec<Vec<String>> =
         vrcholy.iter().map(|x| vec![cislo(x.x, 3, false), cislo(x.y, 3, false), cislo(x.r, 3, false)]).collect();
-    let mut d = DialogDef::new(trf!("Vlastnosti trasy {}", t.def.jmeno))
-        .with_control(DialogControl::Text { id: "jmeno".into(), label: tr("Název").into(), default: t.def.jmeno.clone() })
+    let mut d = DialogDef::new(trf!("Vlastnosti trasy {}", "Alignment properties {}", t.def.jmeno))
+        .with_control(DialogControl::Text { id: "jmeno".into(), label: tr("Název", "Name").into(), default: t.def.jmeno.clone() })
         .with_control(DialogControl::Number {
             id: "pocatek".into(),
-            label: tr("Počáteční staničení [m]").into(),
+            label: tr("Počáteční staničení [m]", "Start station [m]").into(),
             default: t.def.pocatek,
             min: None,
             max: None,
@@ -770,13 +770,13 @@ fn vlastnosti_cmd(host: &mut dyn HostApi, arg: &str) {
         })
         .with_control(DialogControl::Choice {
             id: "styl".into(),
-            label: tr("Styl").into(),
+            label: tr("Styl", "Style").into(),
             options: styly.iter().map(|s| tr_dyn(&s.nazev)).collect(),
             default_index: i_stylu,
         })
         .with_control(DialogControl::Fields {
             id: "vzhled".into(),
-            title: Some(tr("Vzhled jen této trasy (● = výjimka proti stylu)").into()),
+            title: Some(tr("Vzhled jen této trasy (● = výjimka proti stylu)", "Appearance of this alignment only (● = override of the style)").into()),
             collapsed: false,
             controls: vec![
                 DialogControl::Number {
@@ -824,23 +824,23 @@ fn vlastnosti_cmd(host: &mut dyn HostApi, arg: &str) {
                     label: oznac("polygon", "Kreslit tečnový polygon"),
                     default: h.ano("polygon"),
                 },
-                DialogControl::Checkbox { id: "na_styl".into(), label: tr("Vrátit vzhled na styl (zrušit výjimky)").into(), default: false },
+                DialogControl::Checkbox { id: "na_styl".into(), label: tr("Vrátit vzhled na styl (zrušit výjimky)", "Reset appearance to style (remove overrides)").into(), default: false },
             ],
         })
         .with_control(DialogControl::Table {
             id: "vrcholy".into(),
-            label: Some(tr("Vrcholy tečnového polygonu (souřadnice výkresu; R = poloměr oblouku, 0 = bez oblouku)").into()),
+            label: Some(tr("Vrcholy tečnového polygonu (souřadnice výkresu; R = poloměr oblouku, 0 = bez oblouku)", "Tangent polygon vertices (drawing coordinates; R = curve radius, 0 = no curve)").into()),
             headers: vec!["X".into(), "Y".into(), "R".into()],
             rows: radky,
             allow_add: true,
             allow_delete: true,
         })
-        .submit_label(tr("Použít"))
-        .cancel_label(tr("Zrušit"))
+        .submit_label(tr("Použít", "Apply"))
+        .cancel_label(tr("Zrušit", "Cancel"))
         .width(620.0);
     if let Ok(g) = t.geometrie() {
         d = d.with_control(DialogControl::InfoText {
-            text: trf!("Délka trasy {} m, oblouků {}.", cislo(g.delka(), 2, true), g.prvky.iter().filter(|(_, p)| p.je_oblouk()).count()),
+            text: trf!("Délka trasy {} m, oblouků {}.", "Alignment length {} m, curves {}.", cislo(g.delka(), 2, true), g.prvky.iter().filter(|(_, p)| p.je_oblouk()).count()),
             align_h: None,
         });
     }
@@ -853,11 +853,11 @@ fn vlastnosti_hotovo(host: &mut dyn HostApi, arg: &str) {
     let Some(odp) = prikazy::vezmi_odpoved() else { return };
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(h) = handle_z_textu(arg) else { return };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.insert == h) else {
-        return host.push_error(tr("Trasy: vybraný objekt není trasa."));
+        return host.push_error(tr("Trasy: vybraný objekt není trasa.", "Alignments: the selected object is not an alignment."));
     };
     let h = objekt::hodnoty(&t.def);
     let styly = objekt::styly();
@@ -933,7 +933,7 @@ fn vlastnosti_hotovo(host: &mut dyn HostApi, arg: &str) {
                     nove.push(trasy::geometrie::Vrchol::s_prechodnicemi(x, y, rr, l1, l2))
                 }
                 _ => {
-                    host.push_error(&trf!("Trasy: řádek {} tabulky vrcholů nemá platná čísla X a Y – nic se nezměnilo.", i + 1));
+                    host.push_error(&trf!("Trasy: řádek {} tabulky vrcholů nemá platná čísla X a Y – nic se nezměnilo.", "Alignments: row {} of the vertex table has no valid X and Y – nothing changed.", i + 1));
                     return;
                 }
             }
@@ -942,24 +942,24 @@ fn vlastnosti_hotovo(host: &mut dyn HostApi, arg: &str) {
     }
     def.vrcholy = vrcholy;
     if let Err(e) = geometrie(&def.vrcholy, def.pocatek) {
-        host.push_error(&trf!("Trasy: změna se nepřijala – {}", objekt::chyba_geometrie(e)));
+        host.push_error(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", objekt::chyba_geometrie(e)));
         return;
     }
     let mut v = PresHost(host);
-    v.zpet(tr("Vlastnosti trasy"));
+    v.zpet(tr("Vlastnosti trasy", "Alignment properties"));
     match objekt::uloz(&mut v, Some(&doc), Some(&t), def) {
         Ok(h) => {
             v.vyber(vec![h]);
             if let Ok(d) = v.dokument() {
                 if let Some(t) = objekt::trasy(&d).into_iter().find(|t| t.insert == h) {
-                    v.info(&trf!("Trasy: {}", objekt::popis(&t)));
+                    v.info(&trf!("Trasy: {}", "Alignments: {}", objekt::popis(&t)));
                 }
                 if uchopy::ZAPNUTO.load(Ordering::SeqCst) {
                     let _ = host.set_plugin_grips(crate::MANIFEST.id, crate::uchopy::spoj_trasy(uchopy::uchopy(&d)));
                 }
             }
         }
-        Err(e) => v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     }
 }
 
@@ -972,15 +972,15 @@ fn pohled_cmd(host: &mut dyn HostApi) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let trasy = objekt::trasy(&doc);
     if trasy.is_empty() {
-        return v.chyba(tr("Trasy: ve výkrese není žádná trasa."));
+        return v.chyba(tr("Trasy: ve výkrese není žádná trasa.", "Alignments: there is no alignment in the drawing."));
     }
     let povrchy = povrchy::povrchy(&doc);
     if povrchy.is_empty() {
-        return v.chyba(tr("Trasy: ve výkrese není žádný povrch Terénu – profil není z čeho spočítat."));
+        return v.chyba(tr("Trasy: ve výkrese není žádný povrch Terénu – profil není z čeho spočítat.", "Alignments: there is no Terén surface in the drawing – nothing to compute the profile from."));
     }
     let vybrana = objekt::z_vyberu(&doc, &v.vybrane()).into_iter().next().map(|t| t.def.id).or_else(editor::aktivni);
     let i_trasy = vybrana.and_then(|id| trasy.iter().position(|t| t.def.id == id)).unwrap_or(0);
@@ -990,28 +990,28 @@ fn pohled_cmd(host: &mut dyn HostApi) {
     let posledni = POSLEDNI_SABLONA.lock().unwrap_or_else(|e| e.into_inner()).clone();
     let posledni = if posledni.is_empty() { "JEDNODUCHY".to_string() } else { posledni };
     let i_sablony = styly.iter().position(|x| x.id == posledni).unwrap_or(0);
-    let d = DialogDef::new(tr("Nový podélný profil"))
+    let d = DialogDef::new(tr("Nový podélný profil", "New longitudinal profile"))
         .with_control(DialogControl::Choice {
             id: "sablona".into(),
-            label: tr("Styl profilu").into(),
-            options: styly.iter().map(|x| trasy::preklad::tr_dyn(&x.jmeno)).collect(),
+            label: tr("Styl profilu", "Profile style").into(),
+            options: styly.iter().map(|x| crate::lang::tr_dyn(&x.jmeno)).collect(),
             default_index: i_sablony,
         })
         .with_control(DialogControl::Choice {
             id: "trasa".into(),
-            label: tr("Trasa").into(),
+            label: tr("Trasa", "Alignment").into(),
             options: trasy.iter().map(|t| format!("{} – {}", t.def.id, t.def.jmeno)).collect(),
             default_index: i_trasy,
         })
         .with_control(DialogControl::Choice {
             id: "povrch".into(),
-            label: tr("Povrch (Terén)").into(),
+            label: tr("Povrch (Terén)", "Surface (Terén)").into(),
             options: povrchy.iter().map(|p| p.jmeno.clone()).collect(),
             default_index: 0,
         })
         .with_control(DialogControl::Number {
             id: "meritko".into(),
-            label: tr("Měřítko délek 1:").into(),
+            label: tr("Měřítko délek 1:", "Horizontal scale 1:").into(),
             default: 1000.0,
             min: Some(10.0),
             max: Some(100000.0),
@@ -1019,7 +1019,7 @@ fn pohled_cmd(host: &mut dyn HostApi) {
         })
         .with_control(DialogControl::Number {
             id: "prevyseni".into(),
-            label: tr("Převýšení (výšky ×)").into(),
+            label: tr("Převýšení (výšky ×)", "Vertical exaggeration (heights ×)").into(),
             default: 1.0,
             min: Some(1.0),
             max: Some(100.0),
@@ -1027,15 +1027,15 @@ fn pohled_cmd(host: &mut dyn HostApi) {
         })
         .with_control(DialogControl::Number {
             id: "srovnavaci".into(),
-            label: tr("Srovnávací rovina [m n. m.] (0 = automaticky)").into(),
+            label: tr("Srovnávací rovina [m n. m.] (0 = automaticky)", "Datum [m a.s.l.] (0 = automatic)").into(),
             default: 0.0,
             min: None,
             max: None,
             step: Some(1.0),
         })
-        .with_control(DialogControl::InfoText { text: tr("Po potvrzení klikněte do výkresu, kam umístit levý dolní roh pohledu.").into(), align_h: None })
-        .submit_label(tr("Vložit"))
-        .cancel_label(tr("Zrušit"))
+        .with_control(DialogControl::InfoText { text: tr("Po potvrzení klikněte do výkresu, kam umístit levý dolní roh pohledu.", "After confirming, click in the drawing where to place the lower-left corner of the view.").into(), align_h: None })
+        .submit_label(tr("Vložit", "Insert"))
+        .cancel_label(tr("Zrušit", "Cancel"))
         .width(440.0);
     host.start_interactive(vykres::hlidany(Box::new(prikazy::DialogPrikaz::s_klikem(
         d,
@@ -1060,7 +1060,7 @@ fn pohled_vloz_cmd(host: &mut dyn HostApi, arg: &str) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let (Some(trasa), Some(povrch)) = (trasy.get(volba("trasa")), povrchy.get(volba("povrch"))) else { return };
     let id = trasy::pohled::volne_id(pohled::pohledy(&doc).iter().map(|p| p.def.id.as_str()));
@@ -1071,10 +1071,10 @@ fn pohled_vloz_cmd(host: &mut dyn HostApi, arg: &str) {
     def.meritko = cislo_z("meritko").filter(|x| *x >= 10.0).unwrap_or(1000.0);
     def.prevyseni = cislo_z("prevyseni").unwrap_or(1.0).max(0.5);
     def.srovnavaci = cislo_z("srovnavaci").filter(|x| *x != 0.0);
-    v.zpet(tr("Podélný profil"));
+    v.zpet(tr("Podélný profil", "Longitudinal profile"));
     match pohled::uloz(&mut v, &doc, None, &def, bod) {
         Ok((_, s)) => v.info(&trf!(
-            "Trasy: pohled {} – terén z {} trojúhelníků, úseků profilu {}, srovnávací rovina {} m, mřížka po {} m / {} m.",
+            "Trasy: pohled {} – terén z {} trojúhelníků, úseků profilu {}, srovnávací rovina {} m, mřížka po {} m / {} m.", "Alignments: view {} – terrain from {} triangles, profile segments {}, datum {} m, grid every {} m / {} m.",
             id,
             s.trojuhelniku,
             s.useku,
@@ -1082,7 +1082,7 @@ fn pohled_vloz_cmd(host: &mut dyn HostApi, arg: &str) {
             cislo(s.osy.krok_s, 0, true),
             cislo(s.osy.krok_z, 2, true)
         )),
-        Err(e) => v.chyba(&trf!("Trasy: profil nejde nakreslit – {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: profil nejde nakreslit – {}", "Alignments: the profile cannot be drawn – {}", e)),
     }
 }
 
@@ -1094,7 +1094,7 @@ fn prekresli_pohledy(v: &mut dyn Vykres) -> usize {
         let doc = v.dokument().unwrap_or_else(|_| doc.clone());
         match pohled::uloz(v, &doc, Some(&p), &p.def, p.vlozeni) {
             Ok(_) => n += 1,
-            Err(e) => v.chyba(&trf!("Trasy: pohled {}: {}", p.def.id, e)),
+            Err(e) => v.chyba(&trf!("Trasy: pohled {}: {}", "Alignments: view {}: {}", p.def.id, e)),
         }
     }
     n
@@ -1103,14 +1103,14 @@ fn prekresli_pohledy(v: &mut dyn Vykres) -> usize {
 fn niveleta_cmd(host: &mut dyn HostApi) {
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let pohledy: Vec<prikazy::PohledKresleni> = pohled::pohledy(&doc)
         .into_iter()
         .filter_map(|p| p.def.osy.map(|osy| prikazy::PohledKresleni { id: p.def.id.clone(), vlozeni: p.vlozeni, osy }))
         .collect();
     if pohledy.is_empty() {
-        return host.push_error(tr("Trasy: nejdřív vložte podélný profil (tlačítko Podélný profil), niveleta se kreslí do něj."));
+        return host.push_error(tr("Trasy: nejdřív vložte podélný profil (tlačítko Podélný profil), niveleta se kreslí do něj.", "Alignments: insert a longitudinal profile first (Longitudinal profile button); the design profile is drawn into it."));
     }
     host.start_interactive(vykres::hlidany(Box::new(prikazy::KresleniNivelety { pohledy, vybrany: None, body: Vec::new() })));
 }
@@ -1120,7 +1120,7 @@ fn niveleta_hotovo(host: &mut dyn HostApi) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(p) = pohled::pohledy(&doc).into_iter().find(|p| p.def.id == id_pohledu) else { return };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.def.id == p.def.trasa) else { return };
@@ -1132,33 +1132,33 @@ fn niveleta_hotovo(host: &mut dyn HostApi) {
             Err(trasy::niveleta::ChybaNivelety::Prekryv { a, b, .. }) => {
                 let i = if vrcholy[b].r > 0.0 && b + 1 < vrcholy.len() { b } else { a };
                 if vrcholy[i].r <= 0.0 {
-                    return v.chyba(tr("Trasy: niveletu nejde vytvořit."));
+                    return v.chyba(tr("Trasy: niveletu nejde vytvořit.", "Alignments: the design profile cannot be created."));
                 }
                 vrcholy[i].r = 0.0;
             }
             Err(e) => {
                 let (txt, a) = e.popis();
                 return v.chyba(&trf!(
-                    "Trasy: {}",
-                    trasy::preklad::formatuj(tr(txt), &a.iter().map(|x| x as &dyn std::fmt::Display).collect::<Vec<_>>())
+                    "Trasy: {}", "Alignments: {}",
+                    crate::lang::formatuj(crate::lang::tr_tab(txt), &a.iter().map(|x| x as &dyn std::fmt::Display).collect::<Vec<_>>())
                 ));
             }
         }
     }
     let mut def = t.def.clone();
-    let niv = trasy::niveleta::Niveleta::nova("N1", &trf!("Niveleta {}", t.def.jmeno), vrcholy);
+    let niv = trasy::niveleta::Niveleta::nova("N1", &trf!("Niveleta {}", "Design profile {}", t.def.jmeno), vrcholy);
     def.nivelety.retain(|n| n.id != "N1");
     def.nivelety.insert(0, niv);
-    v.zpet(tr("Niveleta"));
+    v.zpet(tr("Niveleta", "Design profile"));
     if !objekt::uloz_definici(&mut v, t.insert, &def) {
-        return v.chyba(tr("Trasy: niveletu se nepodařilo uložit."));
+        return v.chyba(tr("Trasy: niveletu se nepodařilo uložit.", "Alignments: the design profile could not be saved."));
     }
     let nova = ObjektTrasy { def: def.clone(), ..t.clone() };
     // niveleta je vidět jen v pohledu – překreslit hned i při odloženém přepočtu
     let _hned = crate::prepocet::Vynuceni::zacni();
     let n = pohled::prekresli_zastarale(&mut v, &doc, Some(&t.def.id), Some(&nova));
     v.hotovo();
-    v.info(&trf!("Trasy: niveleta trasy {} uložena ({} vrcholů), překresleno pohledů: {}.", t.def.jmeno, def.nivelety[0].vrcholy.len(), n));
+    v.info(&trf!("Trasy: niveleta trasy {} uložena ({} vrcholů), překresleno pohledů: {}.", "Alignments: design profile of alignment {} saved ({} vertices), views redrawn: {}.", t.def.jmeno, def.nivelety[0].vrcholy.len(), n));
 }
 
 /// Uloží niveletu trasy a překreslí pohledy (výkres `doc` stažený před krokem Zpět).
@@ -1170,16 +1170,16 @@ pub(crate) fn uloz_niveletu_cmd(
     krok: &str,
 ) -> Result<usize, String> {
     let mut def = t.def.clone();
-    let Some(n) = def.nivelety.first_mut() else { return Err(tr("trasa nemá niveletu").into()) };
+    let Some(n) = def.nivelety.first_mut() else { return Err(tr("trasa nemá niveletu", "the alignment has no design profile").into()) };
     n.vrcholy = vrcholy;
     n.dopocti();
     if let Err(e) = n.kontrola() {
         let (txt, a) = e.popis();
-        return Err(trasy::preklad::formatuj(tr(txt), &a.iter().map(|x| x as &dyn std::fmt::Display).collect::<Vec<_>>()));
+        return Err(crate::lang::formatuj(crate::lang::tr_tab(txt), &a.iter().map(|x| x as &dyn std::fmt::Display).collect::<Vec<_>>()));
     }
     v.zpet(krok);
     if !objekt::uloz_definici(v, t.insert, &def) {
-        return Err(tr("niveletu se nepodařilo uložit").into());
+        return Err(tr("niveletu se nepodařilo uložit", "the design profile could not be saved").into());
     }
     let nova = ObjektTrasy { def, ..t.clone() };
     let _hned = crate::prepocet::Vynuceni::zacni();
@@ -1194,7 +1194,7 @@ pub(crate) fn uloz_niveletu_cmd(
 fn editor_nivelety_cmd(host: &mut dyn HostApi) {
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     if let Some(t) = trasa_s_niveletou(host, &doc) {
         editor_nivelety::nastav_aktivni(&t.def.id);
@@ -1220,24 +1220,24 @@ fn trasa_nastroje(host: &mut dyn HostApi, doc: &ocs_plugin_api::host::Document) 
 fn konce_na_teren_cmd(host: &mut dyn HostApi) {
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = trasa_nastroje(host, &doc) else {
-        return host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta)."));
+        return host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta).", "Alignments: first click a profile view with a design profile (or draw one with the Design profile button)."));
     };
     let Some(p) = pohled::pohledy(&doc).into_iter().find(|p| p.def.trasa == t.def.id) else {
-        return host.push_error(tr("Trasy: trasa nemá pohled podélného profilu – terén není odkud vzít."));
+        return host.push_error(tr("Trasy: trasa nemá pohled podélného profilu – terén není odkud vzít.", "Alignments: the alignment has no profile view – there is no terrain to use."));
     };
     let pk = match pohled::podklady(&doc, &p.def, None, false) {
         Ok(pk) => pk,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let mut vr = t.def.nivelety[0].vrcholy.clone();
     let posledni = vr.len() - 1;
     let a = editor_nivelety::vyska_terenu(&pk.useky, vr[0].s);
     let b = editor_nivelety::vyska_terenu(&pk.useky, vr[posledni].s);
     if a.is_none() && b.is_none() {
-        return host.push_error(tr("Trasy: v místě konců nivelety není terén pohledu – nic se nezměnilo."));
+        return host.push_error(tr("Trasy: v místě konců nivelety není terén pohledu – nic se nezměnilo.", "Alignments: there is no view terrain at the design profile ends – nothing was changed."));
     }
     if let Some(z) = a {
         vr[0].z = (z * 1000.0).round() / 1000.0;
@@ -1246,16 +1246,16 @@ fn konce_na_teren_cmd(host: &mut dyn HostApi) {
         vr[posledni].z = (z * 1000.0).round() / 1000.0;
     }
     let mut v = PresHost(host);
-    match uloz_niveletu_cmd(&mut v, &doc, &t, vr, tr("Konce nivelety na terén")) {
+    match uloz_niveletu_cmd(&mut v, &doc, &t, vr, tr("Konce nivelety na terén", "Design profile ends to terrain")) {
         Ok(n) => {
             let chybi = match (a, b) {
                 (Some(_), Some(_)) => String::new(),
-                (None, _) => tr(" (začátek mimo terén – beze změny)").to_string(),
-                (_, None) => tr(" (konec mimo terén – beze změny)").to_string(),
+                (None, _) => tr(" (začátek mimo terén – beze změny)", " (start outside terrain – unchanged)").to_string(),
+                (_, None) => tr(" (konec mimo terén – beze změny)", " (end outside terrain – unchanged)").to_string(),
             };
-            v.info(&trf!("Trasy: konce nivelety trasy {} posazeny na terén{}, překresleno pohledů: {}.", t.def.jmeno, chybi, n))
+            v.info(&trf!("Trasy: konce nivelety trasy {} posazeny na terén{}, překresleno pohledů: {}.", "Alignments: design profile ends of alignment {} set to terrain{}, views redrawn: {}.", t.def.jmeno, chybi, n))
         }
-        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
     }
 }
 
@@ -1263,14 +1263,14 @@ fn konce_na_teren_cmd(host: &mut dyn HostApi) {
 fn vrchol_sklonem_cmd(host: &mut dyn HostApi) {
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = trasa_nastroje(host, &doc) else {
-        return host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta)."));
+        return host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta).", "Alignments: first click a profile view with a design profile (or draw one with the Design profile button)."));
     };
     let pohledy: Vec<_> = pohled::pohledy(&doc).into_iter().filter(|p| p.def.trasa == t.def.id && p.def.osy.is_some()).collect();
     if pohledy.is_empty() {
-        return host.push_error(tr("Trasy: trasa nemá pohled podélného profilu."));
+        return host.push_error(tr("Trasy: trasa nemá pohled podélného profilu.", "Alignments: the alignment has no profile view."));
     }
     let od = (editor_nivelety::otevren() && editor_nivelety::aktivni().as_deref() == Some(t.def.id.as_str())).then(editor_nivelety::vybrany);
     host.start_interactive(vykres::hlidany(Box::new(prikazy::VrcholSklonem {
@@ -1292,26 +1292,26 @@ fn vrchol_sklonem_hotovo(host: &mut dyn HostApi, arg: &str) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.def.id == *id) else { return };
     let mut vr = t.def.nivelety[0].vrcholy.clone();
     // nový vrchol je bez oblouku (oblouk se vkládá nástrojem Vložit oblouk)
     let Some(i) = trasy::niveleta::vloz_sklonem(&mut vr, od, s, sklon, 0.0) else {
-        return v.chyba(tr("Trasy: v tomto staničení už vrchol nivelety je – nic se nezměnilo."));
+        return v.chyba(tr("Trasy: v tomto staničení už vrchol nivelety je – nic se nezměnilo.", "Alignments: a design profile vertex already exists at this station – nothing was changed."));
     };
     let od_novy = if od >= i { od + 1 } else { od };
-    match uloz_niveletu_cmd(&mut v, &doc, &t, vr, tr("Vrchol nivelety sklonem")) {
+    match uloz_niveletu_cmd(&mut v, &doc, &t, vr, tr("Vrchol nivelety sklonem", "Design profile vertex by grade")) {
         Ok(_) => {
             editor_nivelety::nastav_vybrany(i);
             v.info(&trf!(
-                "Trasy: přidán vrchol {} nivelety ({} ‰ od vrcholu {}).",
+                "Trasy: přidán vrchol {} nivelety ({} ‰ od vrcholu {}).", "Alignments: design profile vertex {} added ({} ‰ from vertex {}).",
                 i + 1,
                 cislo(sklon * 1000.0, 2, true),
                 od_novy + 1
             ))
         }
-        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
     }
 }
 
@@ -1326,17 +1326,17 @@ fn pro_nastroj(host: &mut dyn HostApi) -> Option<(ObjektTrasy, Vec<pohled::Objek
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
         Err(e) => {
-            host.push_error(&trf!("Trasy: {}", e));
+            host.push_error(&trf!("Trasy: {}", "Alignments: {}", e));
             return None;
         }
     };
     let Some(t) = trasa_nastroje(host, &doc) else {
-        host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta)."));
+        host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta).", "Alignments: first click a profile view with a design profile (or draw one with the Design profile button)."));
         return None;
     };
     let p = pohledy_trasy(&doc, &t);
     if p.is_empty() {
-        host.push_error(tr("Trasy: trasa nemá pohled podélného profilu."));
+        host.push_error(tr("Trasy: trasa nemá pohled podélného profilu.", "Alignments: the alignment has no profile view."));
         return None;
     }
     Some((t, p))
@@ -1359,7 +1359,7 @@ fn pridat_vrcholy_hotovo(host: &mut dyn HostApi, arg: &str) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.def.id == *id) else { return };
     let mut vr = t.def.nivelety[0].vrcholy.clone();
@@ -1371,21 +1371,21 @@ fn pridat_vrcholy_hotovo(host: &mut dyn HostApi, arg: &str) {
         }
     }
     let n = cisla.len() / 2;
-    match uloz_niveletu_cmd(&mut v, &doc, &t, vr.clone(), tr("Přidání vrcholů nivelety")) {
+    match uloz_niveletu_cmd(&mut v, &doc, &t, vr.clone(), tr("Přidání vrcholů nivelety", "Add design profile vertices")) {
         Ok(_) => {
             if let Some(i) = posledni.and_then(|s| vr.iter().position(|x| x.s == s)) {
                 editor_nivelety::nastav_vybrany(i);
             }
-            v.info(&trf!("Trasy: do nivelety trasy {} přidáno vrcholů: {}.", t.def.jmeno, n))
+            v.info(&trf!("Trasy: do nivelety trasy {} přidáno vrcholů: {}.", "Alignments: vertices added to the design profile of alignment {}: {}.", t.def.jmeno, n))
         }
-        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
     }
 }
 
 fn zmenit_oblouk_cmd(host: &mut dyn HostApi) {
     let Some((t, pohledy)) = pro_nastroj(host) else { return };
     if t.def.nivelety[0].vrcholy.len() < 3 {
-        return host.push_error(tr("Trasy: niveleta nemá vnitřní vrchol – oblouk není kam dát."));
+        return host.push_error(tr("Trasy: niveleta nemá vnitřní vrchol – oblouk není kam dát.", "Alignments: the design profile has no inner vertex – there is nowhere to put a curve."));
     }
     host.start_interactive(vykres::hlidany(Box::new(prikazy::ZmenitObloukNivelety {
         trasa: t.def.id.clone(),
@@ -1405,7 +1405,7 @@ fn zmenit_oblouk_nastav(host: &mut dyn HostApi, arg: &str) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.def.id == *id) else { return };
     let mut vr = t.def.nivelety[0].vrcholy.clone();
@@ -1413,16 +1413,16 @@ fn zmenit_oblouk_nastav(host: &mut dyn HostApi, arg: &str) {
         return;
     }
     vr[k] = vr[k].se_zadanim(zad, h);
-    match uloz_niveletu_cmd(&mut v, &doc, &t, vr, tr("Změna oblouku nivelety")) {
+    match uloz_niveletu_cmd(&mut v, &doc, &t, vr, tr("Změna oblouku nivelety", "Change design profile curve")) {
         Ok(_) => {
             editor_nivelety::nastav_vybrany(k);
             v.info(&if h > 0.0 {
-                trf!("Trasy: oblouk ve vrcholu {} nivelety: {} = {}.", k + 1, zad, cislo(h, 2, true))
+                trf!("Trasy: oblouk ve vrcholu {} nivelety: {} = {}.", "Alignments: curve at design profile vertex {}: {} = {}.", k + 1, zad, cislo(h, 2, true))
             } else {
-                trf!("Trasy: vrchol {} nivelety je bez oblouku.", k + 1)
+                trf!("Trasy: vrchol {} nivelety je bez oblouku.", "Alignments: design profile vertex {} has no curve.", k + 1)
             })
         }
-        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
     }
 }
 
@@ -1444,7 +1444,7 @@ fn nastroj_na_vrchol(
     let body: Vec<[f64; 2]> = cisla.chunks(2).filter(|c| c.len() == 2).map(|c| [c[0], c[1]]).collect();
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     if body.is_empty() {
         // značka kliknutí ~ 1 % šířky pohledu
@@ -1454,9 +1454,9 @@ fn nastroj_na_vrchol(
     }
     let p = body[0];
     let ph = pohled::pohledy(&doc).into_iter().find(|x| x.obsahuje(p));
-    let Some(ph) = ph else { return host.push_error(tr("Trasy: klikněte do rámu pohledu profilu.")) };
+    let Some(ph) = ph else { return host.push_error(tr("Trasy: klikněte do rámu pohledu profilu.", "Alignments: click inside the profile view frame.")) };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.def.id == ph.def.trasa) else { return };
-    let Some(n) = t.def.nivelety.first() else { return host.push_error(tr("Trasy: trasa tohoto pohledu nemá niveletu.")) };
+    let Some(n) = t.def.nivelety.first() else { return host.push_error(tr("Trasy: trasa tohoto pohledu nemá niveletu.", "Alignments: the alignment of this view has no design profile.")) };
     let posledni = n.vrcholy.len().saturating_sub(1);
     let i = n
         .vrcholy
@@ -1466,7 +1466,7 @@ fn nastroj_na_vrchol(
         .filter_map(|(i, x)| ph.na_vykres(x.s, x.z).map(|q| (i, (q[0] - p[0]).hypot(q[1] - p[1]))))
         .min_by(|a, b| a.1.total_cmp(&b.1))
         .map(|x| x.0);
-    let Some(i) = i else { return host.push_error(tr("Trasy: niveleta nemá vnitřní vrchol.")) };
+    let Some(i) = i else { return host.push_error(tr("Trasy: niveleta nemá vnitřní vrchol.", "Alignments: the design profile has no inner vertex.")) };
     let _ = i;
     // všechna kliknutá místa v jednom kroku Zpět
     let mut vr = n.vrcholy.clone();
@@ -1488,7 +1488,7 @@ fn nastroj_na_vrchol(
                 zpravy.push(z);
                 posledni = Some(k);
             }
-            Err(e) => zpravy.push(trf!("Trasy: {}", e)),
+            Err(e) => zpravy.push(trf!("Trasy: {}", "Alignments: {}", e)),
         }
     }
     let Some(i) = posledni else {
@@ -1506,48 +1506,48 @@ fn nastroj_na_vrchol(
                 v.info(&z);
             }
         }
-        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
     }
 }
 
 fn vrchol_na_teren_cmd(host: &mut dyn HostApi, arg: &str) {
-    nastroj_na_vrchol(host, arg, "TRA_NIV_NATEREN", "Vrchol na terén: klikejte na vrcholy nivelety", tr("Vrchol nivelety na terén"), false, |vr, i, ph, doc| {
+    nastroj_na_vrchol(host, arg, "TRA_NIV_NATEREN", "Vrchol na terén: klikejte na vrcholy nivelety", tr("Vrchol nivelety na terén", "Design profile vertex to terrain"), false, |vr, i, ph, doc| {
         let pk = pohled::podklady(doc, &ph.def, None, false)?;
-        let z = editor_nivelety::vyska_terenu(&pk.useky, vr[i].s).ok_or_else(|| tr("v místě vrcholu není terén pohledu").to_string())?;
+        let z = editor_nivelety::vyska_terenu(&pk.useky, vr[i].s).ok_or_else(|| tr("v místě vrcholu není terén pohledu", "there is no view terrain at the vertex").to_string())?;
         vr[i].z = (z * 1000.0).round() / 1000.0;
-        Ok(trf!("Trasy: vrchol {} nivelety posazen na terén ({} m n. m.).", i + 1, cislo(vr[i].z, 3, true)))
+        Ok(trf!("Trasy: vrchol {} nivelety posazen na terén ({} m n. m.).", "Alignments: design profile vertex {} set to terrain ({} m a.s.l.).", i + 1, cislo(vr[i].z, 3, true)))
     });
 }
 
 fn vlozit_oblouk_cmd(host: &mut dyn HostApi, arg: &str) {
-    nastroj_na_vrchol(host, arg, "TRA_NIV_VLOZIT_OBLOUK", "Vložit oblouk: klikejte na vrcholy nivelety – typ a hodnota podle nastavení v panelu", tr("Vložení oblouku nivelety"), true, |vr, i, _, _| {
+    nastroj_na_vrchol(host, arg, "TRA_NIV_VLOZIT_OBLOUK", "Vložit oblouk: klikejte na vrcholy nivelety – typ a hodnota podle nastavení v panelu", tr("Vložení oblouku nivelety", "Insert design profile curve"), true, |vr, i, _, _| {
         match editor_nivelety::dej_oblouk(vr, i) {
-            trasy::niveleta::VlozeniOblouku::Vlozen => Ok(trf!("Trasy: oblouk vložen do vrcholu {} nivelety.", i + 1)),
+            trasy::niveleta::VlozeniOblouku::Vlozen => Ok(trf!("Trasy: oblouk vložen do vrcholu {} nivelety.", "Alignments: curve inserted at design profile vertex {}.", i + 1)),
             trasy::niveleta::VlozeniOblouku::Zmensen(f) => {
-                Ok(trf!("Trasy: oblouk vložen do vrcholu {} nivelety – zmenšený na {} % zadané hodnoty, aby se vešel.", i + 1, cislo(f * 100.0, 0, true)))
+                Ok(trf!("Trasy: oblouk vložen do vrcholu {} nivelety – zmenšený na {} % zadané hodnoty, aby se vešel.", "Alignments: curve inserted at design profile vertex {} – reduced to {} % of the value to fit.", i + 1, cislo(f * 100.0, 0, true)))
             }
-            trasy::niveleta::VlozeniOblouku::Nevejde => Err(trf!("oblouk se do vrcholu {} nevejde ani zmenšený", i + 1)),
+            trasy::niveleta::VlozeniOblouku::Nevejde => Err(trf!("oblouk se do vrcholu {} nevejde ani zmenšený", "the curve does not fit at vertex {} even reduced", i + 1)),
         }
     });
 }
 
 fn odstranit_oblouk_cmd(host: &mut dyn HostApi, arg: &str) {
-    nastroj_na_vrchol(host, arg, "TRA_NIV_ODSTRANIT_OBLOUK", "Odstranit oblouk: klikejte na vrcholy nivelety", tr("Odstranění oblouku nivelety"), true, |vr, i, _, _| {
+    nastroj_na_vrchol(host, arg, "TRA_NIV_ODSTRANIT_OBLOUK", "Odstranit oblouk: klikejte na vrcholy nivelety", tr("Odstranění oblouku nivelety", "Remove design profile curve"), true, |vr, i, _, _| {
         if trasy::niveleta::Niveleta::nova("N", "", vr.clone()).polomer(i) <= 0.0 {
-            return Err(trf!("vrchol {} oblouk nemá", i + 1));
+            return Err(trf!("vrchol {} oblouk nemá", "vertex {} has no curve", i + 1));
         }
         trasy::niveleta::bez_oblouku(vr, i);
-        Ok(trf!("Trasy: oblouk ve vrcholu {} nivelety odstraněn.", i + 1))
+        Ok(trf!("Trasy: oblouk ve vrcholu {} nivelety odstraněn.", "Alignments: curve at design profile vertex {} removed.", i + 1))
     });
 }
 
 fn oblouky_vse_cmd(host: &mut dyn HostApi) {
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = trasa_nastroje(host, &doc) else {
-        return host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta)."));
+        return host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta).", "Alignments: first click a profile view with a design profile (or draw one with the Design profile button)."));
     };
     let mut vr = t.def.nivelety[0].vrcholy.clone();
     let (mut vlozeno, mut zmenseno, mut nevejde) = (0, 0, 0);
@@ -1566,15 +1566,15 @@ fn oblouky_vse_cmd(host: &mut dyn HostApi) {
     }
     if vlozeno == 0 {
         return host.push_output(&if nevejde > 0 {
-            trf!("Trasy: oblouk se nevešel do žádného z {} vrcholů bez oblouku.", nevejde)
+            trf!("Trasy: oblouk se nevešel do žádného z {} vrcholů bez oblouku.", "Alignments: the curve did not fit at any of {} vertices without a curve.", nevejde)
         } else {
-            tr("Trasy: všechny vnitřní vrcholy už oblouk mají.").to_string()
+            tr("Trasy: všechny vnitřní vrcholy už oblouk mají.", "Alignments: all inner vertices already have a curve.").to_string()
         });
     }
     let mut v = PresHost(host);
-    match uloz_niveletu_cmd(&mut v, &doc, &t, vr, tr("Oblouky do všech vrcholů nivelety")) {
-        Ok(_) => v.info(&trf!("Trasy: oblouky vloženy do {} vrcholů (zmenšeno {}, nevešlo se {}).", vlozeno, zmenseno, nevejde)),
-        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+    match uloz_niveletu_cmd(&mut v, &doc, &t, vr, tr("Oblouky do všech vrcholů nivelety", "Curves at all design profile vertices")) {
+        Ok(_) => v.info(&trf!("Trasy: oblouky vloženy do {} vrcholů (zmenšeno {}, nevešlo se {}).", "Alignments: curves inserted at {} vertices (reduced {}, did not fit {}).", vlozeno, zmenseno, nevejde)),
+        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
     }
 }
 
@@ -1598,14 +1598,14 @@ fn uprav_niveletu(
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.def.id == id) else { return };
     let Some(n) = t.def.nivelety.first() else { return };
     let mut vr = n.vrcholy.clone();
     let (zprava, vybrat) = match uprav(&mut vr) {
         Ok(x) => x,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     match uloz_niveletu_cmd(&mut v, &doc, &t, vr, krok) {
         Ok(_) => {
@@ -1614,7 +1614,7 @@ fn uprav_niveletu(
             }
             v.info(&zprava)
         }
-        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
     }
 }
 
@@ -1622,22 +1622,22 @@ fn zvednout_hotovo(host: &mut dyn HostApi, arg: &str) {
     let c: Vec<&str> = arg.split_whitespace().collect();
     let (Some(id), Some(kde), Some(dz)) = (c.first(), c.get(1), c.get(2).and_then(|x| cti_cislo(x))) else { return };
     let smer = |z: f64, muz: bool| match (z >= 0.0, muz) {
-        (true, true) => tr("zvednut"),
-        (false, true) => tr("snížen"),
-        (true, false) => tr("zvednuta"),
-        (false, false) => tr("snížena"),
+        (true, true) => tr("zvednut", "raised"),
+        (false, true) => tr("snížen", "lowered"),
+        (true, false) => tr("zvednuta", "raised"),
+        (false, false) => tr("snížena", "lowered"),
     };
     if *kde == "v" {
-        return uprav_niveletu(host, id, tr("Zvednutí nivelety"), |vr| {
+        return uprav_niveletu(host, id, tr("Zvednutí nivelety", "Raise design profile"), |vr| {
             trasy::niveleta::posun_od(vr, 0, 0.0, dz);
-            Ok((trf!("Trasy: celá niveleta {} o {} m.", smer(dz, false), cislo(dz.abs(), 3, true)), None))
+            Ok((trf!("Trasy: celá niveleta {} o {} m.", "Alignments: whole design profile {} by {} m.", smer(dz, false), cislo(dz.abs(), 3, true)), None))
         });
     }
     let Ok(k) = kde.parse::<usize>() else { return };
-    uprav_niveletu(host, id, tr("Zvednutí vrcholu nivelety"), |vr| {
-        let x = vr.get_mut(k).ok_or_else(|| tr("vrchol už neexistuje").to_string())?;
+    uprav_niveletu(host, id, tr("Zvednutí vrcholu nivelety", "Raise design profile vertex"), |vr| {
+        let x = vr.get_mut(k).ok_or_else(|| tr("vrchol už neexistuje", "the vertex no longer exists").to_string())?;
         x.z += dz;
-        Ok((trf!("Trasy: vrchol {} nivelety {} o {} m.", k + 1, smer(dz, true), cislo(dz.abs(), 3, true)), Some(k)))
+        Ok((trf!("Trasy: vrchol {} nivelety {} o {} m.", "Alignments: design profile vertex {} {} by {} m.", k + 1, smer(dz, true), cislo(dz.abs(), 3, true)), Some(k)))
     });
 }
 
@@ -1660,19 +1660,19 @@ fn usek_hotovo(host: &mut dyn HostApi, arg: &str) {
         return;
     };
     let posun = editor_nivelety::posun_zbytku();
-    let krok = if co == "D" { tr("Délka úseku nivelety") } else { tr("Sklon úseku nivelety") };
+    let krok = if co == "D" { tr("Délka úseku nivelety", "Design profile segment length") } else { tr("Sklon úseku nivelety", "Design profile segment grade") };
     uprav_niveletu(host, id, krok, |vr| {
         if k + 1 >= vr.len() {
-            return Err(tr("úsek už neexistuje").into());
+            return Err(tr("úsek už neexistuje", "the segment no longer exists").into());
         }
         if co == "D" {
             if !trasy::niveleta::nastav_delku_useku(vr, k, x, posun) {
-                return Err(tr("délka úseku se nevejde – zkraťte ji, nebo přepněte na „posunout zbytek nivelety“").into());
+                return Err(tr("délka úseku se nevejde – zkraťte ji, nebo přepněte na „posunout zbytek nivelety“", "the segment length does not fit – shorten it, or switch to “shift the rest of the profile”").into());
             }
-            Ok((trf!("Trasy: délka úseku {}–{} nivelety = {} m.", k + 1, k + 2, cislo(x, 2, true)), Some(k)))
+            Ok((trf!("Trasy: délka úseku {}–{} nivelety = {} m.", "Alignments: design profile segment {}–{} length = {} m.", k + 1, k + 2, cislo(x, 2, true)), Some(k)))
         } else {
             trasy::niveleta::nastav_sklon_useku(vr, k, x, posun);
-            Ok((trf!("Trasy: sklon úseku {}–{} nivelety = {} ‰.", k + 1, k + 2, cislo(x * 1000.0, 2, true)), Some(k)))
+            Ok((trf!("Trasy: sklon úseku {}–{} nivelety = {} ‰.", "Alignments: design profile segment {}–{} grade = {} ‰.", k + 1, k + 2, cislo(x * 1000.0, 2, true)), Some(k)))
         }
     });
 }
@@ -1691,12 +1691,12 @@ fn niv_prodlouzit_cmd(host: &mut dyn HostApi) {
 fn niv_prodlouzit_hotovo(host: &mut dyn HostApi, arg: &str) {
     let c: Vec<&str> = arg.split_whitespace().collect();
     let (Some(id), Some(sklon), Some(delka)) = (c.first(), c.get(1).and_then(|x| cti_cislo(x)), c.get(2).and_then(|x| cti_cislo(x))) else { return };
-    uprav_niveletu(host, id, tr("Prodloužení nivelety"), |vr| {
-        let p = *vr.last().ok_or_else(|| tr("niveleta nemá vrcholy").to_string())?;
+    uprav_niveletu(host, id, tr("Prodloužení nivelety", "Extend design profile"), |vr| {
+        let p = *vr.last().ok_or_else(|| tr("niveleta nemá vrcholy", "the design profile has no vertices").to_string())?;
         // bývalý konec je teď vnitřní vrchol bez oblouku (oblouk = Vložit oblouk)
         vr.push(trasy::niveleta::VrcholNivelety::new(p.s + delka, p.z + sklon * delka, 0.0));
         Ok((
-            trf!("Trasy: niveleta prodloužena o {} m se sklonem {} ‰{}.", cislo(delka, 2, true), cislo(sklon * 1000.0, 2, true), ""),
+            trf!("Trasy: niveleta prodloužena o {} m se sklonem {} ‰{}.", "Alignments: design profile extended by {} m at {} ‰{}.", cislo(delka, 2, true), cislo(sklon * 1000.0, 2, true), ""),
             Some(vr.len() - 1),
         ))
     });
@@ -1719,10 +1719,10 @@ fn trasa_s_niveletou(host: &mut dyn HostApi, doc: &ocs_plugin_api::host::Documen
 fn niveleta_tabulka_cmd(host: &mut dyn HostApi) {
     let doc = match PresHost(host).dokument() {
         Ok(d) => d,
-        Err(e) => return host.push_error(&trf!("Trasy: {}", e)),
+        Err(e) => return host.push_error(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = trasa_s_niveletou(host, &doc) else {
-        return host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta)."));
+        return host.push_error(tr("Trasy: nejdřív klikněte na pohled profilu s niveletou (nebo niveletu nakreslete tlačítkem Niveleta).", "Alignments: first click a profile view with a design profile (or draw one with the Design profile button)."));
     };
     let n = &t.def.nivelety[0];
     let radky = radky_nivelety(n);
@@ -1732,7 +1732,7 @@ fn niveleta_tabulka_cmd(host: &mut dyn HostApi) {
         .iter()
         .map(|o| {
             trf!(
-                "vrchol {} (zadáno {}): T = {} · y = {}",
+                "vrchol {} (zadáno {}): T = {} · y = {}", "vertex {} (set by {}): T = {} · y = {}",
                 o.vrchol + 1,
                 n.vrcholy[o.vrchol].zadani.pismeno(),
                 cislo(o.tecna, 2, true),
@@ -1740,22 +1740,22 @@ fn niveleta_tabulka_cmd(host: &mut dyn HostApi) {
             )
         })
         .collect();
-    let mut d = DialogDef::new(trf!("Vrcholy nivelety – trasa {}", t.def.jmeno))
+    let mut d = DialogDef::new(trf!("Vrcholy nivelety – trasa {}", "Design profile vertices – alignment {}", t.def.jmeno))
         .with_control(DialogControl::Table {
             id: "vrcholy".into(),
-            label: Some(tr("Vrcholy: staničení [m], výška [m n. m.] a zakružovací oblouk: R = poloměr [m], L = délka oblouku [m], K = L / lom sklonu [m na 1 %]. Přepište číslo ve sloupci, kterým chcete oblouk zadat – ostatní se dopočtou; 0 = bez oblouku. Zadaná hodnota platí i po změně sklonů.").into()),
-            headers: vec![tr("Staničení").into(), tr("Výška").into(), "R".into(), "L".into(), "K".into()],
+            label: Some(tr("Vrcholy: staničení [m], výška [m n. m.] a zakružovací oblouk: R = poloměr [m], L = délka oblouku [m], K = L / lom sklonu [m na 1 %]. Přepište číslo ve sloupci, kterým chcete oblouk zadat – ostatní se dopočtou; 0 = bez oblouku. Zadaná hodnota platí i po změně sklonů.", "Vertices: station [m], elevation [m a.s.l.] and vertical curve: R = radius [m], L = curve length [m], K = L / grade change [m per 1 %]. Overwrite the number in the column you want to set the curve by – the others are calculated; 0 = no curve. The entered value is kept when grades change.").into()),
+            headers: vec![tr("Staničení", "Stationing").into(), tr("Výška", "Elevation").into(), "R".into(), "L".into(), "K".into()],
             rows: radky,
             allow_add: true,
             allow_delete: true,
         })
-        .with_control(DialogControl::InfoText { text: trf!("Sklony úseků: {}", sklony.join(" · ")), align_h: None });
+        .with_control(DialogControl::InfoText { text: trf!("Sklony úseků: {}", "Segment grades: {}", sklony.join(" · ")), align_h: None });
     if !oblouky.is_empty() {
-        d = d.with_control(DialogControl::InfoText { text: trf!("Oblouky: {}", oblouky.join("\n")), align_h: None });
+        d = d.with_control(DialogControl::InfoText { text: trf!("Oblouky: {}", "Vertical curves: {}", oblouky.join("\n")), align_h: None });
     }
     let d = d
-        .submit_label(tr("Použít"))
-        .cancel_label(tr("Zrušit"))
+        .submit_label(tr("Použít", "Apply"))
+        .cancel_label(tr("Zrušit", "Cancel"))
         .width(620.0);
     host.start_interactive(vykres::hlidany(Box::new(prikazy::DialogPrikaz::new(d, format!("TRA_NIVELETA_TABULKA_HOTOVO {}", t.def.id)))));
 }
@@ -1802,7 +1802,7 @@ fn niveleta_tabulka_hotovo(host: &mut dyn HostApi, arg: &str) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.def.id == arg.trim()) else { return };
     let Some(n) = t.def.nivelety.first() else { return };
@@ -1821,13 +1821,13 @@ fn niveleta_tabulka_hotovo(host: &mut dyn HostApi, arg: &str) {
                     .or_else(|| (rows.len() == puvodni.len()).then_some(i));
                 vrcholy.push(vrchol_z_radku(s, z, r, j.map(|j| (&n.vrcholy[j], puvodni[j].as_slice()))));
             }
-            _ => return v.chyba(&trf!("Trasy: řádek {} nemá platné staničení a výšku – nic se nezměnilo.", i + 1)),
+            _ => return v.chyba(&trf!("Trasy: řádek {} nemá platné staničení a výšku – nic se nezměnilo.", "Alignments: row {} has no valid station and elevation – nothing changed.", i + 1)),
         }
     }
     vrcholy.sort_by(|a, b| a.s.total_cmp(&b.s));
-    match uloz_niveletu_cmd(&mut v, &doc, &t, vrcholy, tr("Vrcholy nivelety")) {
-        Ok(n) => v.info(&trf!("Trasy: niveleta trasy {} upravena, překresleno pohledů: {}.", t.def.jmeno, n)),
-        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+    match uloz_niveletu_cmd(&mut v, &doc, &t, vrcholy, tr("Vrcholy nivelety", "Design profile vertices")) {
+        Ok(n) => v.info(&trf!("Trasy: niveleta trasy {} upravena, překresleno pohledů: {}.", "Alignments: design profile of alignment {} updated, views redrawn: {}.", t.def.jmeno, n)),
+        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
     }
 }
 
@@ -1842,13 +1842,13 @@ fn niveleta_smazat_cmd(host: &mut dyn HostApi, arg: &str) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let Some(ph) = pohled::pohledy(&doc).into_iter().find(|x| x.obsahuje(p)) else {
-        return v.chyba(tr("Trasy: klikněte do rámu pohledu profilu."));
+        return v.chyba(tr("Trasy: klikněte do rámu pohledu profilu.", "Alignments: click inside the profile view frame."));
     };
     let Some(t) = objekt::trasy(&doc).into_iter().find(|t| t.def.id == ph.def.trasa) else { return };
-    let Some(n) = t.def.nivelety.first() else { return v.chyba(tr("Trasy: trasa tohoto pohledu nemá niveletu.")) };
+    let Some(n) = t.def.nivelety.first() else { return v.chyba(tr("Trasy: trasa tohoto pohledu nemá niveletu.", "Alignments: the alignment of this view has no design profile.")) };
     let i = n
         .vrcholy
         .iter()
@@ -1858,7 +1858,7 @@ fn niveleta_smazat_cmd(host: &mut dyn HostApi, arg: &str) {
         .map(|x| x.0);
     let Some(i) = i else { return };
     if n.vrcholy.len() <= 2 {
-        return v.chyba(tr("Trasy: niveleta musí mít aspoň dva vrcholy."));
+        return v.chyba(tr("Trasy: niveleta musí mít aspoň dva vrcholy.", "Alignments: a design profile needs at least two vertices."));
     }
     let mut vrcholy = n.vrcholy.clone();
     vrcholy.remove(i);
@@ -1868,9 +1868,9 @@ fn niveleta_smazat_cmd(host: &mut dyn HostApi, arg: &str) {
     if let Some(x) = vrcholy.last_mut() {
         *x = trasy::niveleta::VrcholNivelety::new(x.s, x.z, 0.0);
     }
-    match uloz_niveletu_cmd(&mut v, &doc, &t, vrcholy, tr("Smazání vrcholu nivelety")) {
-        Ok(_) => v.info(&trf!("Trasy: z nivelety trasy {} smazán vrchol {}.", t.def.jmeno, i + 1)),
-        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", e)),
+    match uloz_niveletu_cmd(&mut v, &doc, &t, vrcholy, tr("Smazání vrcholu nivelety", "Delete design profile vertex")) {
+        Ok(_) => v.info(&trf!("Trasy: z nivelety trasy {} smazán vrchol {}.", "Alignments: vertex {1} deleted from the design profile of alignment {0}.", t.def.jmeno, i + 1)),
+        Err(e) => v.chyba(&trf!("Trasy: změna se nepřijala – {}", "Alignments: change rejected – {}", e)),
     }
 }
 
@@ -1886,11 +1886,11 @@ fn uchopy_cmd(host: &mut dyn HostApi) {
     let _ = host.set_plugin_grips(crate::MANIFEST.id, crate::uchopy::spoj_trasy(g));
     if zap {
         host.push_info(&trf!(
-            "Trasy: úchopy zapnuté ({}) – čtverečky posouvají vrcholy, kolečka uprostřed oblouků mění poloměr. Znovu stejným tlačítkem vypnete.",
+            "Trasy: úchopy zapnuté ({}) – čtverečky posouvají vrcholy, kolečka uprostřed oblouků mění poloměr. Znovu stejným tlačítkem vypnete.", "Alignments: grips on ({}) – squares move vertices, circles in the middle of curves change the radius. The same button turns them off.",
             n
         ));
     } else {
-        host.push_info(tr("Trasy: úchopy vypnuté."));
+        host.push_info(tr("Trasy: úchopy vypnuté.", "Alignments: grips off."));
     }
 }
 
@@ -1898,30 +1898,30 @@ fn prepocitat_cmd(host: &mut dyn HostApi) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let vse = objekt::trasy(&doc);
     if vse.is_empty() {
-        return v.info(tr("Trasy: ve výkrese není žádná trasa."));
+        return v.info(tr("Trasy: ve výkrese není žádná trasa.", "Alignments: there is no alignment in the drawing."));
     }
-    v.zpet(tr("Překreslit trasy"));
+    v.zpet(tr("Překreslit trasy", "Redraw alignments"));
     let mut ok = 0;
     for t in &vse {
         if t.meritko_jine {
-            v.chyba(&trf!("Trasy: trasa {} má vložení se změněným měřítkem – měřítko se ignoruje.", t.def.jmeno));
+            v.chyba(&trf!("Trasy: trasa {} má vložení se změněným měřítkem – měřítko se ignoruje.", "Alignments: alignment {} has a scaled block reference – the scale is ignored.", t.def.jmeno));
         }
         let mut def = t.def.clone();
         def.vrcholy = t.vrcholy();
         let doc = v.dokument().unwrap_or_else(|_| doc.clone());
         match objekt::uloz(&mut v, Some(&doc), Some(t), def) {
             Ok(_) => ok += 1,
-            Err(e) => v.chyba(&trf!("Trasy: {}: {}", t.def.jmeno, e)),
+            Err(e) => v.chyba(&trf!("Trasy: {}: {}", "Alignments: {}: {}", t.def.jmeno, e)),
         }
     }
-    v.info(&trf!("Trasy: překresleno tras: {}.", ok));
+    v.info(&trf!("Trasy: překresleno tras: {}.", "Alignments: redrawn: {}.", ok));
     let n = prekresli_pohledy(&mut v);
     if n > 0 {
-        v.info(&trf!("Trasy: překresleno pohledů: {}.", n));
+        v.info(&trf!("Trasy: překresleno pohledů: {}.", "Alignments: views redrawn: {}.", n));
     }
     if uchopy::ZAPNUTO.load(Ordering::SeqCst) {
         if let Ok(d) = v.dokument() {
@@ -1934,13 +1934,13 @@ fn seznam_cmd(host: &mut dyn HostApi) {
     let mut v = PresHost(host);
     let doc = match v.dokument() {
         Ok(d) => d,
-        Err(e) => return v.chyba(&trf!("Trasy: {}", e)),
+        Err(e) => return v.chyba(&trf!("Trasy: {}", "Alignments: {}", e)),
     };
     let vse = objekt::trasy(&doc);
     if vse.is_empty() {
-        return v.info(tr("Trasy: ve výkrese není žádná trasa."));
+        return v.info(tr("Trasy: ve výkrese není žádná trasa.", "Alignments: there is no alignment in the drawing."));
     }
-    v.info(&trf!("Trasy ve výkrese: {}", vse.len()));
+    v.info(&trf!("Trasy ve výkrese: {}", "Alignments in the drawing: {}", vse.len()));
     for t in &vse {
         v.vystup(&format!("  {}", objekt::popis(t)));
     }
@@ -1949,14 +1949,14 @@ fn seznam_cmd(host: &mut dyn HostApi) {
 fn jazyk_cmd(host: &mut dyn HostApi, arg: &str) {
     let j = match arg.trim().to_ascii_lowercase().as_str() {
         "cs" | "en" | "auto" => arg.trim().to_ascii_lowercase(),
-        _ => return host.push_info(tr("Trasy: použití TRA_JAZYK cs | en | auto (platí po restartu Open CAD Studia).")),
+        _ => return host.push_info(tr("Trasy: použití TRA_JAZYK cs | en | auto (platí po restartu Open CAD Studia).", "Alignments: usage TRA_JAZYK cs | en | auto (applies after restarting Open CAD Studio).")),
     };
     let Some(base) = std::env::var_os("APPDATA").map(std::path::PathBuf::from) else { return };
     let dir = base.join("OpenCADStudio");
     let _ = std::fs::create_dir_all(&dir);
     match std::fs::write(dir.join("trasy_nastaveni.txt"), format!("jazyk={j}\n")) {
-        Ok(_) => host.push_info(tr("Trasy: jazyk uložen, projeví se po restartu Open CAD Studia.")),
-        Err(e) => host.push_error(&trf!("Trasy: nastavení nejde uložit: {}", e)),
+        Ok(_) => host.push_info(tr("Trasy: jazyk uložen, projeví se po restartu Open CAD Studia.", "Alignments: language saved, applies after restarting Open CAD Studio.")),
+        Err(e) => host.push_error(&trf!("Trasy: nastavení nejde uložit: {}", "Alignments: settings cannot be saved: {}", e)),
     }
 }
 
@@ -1970,7 +1970,7 @@ fn napoveda_cmd(host: &mut dyn HostApi) {
         "  Přesun a otočení celé trasy – běžnými příkazy na bloku trasy; Překreslit trasy srovná popisky.",
         "  Jazyk: příkaz TRA_JAZYK cs | en | auto.",
     ] {
-        host.push_output(tr(r));
+        host.push_output(crate::lang::tr_tab(r));
     }
 }
 

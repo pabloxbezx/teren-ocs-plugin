@@ -9,7 +9,7 @@
 //! se nepřekrývají, takže se tím spolehlivě pozná i prohození N a E.
 
 use crate::body::{cislo_z_textu, nacti_body, rozdel_radek, Bod, Desetinna, FormatBodu, Oddelovac, Sloupec, VysledekImportu};
-use crate::preklad::tr;
+use crate::lang::tr;
 use std::collections::HashMap;
 
 /// Formáty, které se zkoušejí, v pořadí přednosti při shodném výsledku.
@@ -67,7 +67,7 @@ impl Kandidat {
         )
     }
     pub fn format_bodu(&self) -> FormatBodu {
-        let mut f = FormatBodu::ze_sloupcu(self.sloupce.clone(), self.oddelovac).expect("platný formát");
+        let mut f = FormatBodu::ze_sloupcu(self.sloupce.clone(), self.oddelovac).expect("platný formát"); // i18n:ne
         f.preskocit_radku = self.hlavicka;
         f
     }
@@ -75,18 +75,18 @@ impl Kandidat {
 
 pub fn nazev_oddelovace(o: Oddelovac) -> &'static str {
     match o {
-        Oddelovac::Mezera => tr("mezera"),
-        Oddelovac::Carka => tr("čárka"),
-        Oddelovac::Strednik => tr("středník"),
-        Oddelovac::Tabulator => tr("tabulátor"),
+        Oddelovac::Mezera => tr("mezera", "space"),
+        Oddelovac::Carka => tr("čárka", "comma"),
+        Oddelovac::Strednik => tr("středník", "semicolon"),
+        Oddelovac::Tabulator => tr("tabulátor", "tab"),
     }
 }
 
 pub fn nazev_desetinne(d: Desetinna) -> &'static str {
     match d {
-        Desetinna::Auto => tr("automaticky"),
-        Desetinna::Tecka => tr("tečka"),
-        Desetinna::Carka => tr("čárka"),
+        Desetinna::Auto => tr("automaticky", "automatic"),
+        Desetinna::Tecka => tr("tečka", "point"),
+        Desetinna::Carka => tr("čárka", "comma"),
     }
 }
 
@@ -164,7 +164,7 @@ pub fn s_formatem(text: &str, f: &FormatBodu, puvod: Puvod) -> Kandidat {
 }
 
 fn bez_diakritiky(t: &str) -> String {
-    const Z: &str = "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ";
+    const Z: &str = "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ"; // i18n:ne
     const NA: &str = "acdeeinorstuuyzACDEEINORSTUUYZ";
     t.chars().map(|c| Z.chars().position(|x| x == c).and_then(|i| NA.chars().nth(i)).unwrap_or(c)).collect()
 }
@@ -289,7 +289,7 @@ pub fn rozpoznej(text: &str) -> Vec<Kandidat> {
             pridej(s, Puvod::Zahlavi, &mut v);
         }
         for &f in FORMATY.iter() {
-            let f = FormatBodu::z_retezce(f, o).expect("platný formát");
+            let f = FormatBodu::z_retezce(f, o).expect("platný formát"); // i18n:ne
             pridej(f.sloupce, Puvod::Vzor, &mut v);
         }
         for hl in 0..=1 {

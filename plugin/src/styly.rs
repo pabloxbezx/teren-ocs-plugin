@@ -6,7 +6,7 @@
 //! Uložený styl se stejným id přebije vestavěný. Šablona stylů (soubor
 //! v %APPDATA%) slouží k přenosu stylů mezi výkresy.
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 use std::path::PathBuf;
 
@@ -135,7 +135,7 @@ pub const BARVY: [(Barva, &str); 12] = [
 ];
 
 pub fn nazev_barvy(b: Barva) -> String {
-    BARVY.iter().find(|(x, _)| *x == b).map_or_else(|| trf!("barva {}", b), |(_, n)| tr(n).to_string())
+    BARVY.iter().find(|(x, _)| *x == b).map_or_else(|| trf!("barva {}", "colour {}", b), |(_, n)| crate::lang::tr_tab(n).to_string())
 }
 
 // ── Styl bodu ────────────────────────────────────────────────────────────────
@@ -200,21 +200,21 @@ impl Znacka {
     }
     pub fn nazev(self) -> &'static str {
         match self {
-            Znacka::Bod => tr("jen bod"),
-            Znacka::Krizek => tr("křížek +"),
-            Znacka::KrizekX => tr("křížek ×"),
-            Znacka::Kolecko => tr("kolečko"),
-            Znacka::KoleckoKrizek => tr("kolečko s křížkem"),
-            Znacka::Ctverec => tr("čtverec"),
-            Znacka::Trojuhelnik => tr("trojúhelník"),
-            Znacka::StromListnaty => tr("strom listnatý"),
-            Znacka::StromJehlicnaty => tr("strom jehličnatý"),
-            Znacka::Ker => tr("keř"),
-            Znacka::Sloup => tr("sloup"),
-            Znacka::Hydrant => tr("hydrant"),
-            Znacka::Sachta => tr("šachta"),
-            Znacka::Vpust => tr("vpusť"),
-            Znacka::Soupe => tr("šoupě"),
+            Znacka::Bod => tr("jen bod", "point only"),
+            Znacka::Krizek => tr("křížek +", "cross +"),
+            Znacka::KrizekX => tr("křížek ×", "cross ×"),
+            Znacka::Kolecko => tr("kolečko", "circle"),
+            Znacka::KoleckoKrizek => tr("kolečko s křížkem", "circle with cross"),
+            Znacka::Ctverec => tr("čtverec", "square"),
+            Znacka::Trojuhelnik => tr("trojúhelník", "triangle"),
+            Znacka::StromListnaty => tr("strom listnatý", "deciduous tree"),
+            Znacka::StromJehlicnaty => tr("strom jehličnatý", "conifer"),
+            Znacka::Ker => tr("keř", "shrub"),
+            Znacka::Sloup => tr("sloup", "pole"),
+            Znacka::Hydrant => tr("hydrant", "hydrant"),
+            Znacka::Sachta => tr("šachta", "manhole"),
+            Znacka::Vpust => tr("vpusť", "gully"),
+            Znacka::Soupe => tr("šoupě", "valve"),
         }
     }
     fn z_kodu(k: &str) -> Self {
@@ -247,11 +247,11 @@ impl Popisek {
     }
     pub fn nazev(self) -> &'static str {
         match self {
-            Popisek::CisloVyska => tr("číslo nad výškou"),
-            Popisek::JedenRadek => tr("číslo a výška vedle sebe"),
-            Popisek::JenVyska => tr("jen výška"),
-            Popisek::JenCislo => tr("jen číslo"),
-            Popisek::Nic => tr("bez popisu"),
+            Popisek::CisloVyska => tr("číslo nad výškou", "number above elevation"),
+            Popisek::JedenRadek => tr("číslo a výška vedle sebe", "number and elevation side by side"),
+            Popisek::JenVyska => tr("jen výška", "elevation only"),
+            Popisek::JenCislo => tr("jen číslo", "number only"),
+            Popisek::Nic => tr("bez popisu", "no label"),
         }
     }
     fn z_kodu(k: &str) -> Self {
@@ -322,19 +322,19 @@ impl StylBodu {
 
     pub fn vestavene() -> Vec<StylBodu> {
         vec![
-            Self::novy(STANDARD, tr("Standard (číslo, výška, popis)"), Znacka::Bod, Popisek::CisloVyska, true),
-            Self::novy("KRIZ_VYSKA", tr("Křížek s výškou"), Znacka::Krizek, Popisek::JenVyska, false),
-            Self::novy("KRIZ_RADEK", tr("Křížek, číslo a výška vedle sebe"), Znacka::Krizek, Popisek::JedenRadek, false),
-            Self::novy("JEN_ZNACKA", tr("Jen značka"), Znacka::KrizekX, Popisek::Nic, false),
-            Self::symbol("STROM_L", tr("Strom listnatý"), Znacka::StromListnaty, 6.0, 3, &[]),
-            Self::symbol("STROM_J", tr("Strom jehličnatý"), Znacka::StromJehlicnaty, 6.0, 3, &[]),
-            Self::symbol("KER", tr("Keř"), Znacka::Ker, 4.0, 3, &[]),
-            Self::symbol("SLOUP", tr("Sloup"), Znacka::Sloup, 2.5, PODLE_HLADINY, &[]),
-            Self::symbol("HYDRANT", tr("Hydrant"), Znacka::Hydrant, 3.0, 5, &[]),
-            Self::symbol("SACHTA", tr("Šachta"), Znacka::Sachta, 3.0, PODLE_HLADINY, &[]),
-            Self::symbol("VPUST", tr("Vpusť"), Znacka::Vpust, 3.0, PODLE_HLADINY, &[]),
-            Self::symbol("SOUPE", tr("Šoupě"), Znacka::Soupe, 2.5, 5, &[]),
-            Self { skryt: true, ..Self::novy(SKRYT, tr("Nezobrazovat"), Znacka::Bod, Popisek::Nic, false) },
+            Self::novy(STANDARD, tr("Standard (číslo, výška, popis)", "Standard (number, elevation, description)"), Znacka::Bod, Popisek::CisloVyska, true),
+            Self::novy("KRIZ_VYSKA", tr("Křížek s výškou", "Cross with elevation"), Znacka::Krizek, Popisek::JenVyska, false),
+            Self::novy("KRIZ_RADEK", tr("Křížek, číslo a výška vedle sebe", "Cross, number and elevation side by side"), Znacka::Krizek, Popisek::JedenRadek, false),
+            Self::novy("JEN_ZNACKA", tr("Jen značka", "Marker only"), Znacka::KrizekX, Popisek::Nic, false),
+            Self::symbol("STROM_L", tr("Strom listnatý", "Deciduous tree"), Znacka::StromListnaty, 6.0, 3, &[]),
+            Self::symbol("STROM_J", tr("Strom jehličnatý", "Conifer"), Znacka::StromJehlicnaty, 6.0, 3, &[]),
+            Self::symbol("KER", tr("Keř", "Shrub"), Znacka::Ker, 4.0, 3, &[]),
+            Self::symbol("SLOUP", tr("Sloup", "Pole"), Znacka::Sloup, 2.5, PODLE_HLADINY, &[]),
+            Self::symbol("HYDRANT", tr("Hydrant", "Hydrant"), Znacka::Hydrant, 3.0, 5, &[]),
+            Self::symbol("SACHTA", tr("Šachta", "Manhole"), Znacka::Sachta, 3.0, PODLE_HLADINY, &[]),
+            Self::symbol("VPUST", tr("Vpusť", "Gully"), Znacka::Vpust, 3.0, PODLE_HLADINY, &[]),
+            Self::symbol("SOUPE", tr("Šoupě", "Valve"), Znacka::Soupe, 2.5, 5, &[]),
+            Self { skryt: true, ..Self::novy(SKRYT, tr("Nezobrazovat", "Do not display"), Znacka::Bod, Popisek::Nic, false) },
         ]
     }
 
@@ -410,9 +410,9 @@ pub enum PopisVrstevnic {
 impl PopisVrstevnic {
     pub fn nazev(self) -> &'static str {
         match self {
-            PopisVrstevnic::Nic => tr("bez popisu"),
-            PopisVrstevnic::Hlavni => tr("hlavní vrstevnice"),
-            PopisVrstevnic::Vse => tr("všechny vrstevnice"),
+            PopisVrstevnic::Nic => tr("bez popisu", "no label"),
+            PopisVrstevnic::Hlavni => tr("hlavní vrstevnice", "major contours"),
+            PopisVrstevnic::Vse => tr("všechny vrstevnice", "all contours"),
         }
     }
     fn kod(self) -> &'static str {
@@ -492,17 +492,17 @@ impl StylPovrchu {
     /// Vestavěné styly (odpovídají stylům z verzí 0.2–0.4, krok podle povrchu).
     pub fn vestavene() -> Vec<StylPovrchu> {
         let mut v = Vec::new();
-        v.push(Self::zaklad("VRSTP", tr("Vrstevnice s popisem")));
-        v.push(Self { popis: PopisVrstevnic::Nic, ..Self::zaklad("VRST", tr("Vrstevnice")) });
-        v.push(Self { tin: true, popis: PopisVrstevnic::Nic, ..Self::zaklad("TINVRST", tr("Trojúhelníky + vrstevnice")) });
-        v.push(Self { tin: true, vrstevnice: false, popis: PopisVrstevnic::Nic, ..Self::zaklad("TIN", tr("Trojúhelníky")) });
-        v.push(Self { vrstevnice: false, popis: PopisVrstevnic::Nic, ..Self::zaklad("OBRYS", tr("Obrys")) });
-        v.push(Self { tin: true, vrstevnice: false, popis: PopisVrstevnic::Nic, sipky: true, ..Self::zaklad("SPAD", tr("Spád (šipky)")) });
+        v.push(Self::zaklad("VRSTP", tr("Vrstevnice s popisem", "Contours with labels")));
+        v.push(Self { popis: PopisVrstevnic::Nic, ..Self::zaklad("VRST", tr("Vrstevnice", "Contours")) });
+        v.push(Self { tin: true, popis: PopisVrstevnic::Nic, ..Self::zaklad("TINVRST", tr("Trojúhelníky + vrstevnice", "Triangles + contours")) });
+        v.push(Self { tin: true, vrstevnice: false, popis: PopisVrstevnic::Nic, ..Self::zaklad("TIN", tr("Trojúhelníky", "Triangles")) });
+        v.push(Self { vrstevnice: false, popis: PopisVrstevnic::Nic, ..Self::zaklad("OBRYS", tr("Obrys", "Outline")) });
+        v.push(Self { tin: true, vrstevnice: false, popis: PopisVrstevnic::Nic, sipky: true, ..Self::zaklad("SPAD", tr("Spád (šipky)", "Slope (arrows)")) });
         v.push(Self {
             obrys: false,
             vrstevnice: false,
             popis: PopisVrstevnic::Nic,
-            ..Self::zaklad(SKRYT, tr("Nezobrazovat"))
+            ..Self::zaklad(SKRYT, tr("Nezobrazovat", "Do not display"))
         });
         v
     }
@@ -739,7 +739,7 @@ fn uloz(v: &mut dyn Vykres, doc: &CadDocument, druh: &str, id: &str, radky: Vec<
         if v.zapis_xdata(h, zaznam(druh, radky)) {
             return Ok(());
         }
-        return Err(tr("styl se nepodařilo uložit").into());
+        return Err(tr("styl se nepodařilo uložit", "the style could not be saved").into());
     }
     v.pridej_jednu(nosic(druh, radky, poloha_nosice(doc)))?;
     Ok(())
@@ -868,7 +868,7 @@ fn soubor_sablony() -> Option<PathBuf> {
 
 /// Uloží styly výkresu do šablony (soubor v profilu uživatele).
 pub fn uloz_sablonu(doc: &CadDocument) -> Result<(String, usize), String> {
-    let p = soubor_sablony().ok_or(tr("nelze určit složku nastavení"))?;
+    let p = soubor_sablony().ok_or(tr("nelze určit složku nastavení", "the settings folder cannot be determined"))?;
     let mut text = String::from("# Šablona stylů pluginu Terén – jeden styl na řádek\n"); // i18n:ne
     let mut n = 0;
     for s in styly_bodu(doc) {
@@ -883,7 +883,7 @@ pub fn uloz_sablonu(doc: &CadDocument) -> Result<(String, usize), String> {
     if let Some(d) = p.parent() {
         let _ = std::fs::create_dir_all(d);
     }
-    std::fs::write(&p, text).map_err(|e| trf!("šablonu nejde zapsat: {}", e))?;
+    std::fs::write(&p, text).map_err(|e| trf!("šablonu nejde zapsat: {}", "the template cannot be written: {}", e))?;
     Ok((p.display().to_string(), n))
 }
 
@@ -900,8 +900,8 @@ pub fn sablona_existuje() -> bool {
 
 /// Načte šablonu a uloží její styly do výkresu (stejná id se přepíšou).
 pub fn nacti_sablonu(v: &mut dyn Vykres, doc: &CadDocument) -> Result<usize, String> {
-    let p = soubor_sablony().ok_or(tr("nelze určit složku nastavení"))?;
-    let text = std::fs::read_to_string(&p).map_err(|_| trf!("šablona stylů zatím není uložená ({})", p.display()))?;
+    let p = soubor_sablony().ok_or(tr("nelze určit složku nastavení", "the settings folder cannot be determined"))?;
+    let text = std::fs::read_to_string(&p).map_err(|_| trf!("šablona stylů zatím není uložená ({})", "no style template is saved yet ({})", p.display()))?;
     let mut n = 0;
     for radek in text.lines().filter(|r| !r.starts_with('#')) {
         let pole: Vec<&str> = radek.split('\t').collect();

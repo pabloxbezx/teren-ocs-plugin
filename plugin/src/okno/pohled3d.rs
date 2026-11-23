@@ -1,7 +1,7 @@
 //! Prohlížeč povrchu 3D: otáčení, převýšení, barvy podle výšky nebo sklonu.
 //! Kreslí se v okně Prospektoru (egui), výkres se nemění.
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 use super::*;
 use crate::spravce::Sit3D;
@@ -153,7 +153,7 @@ fn cara_do_site(m: &mut Mesh, a: Pos2, b: Pos2, w: f32, c: Color32) {
 fn uloz_png(img: &egui::ColorImage, slozka: &str, jmeno: &str) -> Result<String, String> {
     let mut adresar = std::path::PathBuf::from(slozka);
     if slozka.is_empty() || !adresar.is_dir() {
-        let domov = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).ok_or(tr("není kam uložit"))?;
+        let domov = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).ok_or(tr("není kam uložit", "there is nowhere to save"))?;
         adresar = std::path::PathBuf::from(domov).join("Pictures");
         if !adresar.is_dir() {
             adresar = adresar.parent().map(|p| p.to_path_buf()).unwrap_or_default();
@@ -227,7 +227,7 @@ impl Okno {
     fn nastaveni_3d(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
         let p = &mut self.pohled;
         ui.add_space(6.0);
-        ui.label(RichText::new(tr("POVRCHY")).small().strong().color(SEDA));
+        ui.label(RichText::new(tr("POVRCHY", "SURFACES")).small().strong().color(SEDA));
         let mut zmena = false;
         for s in &stav.povrchy {
             let mut zap = p.povrchy.contains(&s.id);
@@ -241,16 +241,16 @@ impl Okno {
             }
         }
         if p.povrchy.len() > 1 {
-            ui.label(RichText::new(tr("další povrchy poloprůhledně")).small().color(SEDA));
+            ui.label(RichText::new(tr("další povrchy poloprůhledně", "other surfaces semi-transparent")).small().color(SEDA));
         }
         if zmena {
             p.nacti();
         }
-        if ui.small_button(tr("⟳ Načíst znovu")).on_hover_text(tr("po změně povrchu ve výkrese")).clicked() {
+        if ui.small_button(tr("⟳ Načíst znovu", "⟳ Reload")).on_hover_text(tr("po změně povrchu ve výkrese", "after a surface change in the drawing")).clicked() {
             p.nacti();
         }
         ui.add_space(6.0);
-        ui.label(RichText::new(tr("PŘEVÝŠENÍ")).small().strong().color(SEDA));
+        ui.label(RichText::new(tr("PŘEVÝŠENÍ", "VERTICAL EXAGGERATION")).small().strong().color(SEDA));
         ui.horizontal(|ui| {
             for k in [1.0, 2.0, 5.0, 10.0] {
                 if ui.selectable_label((p.prevyseni - k).abs() < 1e-3, format!("×{k}")).clicked() {
@@ -259,39 +259,39 @@ impl Okno {
             }
         });
         ui.add_space(6.0);
-        ui.label(RichText::new(tr("BARVY")).small().strong().color(SEDA));
-        ui.radio_value(&mut p.barvy, Barvy::Vyska, tr("podle výšky"));
-        ui.radio_value(&mut p.barvy, Barvy::Jednobarevne, tr("jednobarevně, stínovaně"));
-        ui.radio_value(&mut p.barvy, Barvy::Sklon, tr("podle sklonu"));
+        ui.label(RichText::new(tr("BARVY", "COLOURS")).small().strong().color(SEDA));
+        ui.radio_value(&mut p.barvy, Barvy::Vyska, tr("podle výšky", "by elevation"));
+        ui.radio_value(&mut p.barvy, Barvy::Jednobarevne, tr("jednobarevně, stínovaně", "single colour, shaded"));
+        ui.radio_value(&mut p.barvy, Barvy::Sklon, tr("podle sklonu", "by slope"));
         ui.add_space(6.0);
-        ui.label(RichText::new(tr("ZOBRAZIT")).small().strong().color(SEDA));
+        ui.label(RichText::new(tr("ZOBRAZIT", "SHOW")).small().strong().color(SEDA));
         let mut barvy = nastaveni::akt().barvy_3d;
         let puvodni = barvy;
         for (i, zap, text) in [
-            (4, &mut p.hrany, tr("hrany trojúhelníků")),
-            (3, &mut p.body, tr("body")),
-            (2, &mut p.vrstevnice, tr("vrstevnice")),
-            (1, &mut p.obrys, tr("obrys")),
-            (0, &mut p.spojnice, tr("spojnice (lomové hrany)")),
+            (4, &mut p.hrany, tr("hrany trojúhelníků", "triangle edges")),
+            (3, &mut p.body, tr("body", "points")),
+            (2, &mut p.vrstevnice, tr("vrstevnice", "contours")),
+            (1, &mut p.obrys, tr("obrys", "outline")),
+            (0, &mut p.spojnice, tr("spojnice (lomové hrany)", "breaklines")),
         ] {
             ui.horizontal(|ui| {
-                ui.color_edit_button_srgb(&mut barvy[i]).on_hover_text(tr("barva"));
+                ui.color_edit_button_srgb(&mut barvy[i]).on_hover_text(tr("barva", "colour"));
                 ui.checkbox(zap, text);
             });
         }
         if barvy != puvodni {
             nastaveni::zmen(|n| n.barvy_3d = barvy);
         }
-        if barvy != nastaveni::BARVY_3D && ui.small_button(tr("výchozí barvy")).clicked() {
+        if barvy != nastaveni::BARVY_3D && ui.small_button(tr("výchozí barvy", "default colours")).clicked() {
             nastaveni::zmen(|n| n.barvy_3d = nastaveni::BARVY_3D);
         }
         ui.add_space(10.0);
-        ui.label(RichText::new(tr("POHLED")).small().strong().color(SEDA));
+        ui.label(RichText::new(tr("POHLED", "VIEW")).small().strong().color(SEDA));
         ui.horizontal_wrapped(|ui| {
-            if ui.button(tr("Izometrie")).on_hover_text("Ctrl+7").clicked() {
+            if ui.button(tr("Izometrie", "Isometric")).on_hover_text("Ctrl+7").clicked() {
                 p.vychozi();
             }
-            if ui.button(tr("Shora")).on_hover_text("Ctrl+1").clicked() {
+            if ui.button(tr("Shora", "Top")).on_hover_text("Ctrl+1").clicked() {
                 p.pitch = 90f32.to_radians();
                 p.yaw = 0.0;
                 p.zoom = 1.0;
@@ -299,14 +299,14 @@ impl Okno {
             }
         });
         ui.horizontal(|ui| {
-            ui.label(RichText::new(tr("od")).color(SEDA));
-            for (t, y, napoveda) in [(svet("J"), 0.0, tr("od jihu")), (svet("S"), 180.0, tr("od severu")), (svet("V"), -90.0, tr("od východu")), (svet("Z"), 90.0, tr("od západu"))] {
+            ui.label(RichText::new(tr("od", "from")).color(SEDA));
+            for (t, y, napoveda) in [(svet("J"), 0.0, tr("od jihu", "from the south")), (svet("S"), 180.0, tr("od severu", "from the north")), (svet("V"), -90.0, tr("od východu", "from the east")), (svet("Z"), 90.0, tr("od západu", "from the west"))] {
                 if ui.button(t).on_hover_text(napoveda).clicked() {
                     p.pohled_ze_strany(y);
                 }
             }
         });
-        if ui.button(tr("Uložit obrázek…")).on_hover_text(tr("PNG do složky výkresu")).clicked() {
+        if ui.button(tr("Uložit obrázek…", "Save image…")).on_hover_text(tr("PNG do složky výkresu", "PNG to the drawing folder")).clicked() {
             p.foto = true;
         }
         if !p.zprava.is_empty() {
@@ -325,7 +325,7 @@ impl Okno {
                  Dvojklik – vycentrovat místo\n\
                  Ctrl + dvojklik – ukázat ve výkrese\n\
                  Šipky – otáčení po 15°, Shift 90°\n\
-                 Ctrl + šipky – posun, Z / Shift+Z – zoom"),
+                 Ctrl + šipky – posun, Z / Shift+Z – zoom", "Controls as in SolidWorks:\nMiddle button – orbit around the point under the cursor\nCtrl + middle / right – pan\nShift + middle – zoom\nWheel – zoom to cursor\nLeft button – also orbit\nMiddle double-click / F – whole surface\nDouble-click – centre the point\nCtrl + double-click – show in the drawing\nArrows – rotate by 15°, Shift 90°\nCtrl + arrows – pan, Z / Shift+Z – zoom"),
             )
             .small()
             .color(SEDA),
@@ -338,7 +338,7 @@ impl Okno {
         let painter = ui.painter_at(rect);
         painter.rect_filled(rect, 0.0, Color32::from_rgb(21, 22, 23));
         if site.is_empty() {
-            let t = if stav.povrchy.is_empty() { tr("Ve výkrese není žádný povrch.") } else { tr("Načítám povrch…") };
+            let t = if stav.povrchy.is_empty() { tr("Ve výkrese není žádný povrch.", "There is no surface in the drawing.") } else { tr("Načítám povrch…", "Loading surface…") };
             painter.text(rect.center(), Align2::CENTER_CENTER, t, FontId::proportional(15.0), SEDA);
             return;
         }
@@ -357,8 +357,8 @@ impl Okno {
                 p.foto_vyrez = None;
                 let jmeno: Vec<&str> = site.iter().map(|s| s.jmeno.as_str()).collect();
                 p.zprava = match uloz_png(&img.region(&vyrez, Some(ui.ctx().pixels_per_point())), &stav.slozka, &jmeno.join(" + ")) {
-                    Ok(c) => trf!("Uloženo: {}", c),
-                    Err(e) => trf!("Obrázek se nepodařilo uložit: {}", e),
+                    Ok(c) => trf!("Uloženo: {}", "Saved: {}", c),
+                    Err(e) => trf!("Obrázek se nepodařilo uložit: {}", "The image could not be saved: {}", e),
                 };
             }
         }
@@ -655,8 +655,8 @@ impl Okno {
             let l = egui::Rect::from_min_size(rect.right_top() + Vec2::new(-120.0, 14.0), Vec2::new(106.0, 190.0));
             painter.rect_filled(l, 6.0, Color32::from_rgba_unmultiplied(27, 27, 27, 230));
             let (nadpis, popisy): (&str, Vec<String>) = match p.barvy {
-                Barvy::Sklon => (tr("Sklon [°]"), ["35+", "26", "17", "9", "0"].map(String::from).to_vec()),
-                _ => (tr("Výška [m n. m.]"), (0..5).rev().map(|k| format!("{:.2}", zmin + (zmax - zmin) * k as f64 / 4.0)).collect()),
+                Barvy::Sklon => (tr("Sklon [°]", "Slope [°]"), ["35+", "26", "17", "9", "0"].map(String::from).to_vec()),
+                _ => (tr("Výška [m n. m.]", "Elevation [m a.s.l.]"), (0..5).rev().map(|k| format!("{:.2}", zmin + (zmax - zmin) * k as f64 / 4.0)).collect()),
             };
             painter.text(l.min + Vec2::new(8.0, 8.0), Align2::LEFT_TOP, nadpis, FontId::proportional(11.0), SEDA);
             let pruh = egui::Rect::from_min_size(l.min + Vec2::new(10.0, 28.0), Vec2::new(14.0, 150.0));
@@ -708,14 +708,14 @@ impl Okno {
         let n_troj: usize = site.iter().map(|s| s.troj.len()).sum();
         let n_bodu: usize = site.first().map_or(0, |s| s.body.len());
         let jmena: Vec<&str> = site.iter().map(|s| s.jmeno.as_str()).collect();
-        let info = trf!("{} · {} trojúhelníků · {} bodů · převýšení ×{} · {:.2} – {:.2} m n. m.", jmena.join(" + "), n_troj, n_bodu, p.prevyseni, zmin, zmax);
+        let info = trf!("{} · {} trojúhelníků · {} bodů · převýšení ×{} · {:.2} – {:.2} m n. m.", "{} · {} triangles · {} points · exaggeration ×{} · {:.2} – {:.2} m a.s.l.", jmena.join(" + "), n_troj, n_bodu, p.prevyseni, zmin, zmax);
         painter.text(rect.left_bottom() + Vec2::new(90.0, -10.0), Align2::LEFT_BOTTOM, info, FontId::proportional(12.0), SEDA);
     }
 }
 
 /// Světová strana (S, J, V, Z) v jazyce rozhraní.
 fn svet(cs: &'static str) -> &'static str {
-    if !teren::preklad::anglicky() {
+    if !crate::lang::anglicky() {
         return cs;
     }
     match cs {

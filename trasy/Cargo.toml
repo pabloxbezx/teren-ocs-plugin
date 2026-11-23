@@ -6,3 +6,4 @@ license = "GPL-3.0-only"
 description = "Výpočetní jádro tras a podélných profilů (bez závislosti na CAD)"
 
 [dependencies]
+teren_lang = { path = "../lang" }

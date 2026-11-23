@@ -5,7 +5,7 @@
 //! Obojí se tu schová za trait `Vykres`, aby se povrch dal přestavět
 //! odkudkoli stejným kódem.
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 use ocs_plugin_api::host::{
     Document as CadDocument, EntityType, ExtendedDataRecord, Handle, HostApi, LayerConfig, PluginRequestSender, TableOperation,
@@ -73,7 +73,7 @@ fn zapamatuj_velikost(doc: &CadDocument) {
 
 fn chyba_velikosti(v: u64) -> String {
     trf!(
-        "výkres je na přenos do Terénu příliš velký (asi {} MB, Open CAD Studio přenese nejvýš 64 MB) – rozdělte body do více výkresů nebo zmenšete povrch",
+        "výkres je na přenos do Terénu příliš velký (asi {} MB, Open CAD Studio přenese nejvýš 64 MB) – rozdělte body do více výkresů nebo zmenšete povrch", "the drawing is too large to transfer to Terrain (about {} MB, Open CAD Studio transfers at most 64 MB) – split the points into several drawings or make the surface smaller", // i18n:ne
         v / (1024 * 1024)
     )
 }
@@ -143,14 +143,14 @@ pub fn prepis_blok(v: &mut dyn Vykres, doc: &CadDocument, blok: &str, nove: Vec<
         .filter(|h| !matches!(doc.get_entity(*h), None | Some(EntityType::Block(_)) | Some(EntityType::BlockEnd(_))))
         .collect();
     let (mut sparovane, pridat, smazat) = crate::cogo::sparuj(doc, &clenove, nove);
-    ladeni(&format!("blok {blok}: spárováno {}, přidat {}, smazat {}", sparovane.len(), pridat.len(), smazat.len()));
+    ladeni(&format!("blok {blok}: spárováno {}, přidat {}, smazat {}", sparovane.len(), pridat.len(), smazat.len())); // i18n:ne
     if pridat.len() + smazat.len() > NA_MISTE_NEJVIC {
-        ladeni(&format!("blok {blok}: postaru (moc změn)"));
+        ladeni(&format!("blok {blok}: postaru (moc změn)")); // i18n:ne
         return Ok(false);
     }
     sparovane.push(vlozeni);
     if let Err(e) = v.transakce(popis, sparovane) {
-        ladeni(&format!("blok {blok}: postaru, transakce odmítnuta: {e}"));
+        ladeni(&format!("blok {blok}: postaru, transakce odmítnuta: {e}")); // i18n:ne
         return Ok(false);
     }
     for h in smazat {
@@ -228,11 +228,11 @@ impl Vykres for PresHost<'_> {
         for d in davky(e) {
             h.extend(self.0.add_entities(d));
         }
-        if h.len() == n { Ok(h) } else { Err(trf!("vloženo {} z {} objektů", h.len(), n)) }
+        if h.len() == n { Ok(h) } else { Err(trf!("vloženo {} z {} objektů", "inserted {} of {} objects", h.len(), n)) } // i18n:ne
     }
     fn pridej_jednu(&mut self, e: EntityType) -> Result<Handle, String> {
         let h = self.0.add_entity(e);
-        if h == Handle::NULL { Err(tr("objekt se nepodařilo vložit").into()) } else { Ok(h) }
+        if h == Handle::NULL { Err(tr("objekt se nepodařilo vložit", "the object could not be inserted").into()) } else { Ok(h) } // i18n:ne
     }
     fn uprav(&mut self, e: EntityType) -> bool {
         self.0.update_entity(e)
@@ -458,7 +458,7 @@ impl Vykres for PresKanal {
                 zapamatuj_velikost(&d);
                 Ok(*d)
             }
-            o => Err(format!("neočekávaná odpověď {o:?}")),
+            o => Err(format!("neočekávaná odpověď {o:?}")), // i18n:ne
         }
     }
     fn info(&mut self, z: &str) {
@@ -499,7 +499,7 @@ impl Vykres for PresKanal {
         for d in davky(e) {
             match self.pozadavek(PluginRequest::AddEntities(d))? {
                 PluginResponse::Handles(x) => h.extend(x),
-                o => return Err(format!("neočekávaná odpověď {o:?}")),
+                o => return Err(format!("neočekávaná odpověď {o:?}")), // i18n:ne
             }
         }
         Ok(h)
@@ -507,7 +507,7 @@ impl Vykres for PresKanal {
     fn pridej_jednu(&mut self, e: EntityType) -> Result<Handle, String> {
         match self.pozadavek(PluginRequest::AddEntity(e))? {
             PluginResponse::Handle(h) | PluginResponse::OptHandle(Some(h)) if h != Handle::NULL => Ok(h),
-            o => Err(format!("neočekávaná odpověď {o:?}")),
+            o => Err(format!("neočekávaná odpověď {o:?}")), // i18n:ne
         }
     }
     fn uprav(&mut self, e: EntityType) -> bool {
@@ -523,7 +523,7 @@ impl Vykres for PresKanal {
         match self.pozadavek(PluginRequest::TableOperation { operation: op })? {
             PluginResponse::TableResult(r) => r,
             PluginResponse::Handle(h) => Ok(h),
-            o => Err(format!("neočekávaná odpověď {o:?}")),
+            o => Err(format!("neočekávaná odpověď {o:?}")), // i18n:ne
         }
     }
     fn hladina(&mut self, cfg: LayerConfig) {
@@ -548,7 +548,7 @@ impl Vykres for PresKanal {
         match self.pozadavek(PluginRequest::UpdateEntitiesTransaction { label: popis.into(), entities: e })? {
             PluginResponse::EntityTransactionResult(r) => r,
             PluginResponse::Ok => Ok(()),
-            o => Err(format!("neočekávaná odpověď {o:?}")),
+            o => Err(format!("neočekávaná odpověď {o:?}")), // i18n:ne
         }
     }
     fn jen_zobrazeni(&mut self, h: Handle, ano: bool) -> bool {

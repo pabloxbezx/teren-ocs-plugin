@@ -118,7 +118,7 @@ impl FormatBodu {
                 'Z' => Sloupec::Z,
                 'D' => Sloupec::Popis,
                 '-' | '_' => Sloupec::Preskocit,
-                jiny => return Err(trf!("neznámé písmeno '{}' ve formátu '{}'", jiny, vzor)),
+                jiny => return Err(trf!("neznámé písmeno '{}' ve formátu '{}'", "unknown letter '{}' in format '{}'", jiny, vzor)),
             };
             sloupce.push(s);
         }
@@ -135,19 +135,21 @@ impl FormatBodu {
         let rovina_ne = ma(Sloupec::N) && ma(Sloupec::E);
         let rovina_yx = ma(Sloupec::SjtskY) && ma(Sloupec::SjtskX);
         if !(rovina_ne ^ rovina_yx) {
-            return Err(format!(
-                "formát '{vzor}' musí obsahovat buď N+E (souřadnice výkresu), nebo Y+X (S-JTSK), ne obojí"
+            return Err(trf!(
+                "formát '{}' musí obsahovat buď N+E (souřadnice výkresu), nebo Y+X (S-JTSK), ne obojí",
+                "format '{}' must contain either N+E (drawing coordinates) or Y+X (S-JTSK), not both",
+                vzor
             ));
         }
         if (ma(Sloupec::N) || ma(Sloupec::E)) && (ma(Sloupec::SjtskY) || ma(Sloupec::SjtskX)) {
-            return Err(trf!("formát '{}' míchá souřadnice výkresu (N, E) a S-JTSK (Y, X)", vzor));
+            return Err(trf!("formát '{}' míchá souřadnice výkresu (N, E) a S-JTSK (Y, X)", "format '{}' mixes drawing coordinates (N, E) and S-JTSK (Y, X)", vzor));
         }
         if !ma(Sloupec::Z) {
-            return Err(trf!("formát '{}' neobsahuje výšku Z", vzor));
+            return Err(trf!("formát '{}' neobsahuje výšku Z", "format '{}' has no elevation Z", vzor));
         }
         for s in [Sloupec::Cislo, Sloupec::N, Sloupec::E, Sloupec::SjtskY, Sloupec::SjtskX, Sloupec::Z, Sloupec::Popis] {
             if sloupce.iter().filter(|&&x| x == s).count() > 1 {
-                return Err(format!("formát '{vzor}' obsahuje sloupec {s:?} vícekrát"));
+                return Err(trf!("formát '{}' obsahuje sloupec {} vícekrát", "format '{}' contains column {} more than once", vzor, format!("{s:?}")));
             }
         }
         Ok(Self { sloupce, oddelovac, preskocit_radku: 0, desetinna: Desetinna::Auto })
@@ -193,7 +195,7 @@ pub struct ChybaRadku {
 
 impl fmt::Display for ChybaRadku {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&trf!("řádek {}: {} ({})", self.radek, self.duvod, self.text.trim()))
+        f.write_str(&trf!("řádek {}: {} ({})", "line {}: {} ({})", self.radek, self.duvod, self.text.trim()))
     }
 }
 
@@ -321,7 +323,7 @@ pub fn nacti_body(text: &str, format: &FormatBodu) -> VysledekImportu {
             vysledek.chyby.push(ChybaRadku {
                 radek: cislo_radku,
                 text: radek.to_string(),
-                duvod: trf!("málo sloupců ({} místo alespoň {})", pole.len(), povinnych),
+                duvod: trf!("málo sloupců ({} místo alespoň {})", "too few columns ({} instead of at least {})", pole.len(), povinnych),
                 sloupec: Some(pole.len()),
             });
             continue;
@@ -333,8 +335,8 @@ pub fn nacti_body(text: &str, format: &FormatBodu) -> VysledekImportu {
             let mut num = |cil: &mut f64, jmeno: &str, znamenko: f64| match cislo_z_textu(hodnota, format.oddelovac, format.desetinna) {
                 Some(v) => *cil = znamenko * v,
                 None if chyba.is_some() => {}
-                None if hodnota.trim().is_empty() => chyba = Some((trf!("chybí hodnota {}", jmeno), j)),
-                None => chyba = Some((trf!("neplatná hodnota {} '{}'", jmeno, hodnota), j)),
+                None if hodnota.trim().is_empty() => chyba = Some((trf!("chybí hodnota {}", "missing value {}", jmeno), j)),
+                None => chyba = Some((trf!("neplatná hodnota {} '{}'", "invalid value {} '{}'", jmeno, hodnota), j)),
             };
             match sloupec {
                 Sloupec::Cislo => bod.cislo = hodnota.to_string(),
@@ -481,7 +483,7 @@ mod testy {
         assert_eq!((v.chyby[0].radek, v.chyby[0].sloupec), (2, Some(1)));
         assert_eq!((v.chyby[1].radek, v.chyby[1].sloupec), (4, Some(3)));
         // hláška je přeložená podle jazyka systému (na serverech sestavení anglicky)
-        assert_eq!(v.chyby[1].duvod, trf!("chybí hodnota {}", "Z"));
+        assert_eq!(v.chyby[1].duvod, trf!("chybí hodnota {}", "missing value {}", "Z"));
     }
 
     #[test]

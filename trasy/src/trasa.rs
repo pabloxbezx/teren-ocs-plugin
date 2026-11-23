@@ -160,7 +160,7 @@ pub const SCHEMA: &[Klic] = &[
     Klic { klic: "carka", vychozi: "1", popis: "Desetinná čárka" },
     Klic { klic: "popis_body", vychozi: "1", popis: "Popisovat hlavní body (ZÚ, KÚ, TK, KT, TP, PK, KP, PT)" },
     Klic { klic: "popis_vrcholy", vychozi: "0", popis: "Popisovat vrcholy (V) a poloměry" },
-    Klic { klic: "zkratky", vychozi: "ZÚ,KÚ,TK,KT,V,TP,PK,KP,PT", popis: "Zkratky bodů ZÚ,KÚ,TK,KT,V,TP,PK,KP,PT" },
+    Klic { klic: "zkratky", vychozi: "ZÚ,KÚ,TK,KT,V,TP,PK,KP,PT", popis: "Zkratky bodů ZÚ,KÚ,TK,KT,V,TP,PK,KP,PT" }, // i18n:ne
     Klic { klic: "polygon", vychozi: "1", popis: "Kreslit tečnový polygon" },
     // barva = index ACI 1–255, 256 = podle hladiny; tloušťka v setinách mm, -1 = podle hladiny
     Klic { klic: "barva_osa", vychozi: "256", popis: "Barva osy" },

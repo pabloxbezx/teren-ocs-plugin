@@ -7,7 +7,7 @@
 //! Výpočet probíhá v lokálních souřadnicích posunutých o `pocatek`, aby se
 //! s velkými souřadnicemi S-JTSK (~10^6 m) nepracovalo na hranici přesnosti.
 
-use crate::preklad::tr;
+use crate::lang::tr;
 use crate::trf;
 use crate::body::Bod;
 use spade::handles::FixedVertexHandle;
@@ -85,12 +85,12 @@ impl Editace {
 
     pub fn popis(&self) -> &'static str {
         match self {
-            Editace::PridatBod(_) => tr("přidání bodu"),
-            Editace::OdebratBod(_) => tr("odebrání bodu"),
-            Editace::OtocitHranu(..) => tr("otočení hrany"),
-            Editace::SmazatTrojuhelnik(_) => tr("smazání trojúhelníku"),
-            Editace::PridatHranu(..) => tr("přidání hrany"),
-            Editace::SmazatHranu(..) => tr("smazání hrany"),
+            Editace::PridatBod(_) => tr("přidání bodu", "point addition"),
+            Editace::OdebratBod(_) => tr("odebrání bodu", "point removal"),
+            Editace::OtocitHranu(..) => tr("otočení hrany", "edge swap"),
+            Editace::SmazatTrojuhelnik(_) => tr("smazání trojúhelníku", "triangle deletion"),
+            Editace::PridatHranu(..) => tr("přidání hrany", "edge addition"),
+            Editace::SmazatHranu(..) => tr("smazání hrany", "edge deletion"),
         }
     }
 
@@ -379,7 +379,7 @@ impl Povrch {
         pridane.iter().for_each(|p| rozsah(p[0], p[1]));
         if !mx.is_finite() {
             return Err(ChybaPovrchu(
-                tr("povrch nemá žádné body – jeho skupiny bodů jsou prázdné nebo vypnuté; přidejte skupinu v Prospektoru (Z čeho se povrch počítá › Skupiny bodů)").into(),
+                tr("povrch nemá žádné body – jeho skupiny bodů jsou prázdné nebo vypnuté; přidejte skupinu v Prospektoru (Z čeho se povrch počítá › Skupiny bodů)", "the surface has no points – its point groups are empty or disabled; add a group in the Prospector (What the surface is built from › Point groups)").into(),
             ));
         }
         let pocatek = (mx.floor(), my.floor());
@@ -444,7 +444,7 @@ impl Povrch {
         }
 
         if vrcholy.len() < 3 {
-            return Err(ChybaPovrchu(trf!("pro povrch jsou potřeba aspoň 3 body, ve skupinách je {} – přidejte body nebo další skupinu", vrcholy.len())));
+            return Err(ChybaPovrchu(trf!("pro povrch jsou potřeba aspoň 3 body, ve skupinách je {} – přidejte body nebo další skupinu", "a surface needs at least 3 points, the groups contain {} – add points or another group", vrcholy.len())));
         }
 
         let mut tin: ConstrainedDelaunayTriangulation<V> = ConstrainedDelaunayTriangulation::new();
@@ -485,7 +485,7 @@ impl Povrch {
             }
         }
         if tin.num_inner_faces() == 0 {
-            return Err(ChybaPovrchu(tr("body leží na jedné přímce, trojúhelníky z nich nevzniknou – přidejte body mimo tuto přímku").into()));
+            return Err(ChybaPovrchu(tr("body leží na jedné přímce, trojúhelníky z nich nevzniknou – přidejte body mimo tuto přímku", "the points lie on one straight line, no triangles can be made – add points off this line").into()));
         }
 
         let povinne_hrany: HashSet<(usize, usize)> = tin
@@ -616,7 +616,7 @@ impl Povrch {
     /// Otočí hranu mezi vrcholy `a`, `b` (indexy). Vrací chybu s důvodem.
     pub fn otoc_hranu(&mut self, a: usize, b: usize) -> Result<(), &'static str> {
         if self.povinne_hrany.contains(&klic(a, b)) {
-            return Err(tr("drží ji spojnice (lomová hrana); spojnici můžete v Prospektoru vypnout"));
+            return Err(tr("drží ji spojnice (lomová hrana); spojnici můžete v Prospektoru vypnout", "it is held by a breakline; you can disable the breakline in the Prospector"));
         }
         let sdilene: Vec<usize> = self
             .trojuhelniky
@@ -626,7 +626,7 @@ impl Povrch {
             .map(|(i, _)| i)
             .collect();
         if sdilene.len() != 2 {
-            return Err(tr("leží na okraji povrchu, není ji s čím prohodit"));
+            return Err(tr("leží na okraji povrchu, není ji s čím prohodit", "it lies on the surface edge, there is nothing to swap it with"));
         }
         let protejsi = |t: [usize; 3]| *t.iter().find(|&&v| v != a && v != b).unwrap();
         let (t1, t2) = (sdilene[0], sdilene[1]);
@@ -638,7 +638,7 @@ impl Povrch {
         let o3 = orient(pt(a), pt(b), pt(p));
         let o4 = orient(pt(a), pt(b), pt(q));
         if !(o1 * o2 < 0.0 && o3 * o4 < 0.0) {
-            return Err(tr("trojúhelníky kolem ní netvoří vypuklý čtyřúhelník – zkuste nejdřív otočit sousední hranu"));
+            return Err(tr("trojúhelníky kolem ní netvoří vypuklý čtyřúhelník – zkuste nejdřív otočit sousední hranu", "the triangles around it do not form a convex quadrilateral – try swapping a neighbouring edge first"));
         }
         let ccw = |x: usize, y: usize, z: usize| if orient(pt(x), pt(y), pt(z)) > 0.0 { [x, y, z] } else { [x, z, y] };
         self.trojuhelniky[t1] = ccw(p, q, a);

@@ -1,6 +1,6 @@
 //! Nápověda (F1) a slovníček pojmů.
 
-use teren::preklad::{tr, tr_dyn};
+use crate::lang::{tr, tr_dyn};
 use eframe::egui::{self, RichText};
 
 use super::{Okno, SEDA};
@@ -20,7 +20,7 @@ pub const POJMY: &[(&str, &str)] = &[
 
 /// Vysvětlivka pojmu (pro „?“).
 pub fn vysvetlivka(pojem: &str) -> &'static str {
-    POJMY.iter().find(|(p, _)| p.eq_ignore_ascii_case(pojem) || tr(p).eq_ignore_ascii_case(pojem)).map_or("", |(_, v)| tr(v))
+    POJMY.iter().find(|(p, _)| p.eq_ignore_ascii_case(pojem) || crate::lang::tr_tab(p).eq_ignore_ascii_case(pojem)).map_or("", |(_, v)| crate::lang::tr_tab(v))
 }
 
 /// Malý „?“ s vysvětlivkou po najetí myší.
@@ -129,7 +129,7 @@ impl Okno {
         let Some(tema) = self.napoveda.clone() else { return };
         let mut otevreno = true;
         let mut nove = None;
-        egui::Window::new(tr("Nápověda"))
+        egui::Window::new(tr("Nápověda", "Help"))
             .open(&mut otevreno)
             .pivot(egui::Align2::CENTER_CENTER)
             .default_pos(ctx.content_rect().center())
@@ -144,9 +144,9 @@ impl Okno {
                             if t.oddil != oddil {
                                 oddil = t.oddil;
                                 ui.add_space(6.0);
-                                ui.label(RichText::new(tr(oddil).to_uppercase()).small().strong().color(SEDA));
+                                ui.label(RichText::new(crate::lang::tr_tab(oddil).to_uppercase()).small().strong().color(SEDA));
                             }
-                            if ui.selectable_label(tema == t.id, tr(t.nazev)).clicked() {
+                            if ui.selectable_label(tema == t.id, crate::lang::tr_tab(t.nazev)).clicked() {
                                 nove = Some(t.id.to_string());
                             }
                         }
@@ -155,18 +155,18 @@ impl Okno {
                     egui::ScrollArea::vertical().id_salt("napoveda_s").max_height(420.0).auto_shrink([false, true]).show(ui, |ui| ui.vertical(|ui| {
                         ui.set_max_width(ui.available_width().min(520.0));
                         let t = TEMATA.iter().find(|t| t.id == tema).unwrap_or(&TEMATA[0]);
-                        ui.heading(tr(t.nazev));
+                        ui.heading(crate::lang::tr_tab(t.nazev));
                         ui.add_space(4.0);
                         if t.id == "pojmy" {
                             for (p, v) in POJMY {
-                                ui.label(RichText::new(tr(p)).strong());
-                                ui.label(tr(v));
+                                ui.label(RichText::new(crate::lang::tr_tab(p)).strong());
+                                ui.label(crate::lang::tr_tab(v));
                                 ui.add_space(6.0);
                             }
-                            ui.label(RichText::new(tr("Stejné vysvětlivky se ukážou po najetí na „?“ vedle pojmu v Prospektoru.")).small().color(SEDA));
+                            ui.label(RichText::new(tr("Stejné vysvětlivky se ukážou po najetí na „?“ vedle pojmu v Prospektoru.", "The same explanations appear when you hover over the \"?\" next to a term in the Prospector.")).small().color(SEDA));
                         } else {
                             for odst in t.text {
-                                ui.label(tr(odst));
+                                ui.label(crate::lang::tr_tab(odst));
                                 ui.add_space(4.0);
                             }
                         }

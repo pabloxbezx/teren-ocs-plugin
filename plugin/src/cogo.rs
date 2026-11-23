@@ -8,7 +8,7 @@
 //! Skupina bodů = pomocný POINT na vypnuté hladině `TER_SKUPINY` s definicí
 //! v XDATA `TEREN_POVRCH` (první řetězec `SKUPINA`).
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 use std::collections::HashMap;
 
@@ -468,7 +468,7 @@ pub fn zajisti_bloky_znacek(v: &mut dyn Vykres, doc: &CadDocument) -> Result<(),
                 entities: h.clone(),
                 base_point: [0.0, 0.0, 0.0],
                 erase_originals: true,
-                description: Some(trf!("Značka bodu „{}“ (plugin Terén)", zn.nazev())),
+                description: Some(trf!("Značka bodu „{}“ (plugin Terén)", "Point marker \"{}\" (Terén plugin)", zn.nazev())),
             });
             if let Err(e) = vysledek {
                 // tvary značky nesmí zůstat ve výkrese v počátku souřadnic
@@ -477,7 +477,7 @@ pub fn zajisti_bloky_znacek(v: &mut dyn Vykres, doc: &CadDocument) -> Result<(),
                 }
                 // blok mezitím vytvořil někdo jiný (souběh) – v pořádku
                 if !v.dokument().is_ok_and(|d| d.block_records.iter().any(|b| b.name.eq_ignore_ascii_case(&jm))) {
-                    return Err(trf!("blok značky {} nejde vytvořit: {}", jm, e));
+                    return Err(trf!("blok značky {} nejde vytvořit: {}", "marker block {} cannot be created: {}", jm, e));
                 }
             }
         }
@@ -722,7 +722,7 @@ pub fn oprav_nesoulad(v: &mut dyn Vykres, doc: &CadDocument, n: &Nesoulad) -> Re
     if !nove.is_empty() {
         priprav_vykres_s(v, doc)?;
     }
-    nahrad_grafiku(v, doc, tr("Popisy bodů"), Vec::new(), &n.navic, nove)
+    nahrad_grafiku(v, doc, tr("Popisy bodů", "Point labels"), Vec::new(), &n.navic, nove)
 }
 
 /// Nahradí starou grafiku novou s co nejmenším počtem požadavků: nové objekty
@@ -899,7 +899,7 @@ pub fn proved_posuny(v: &mut dyn Vykres, doc: &CadDocument, posuny: &[PosunBodu]
             (bv, b.clone(), styl)
         })
         .collect();
-    uprav_body(v, doc, &zmeny, tr("Posun bodu"))
+    uprav_body(v, doc, &zmeny, tr("Posun bodu", "Move point"))
 }
 
 /// Body vybrané ve výkrese – přímo, nebo přes jejich značku či popis.
@@ -1066,7 +1066,7 @@ pub fn obnov_grafiku(v: &mut dyn Vykres, doc: &CadDocument) -> Result<usize, Str
     }
     if !presun.is_empty() {
         priprav_vykres(v)?;
-        v.transakce(tr("Body"), presun)?;
+        v.transakce(tr("Body", "Points"), presun)?;
     }
     smaz_objekty(v, vsechna_grafika(doc));
     let polozky: Vec<(Bod, StylBodu)> = body.iter().map(|b| (b.bod.clone(), ro.styl_bodu(b))).collect();
@@ -1226,11 +1226,11 @@ pub fn volne_jmeno_skupiny(doc: &CadDocument, zaklad: &str) -> String {
 /// Uloží skupinu (novou vloží, existující přepíše).
 pub fn uloz_skupinu(v: &mut dyn Vykres, doc: &CadDocument, s: &SkupinaBodu) -> Result<(), String> {
     if s.id == VSECHNY {
-        return Err(tr("skupinu Všechny body nelze měnit").into());
+        return Err(tr("skupinu Všechny body nelze měnit", "the All points group cannot be changed").into());
     }
     if let Some((h, _)) = ulozene_skupiny(doc).into_iter().find(|(_, x)| x.id.eq_ignore_ascii_case(&s.id)) {
         if !v.zapis_xdata(h, xdata_skupiny(s)) {
-            return Err(tr("skupinu se nepodařilo uložit").into());
+            return Err(tr("skupinu se nepodařilo uložit", "the group could not be saved").into());
         }
         return Ok(());
     }
@@ -1253,8 +1253,8 @@ pub fn smaz_skupinu(v: &mut dyn Vykres, doc: &CadDocument, id: &str) -> Result<(
     let (h, _) = ulozene_skupiny(doc)
         .into_iter()
         .find(|(_, x)| x.id.eq_ignore_ascii_case(id))
-        .ok_or(tr("skupina už ve výkrese není"))?;
-    if v.odeber(h) { Ok(()) } else { Err(tr("skupinu se nepodařilo smazat").into()) }
+        .ok_or(tr("skupina už ve výkrese není", "the group is no longer in the drawing"))?;
+    if v.odeber(h) { Ok(()) } else { Err(tr("skupinu se nepodařilo smazat", "the group could not be deleted").into()) }
 }
 
 /// Identifikátor skupiny bodů zaměření.
@@ -1264,8 +1264,8 @@ pub const ZAMERENI: &str = "ZAMERENI";
 pub fn skupina_zamereni() -> SkupinaBodu {
     SkupinaBodu {
         id: ZAMERENI.into(),
-        jmeno: tr("Zaměření").into(),
-        popis: tr("všechny body kromě ručně vytvořených").into(),
+        jmeno: tr("Zaměření", "Survey").into(),
+        popis: tr("všechny body kromě ručně vytvořených", "all points except manually created ones").into(),
         vse: true,
         bez_rucnich: true,
         ..Default::default()
@@ -1300,7 +1300,7 @@ pub fn presun_nosice(v: &mut dyn Vykres, doc: &CadDocument) -> bool {
     }
     let n = b.len() as f64;
     let (x, y) = (b.iter().map(|b| b.bod.x).sum::<f64>() / n, b.iter().map(|b| b.bod.y).sum::<f64>() / n);
-    v.zpet(tr("Terén"));
+    v.zpet(tr("Terén", "Terén"));
     let mut zmena = false;
     for mut e in nosice {
         if let EntityType::Point(p) = &mut e {

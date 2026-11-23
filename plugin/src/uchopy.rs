@@ -13,7 +13,7 @@ use ocs_plugin_api::host::{
     CustomGripEvent, CustomGripPhase, CustomGripResponse, Document as CadDocument, EntityType, Handle, HostApi, PluginGrip,
     PluginGripShape, PreviewWire, MAX_PLUGIN_LIVE_ENTITIES,
 };
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 
 use crate::cogo;
@@ -147,7 +147,7 @@ pub fn udalost(host: &mut dyn HostApi, ev: CustomGripEvent) -> CustomGripRespons
 
 fn posun(host: &mut dyn HostApi, h: Handle, dx: f64, dy: f64) {
     // celý posun (bod, smazání a vložení grafiky) = jeden krok Zpět
-    host.begin_undo_group(tr("Posun bodu"));
+    host.begin_undo_group(tr("Posun bodu", "Move point"));
     posun_bez_skupiny(host, h, dx, dy);
     host.end_undo_group();
 }
@@ -158,9 +158,9 @@ fn posun_bez_skupiny(host: &mut dyn HostApi, h: Handle, dx: f64, dy: f64) {
     let Some(bv) = cogo::body(&doc).into_iter().find(|b| b.handle == h) else { return };
     let novy = teren::body::Bod { x: bv.bod.x + dx, y: bv.bod.y + dy, ..bv.bod.clone() };
     let styl = bv.styl.clone();
-    match cogo::uprav_body(&mut v, &doc, &[(bv, novy, styl)], tr("Posun bodu")) {
+    match cogo::uprav_body(&mut v, &doc, &[(bv, novy, styl)], tr("Posun bodu", "Move point")) {
         Ok(_) => v.hotovo(),
-        Err(e) => v.chyba(&trf!("Terén: posun bodu: {}", e)),
+        Err(e) => v.chyba(&trf!("Terén: posun bodu: {}", "Terén: move point: {}", e)),
     }
     // úchopy znovu – bod je jinde
     if let Ok(doc) = v.dokument() {

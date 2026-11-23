@@ -3,7 +3,7 @@
 
 use ocs_plugin_api::host::{Document as CadDocument, Handle};
 
-use trasy::preklad::tr_dyn;
+use crate::lang::tr_dyn;
 
 use crate::tra::{editor, objekt, pohled};
 use crate::vykres::{PresKanal, Vykres};
@@ -201,9 +201,9 @@ pub fn nastav(v: &mut dyn Vykres, insert: Handle, jmeno: &str, pocatek: f64, sty
     let h = objekt::uloz(v, Some(&doc), Some(&t), def)?;
     v.vyber(vec![h]);
     Ok(if t.def.jmeno != jmeno {
-        trasy::trf!("Trasa „{}“ přejmenována na „{}“", t.def.jmeno, jmeno)
+        trasy::trf!("Trasa „{}“ přejmenována na „{}“", "Alignment “{}” renamed to “{}”", t.def.jmeno, jmeno)
     } else {
-        trasy::trf!("Trasa „{}“ upravena", jmeno)
+        trasy::trf!("Trasa „{}“ upravena", "Alignment “{}” updated", jmeno)
     })
 }
 
@@ -216,7 +216,7 @@ pub fn otevri_editor(k: &mut PresKanal, insert: Handle) -> Result<String, String
     k.panel_ukaz(editor::ID, def);
     k.panel_id(editor::ID, editor::hodnoty(&doc));
     k.vyber(vec![insert]);
-    Ok(trasy::trf!("Editor trasy: {}", t.def.jmeno))
+    Ok(trasy::trf!("Editor trasy: {}", "Alignment editor: {}", t.def.jmeno))
 }
 
 /// Smaže trasu i s jejími pohledy profilu.
@@ -230,9 +230,9 @@ pub fn smaz_trasu(v: &mut dyn Vykres, insert: Handle) -> Result<String, String> 
     }
     objekt::smaz(v, &doc, &t);
     Ok(if pohledy.is_empty() {
-        trasy::trf!("Trasa „{}“ smazána", t.def.jmeno)
+        trasy::trf!("Trasa „{}“ smazána", "Alignment “{}” deleted", t.def.jmeno)
     } else {
-        trasy::trf!("Trasa „{}“ smazána i s pohledy profilu ({})", t.def.jmeno, pohledy.len())
+        trasy::trf!("Trasa „{}“ smazána i s pohledy profilu ({})", "Alignment “{}” deleted together with its profile views ({})", t.def.jmeno, pohledy.len())
     })
 }
 
@@ -250,7 +250,7 @@ pub fn smaz_pohled(v: &mut dyn Vykres, insert: Handle) -> Result<String, String>
     v.zpet(&tr_dyn("Smazání pohledu profilu"));
     smaz_pohled_obj(v, &doc, &p);
     v.hotovo();
-    Ok(trasy::trf!("Pohled profilu {} smazán", p.def.id))
+    Ok(trasy::trf!("Pohled profilu {} smazán", "Profile view {} deleted", p.def.id))
 }
 
 /// Překreslí pohledy (jen zadané, nebo všechny zastaralé).
@@ -266,7 +266,7 @@ pub fn prekresli(v: &mut dyn Vykres, jen: Option<Handle>) -> Result<String, Stri
         }
     }
     v.hotovo();
-    Ok(trasy::trf!("Překresleno pohledů profilu: {}", n))
+    Ok(trasy::trf!("Překresleno pohledů profilu: {}", "Profile views redrawn: {}", n))
 }
 
 /// Uloží upravený vzhled a pásy pohledu a pohled překreslí (jeden krok Zpět).
@@ -285,7 +285,7 @@ pub fn uprav_pohled(v: &mut dyn Vykres, insert: Handle, def: &trasy::pohled::Def
     v.zpet(&tr_dyn("Úprava pohledu profilu"));
     // uloz si překreslení i „výkres změněn“ zařídí sám (na místě i postaru)
     pohled::uloz(v, &doc, Some(&p), &def, p.vlozeni)?;
-    Ok(trasy::trf!("Pohled profilu {} upraven", def.id))
+    Ok(trasy::trf!("Pohled profilu {} upraven", "Profile view {} updated", def.id))
 }
 
 /// Překreslí trasy se stylem `styl` (např. po jeho uložení). S `nahrada`
@@ -302,5 +302,5 @@ pub fn prekresli_trasy_stylu(v: &mut dyn Vykres, styl: &str, nahrada: Option<&st
         v.zpet(&tr_dyn("Styl trasy"));
         objekt::uloz(v, Some(&doc), Some(t), def)?;
     }
-    Ok(if trasy.is_empty() { String::new() } else { trasy::trf!("Překresleno tras: {}", trasy.len()) })
+    Ok(if trasy.is_empty() { String::new() } else { trasy::trf!("Překresleno tras: {}", "Alignments redrawn: {}", trasy.len()) })
 }

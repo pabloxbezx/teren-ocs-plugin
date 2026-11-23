@@ -11,7 +11,7 @@ use eframe::egui::{self, Align2, Color32, FontFamily, FontId, Pos2, Rect, RichTe
 use ocs_plugin_api::host::codec::entities::text::{TextHorizontalAlignment as Hz, TextVerticalAlignment as Vt};
 use ocs_plugin_api::host::codec::types::Color;
 use ocs_plugin_api::host::{EntityType, Handle};
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 
 use trasy::pasy::{DruhPasu, Pas, Poloha, Usek, Zdroj};
@@ -104,7 +104,7 @@ fn definice_stylu(s: &StylProfilu) -> DefinicePohledu {
 }
 
 fn jmeno_stylu(styly: &[StylProfilu], id: &str) -> String {
-    styly.iter().find(|s| s.id == id).map_or_else(|| id.to_string(), |s| trasy::preklad::tr_dyn(&s.jmeno))
+    styly.iter().find(|s| s.id == id).map_or_else(|| id.to_string(), |s| crate::lang::tr_dyn(&s.jmeno))
 }
 
 /// Stejné definice bez ohledu na otisk a osy (ty mění až kreslení).
@@ -124,7 +124,7 @@ impl EditorProfilu {
         let pohledy: Vec<_> = stav.trasy.iter().flat_map(|t| t.pohledy.iter()).collect();
         let p = pohledy.iter().find(|p| p.def.styl == id).or(pohledy.first()).map(|p| (p.id.clone(), p.insert));
         let d = definice_stylu(s);
-        Some(Self::novy(Rezim::Styl, id.to_string(), trasy::preklad::tr_dyn(&s.jmeno), p, d))
+        Some(Self::novy(Rezim::Styl, id.to_string(), crate::lang::tr_dyn(&s.jmeno), p, d))
     }
 
     /// Editor jednoho pohledu (výjimky ze stylu).
@@ -324,7 +324,7 @@ impl EditorProfilu {
                 self.pozadano = Some(pid.clone());
                 spravce::posli(Akce::PodkladyPohledu(pid.clone()));
             }
-            return Err(tr("Načítám pohled z výkresu…").to_string());
+            return Err(tr("Načítám pohled z výkresu…", "Loading the view from the drawing…").to_string());
         }
         Ok(self.ukazka.get_or_insert_with(ukazkove_podklady))
     }
@@ -333,8 +333,8 @@ impl EditorProfilu {
     pub fn okno(&mut self, ctx: &egui::Context, stav: &StavSpravce) {
         nacti_pisma(ctx);
         let titulek = match self.rezim {
-            Rezim::Styl => trf!("Vzhled profilu – styl {}", self.jmeno),
-            Rezim::Pohled => trf!("Vzhled profilu – pohled {}", self.pohled.as_ref().map_or("", |p| p.0.as_str())),
+            Rezim::Styl => trf!("Vzhled profilu – styl {}", "Profile appearance – style {}", self.jmeno),
+            Rezim::Pohled => trf!("Vzhled profilu – pohled {}", "Profile appearance – view {}", self.pohled.as_ref().map_or("", |p| p.0.as_str())),
         };
         let vlozene = ctx.embed_viewports();
         let okno = egui::ViewportBuilder::default().with_title(titulek.clone()).with_inner_size([1400.0, 860.0]).with_min_inner_size([980.0, 560.0]);
@@ -404,17 +404,17 @@ impl EditorProfilu {
             match self.rezim {
                 Rezim::Styl => {
                     ui.add(egui::TextEdit::singleline(&mut self.jmeno).desired_width(230.0).font(FontId::proportional(14.0)))
-                        .on_hover_text(tr("jméno stylu"));
+                        .on_hover_text(tr("jméno stylu", "style name"));
                     let n = stav.trasy.iter().flat_map(|t| t.pohledy.iter()).filter(|p| p.def.styl == self.styl_id).count();
-                    chip(ui, &trf!("pohledů: {}", n), TLUMENA);
+                    chip(ui, &trf!("pohledů: {}", "views: {}", n), TLUMENA);
                 }
                 Rezim::Pohled => {
-                    ui.label(RichText::new(tr("Styl")).color(TLUMENA));
+                    ui.label(RichText::new(tr("Styl", "Style")).color(TLUMENA));
                     let vybrany = jmeno_stylu(&stav.styly_profilu, &self.d.styl);
                     let mut novy = None;
                     egui::ComboBox::from_id_salt("ep_styl").selected_text(vybrany).width(220.0).show_ui(ui, |ui| {
                         for s in &stav.styly_profilu {
-                            if ui.selectable_label(self.d.styl == s.id, trasy::preklad::tr_dyn(&s.jmeno)).clicked() && self.d.styl != s.id {
+                            if ui.selectable_label(self.d.styl == s.id, crate::lang::tr_dyn(&s.jmeno)).clicked() && self.d.styl != s.id {
                                 novy = Some(s.clone());
                             }
                         }
@@ -428,15 +428,15 @@ impl EditorProfilu {
                     }
                     let vyj = self.d.vyjimky.len();
                     if vyj > 0 {
-                        chip(ui, &trf!("výjimky: {}", vyj), VAROVANI);
-                        if ui.small_button(tr("zrušit výjimky")).clicked() {
+                        chip(ui, &trf!("výjimky: {}", "exceptions: {}", vyj), VAROVANI);
+                        if ui.small_button(tr("zrušit výjimky", "clear overrides")).clicked() {
                             self.d.vyjimky.clear();
                         }
                     }
                     if !self.d.pasy_ze_stylu {
                         if let Some(s) = stav.styly_profilu.iter().find(|s| s.id == self.d.styl) {
-                            chip(ui, tr("vlastní pásy"), VAROVANI);
-                            if ui.small_button(tr("vrátit pásy ze stylu")).clicked() {
+                            chip(ui, tr("vlastní pásy", "custom bands"), VAROVANI);
+                            if ui.small_button(tr("vrátit pásy ze stylu", "restore bands from style")).clicked() {
                                 self.d.pasy = s.pasy.clone();
                                 self.d.pasy_ze_stylu = true;
                             }
@@ -447,7 +447,7 @@ impl EditorProfilu {
             ui.add_space(8.0);
             let akt = self.hodnota(stav, "predloha");
             let mut volba = None;
-            segment(ui, &PREDLOHY.iter().map(|p| (p.0, tr(p.1))).collect::<Vec<_>>(), &akt, |v| volba = Some(v));
+            segment(ui, &PREDLOHY.iter().map(|p| (p.0, crate::lang::tr_tab(p.1))).collect::<Vec<_>>(), &akt, |v| volba = Some(v));
             if let Some(v) = volba {
                 for (k, h) in vzhled::predloha(v) {
                     self.nastav(stav, k, h);
@@ -456,20 +456,20 @@ impl EditorProfilu {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 let zmeny = self.ma_zmeny();
                 let popis = match self.rezim {
-                    Rezim::Styl => tr("Uložit a překreslit"),
-                    Rezim::Pohled => tr("Použít na pohled"),
+                    Rezim::Styl => tr("Uložit a překreslit", "Save and redraw"),
+                    Rezim::Pohled => tr("Použít na pohled", "Apply to the view"),
                 };
                 if ui.add_enabled(zmeny, egui::Button::new(RichText::new(popis).strong().color(Color32::WHITE)).fill(AKCENT).min_size(Vec2::new(0.0, 28.0))).clicked() {
                     self.uloz();
                 }
-                if ui.add_enabled(zmeny, egui::Button::new(tr("Zahodit")).min_size(Vec2::new(0.0, 28.0))).clicked() {
+                if ui.add_enabled(zmeny, egui::Button::new(tr("Zahodit", "Discard")).min_size(Vec2::new(0.0, 28.0))).clicked() {
                     self.zahod();
                 }
                 ui.add_space(6.0);
-                if ui.add_enabled(!self.vpred.is_empty(), egui::Button::new(tr("Znovu"))).on_hover_text(tr("Znovu (Ctrl+Y)")).clicked() {
+                if ui.add_enabled(!self.vpred.is_empty(), egui::Button::new(tr("Znovu", "Redo"))).on_hover_text(tr("Znovu (Ctrl+Y)", "Redo (Ctrl+Y)")).clicked() {
                     self.krok_vpred();
                 }
-                if ui.add_enabled(!self.zpet.is_empty(), egui::Button::new(tr("Zpět"))).on_hover_text(tr("Zpět (Ctrl+Z)")).clicked() {
+                if ui.add_enabled(!self.zpet.is_empty(), egui::Button::new(tr("Zpět", "Back"))).on_hover_text(tr("Zpět (Ctrl+Z)", "Undo (Ctrl+Z)")).clicked() {
                     self.krok_zpet();
                 }
             });
@@ -479,16 +479,16 @@ impl EditorProfilu {
     fn dolni_lista(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             let mv = self.d.meritko / self.d.prevyseni.max(0.1);
-            ui.label(RichText::new(trf!("M 1:{} / 1:{} · převýšení {}×", cz(self.d.meritko, 0), cz(mv, 0), cz(self.d.prevyseni, 1))).color(TLUMENA).size(12.0));
+            ui.label(RichText::new(trf!("M 1:{} / 1:{} · převýšení {}×", "S 1:{} / 1:{} · exaggeration {}×", cz(self.d.meritko, 0), cz(mv, 0), cz(self.d.prevyseni, 1))).color(TLUMENA).size(12.0));
             if let Some((_, _, r, _)) = &self.cache {
                 let (s, v) = rozmer(r);
-                ui.label(RichText::new(trf!("rozměr {} × {} mm", cz(s / self.d.meritko * 1000.0, 0), cz(v / self.d.meritko * 1000.0, 0))).color(TLUMENA).size(12.0));
+                ui.label(RichText::new(trf!("rozměr {} × {} mm", "size {} × {} mm", cz(s / self.d.meritko * 1000.0, 0), cz(v / self.d.meritko * 1000.0, 0))).color(TLUMENA).size(12.0));
             }
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if self.ma_zmeny() {
-                    ui.label(RichText::new(tr("• neuložené změny")).color(VAROVANI).size(12.0));
+                    ui.label(RichText::new(tr("• neuložené změny", "• unsaved changes")).color(VAROVANI).size(12.0));
                 } else {
-                    ui.label(RichText::new(tr("bez neuložených změn")).color(TLUMENA).size(12.0));
+                    ui.label(RichText::new(tr("bez neuložených změn", "no unsaved changes")).color(TLUMENA).size(12.0));
                 }
             });
         });
@@ -500,7 +500,7 @@ impl EditorProfilu {
         ui.add_space(4.0);
         ui.horizontal(|ui| {
             ui.add_space(8.0);
-            for (k, n) in [(Karta::Struktura, tr("Struktura")), (Karta::Pisma, tr("Písma")), (Karta::Cary, tr("Čáry a barvy"))] {
+            for (k, n) in [(Karta::Struktura, tr("Struktura", "Structure")), (Karta::Pisma, tr("Písma", "Fonts")), (Karta::Cary, tr("Čáry a barvy", "Lines and colours"))] {
                 let on = self.karta == k;
                 let r = ui.add(egui::Button::new(RichText::new(n).color(if on { TEXT } else { TLUMENA })).frame(false));
                 if on {
@@ -527,21 +527,21 @@ impl EditorProfilu {
     fn struktura(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
         let mut klik: Option<Vyber> = None;
         let mut oko: Option<usize> = None;
-        skupina(ui, tr("Výkres"), None);
-        if radek(ui, matches!(self.vyber, Vyber::Nadpis), "H", tr("Nadpis a měřítko"), "", false, None).0.clicked() {
+        skupina(ui, tr("Výkres", "Drawing"), None);
+        if radek(ui, matches!(self.vyber, Vyber::Nadpis), "H", tr("Nadpis a měřítko", "Title and scale"), "", false, None).0.clicked() {
             klik = Some(Vyber::Nadpis);
         }
         let mut obdelniky: Vec<(usize, Rect)> = Vec::new();
         let mut zony: Vec<(Poloha, Rect)> = Vec::new();
-        for (poloha, nazev) in [(Poloha::Nad, tr("Pásy nad grafem")), (Poloha::Pod, tr("Pásy pod grafem"))] {
+        for (poloha, nazev) in [(Poloha::Nad, tr("Pásy nad grafem", "Bands above the graph")), (Poloha::Pod, tr("Pásy pod grafem", "Bands below the graph"))] {
             if poloha == Poloha::Pod {
-                skupina(ui, tr("Graf"), None);
-                if radek(ui, self.vyber == Vyber::Graf, "G", tr("Graf, mřížka a stupnice"), "", false, None).0.clicked() {
+                skupina(ui, tr("Graf", "Graph"), None);
+                if radek(ui, self.vyber == Vyber::Graf, "G", tr("Graf, mřížka a stupnice", "Graph, grid and scale"), "", false, None).0.clicked() {
                     klik = Some(Vyber::Graf);
                 }
                 for (k, n) in CARY.iter().filter(|c| !matches!(c.0, "pasy" | "mrizka")) {
                     let c = self.cara(stav, k);
-                    let r = radek_cary(ui, self.vyber == Vyber::Cara(k), &c, tr(n));
+                    let r = radek_cary(ui, self.vyber == Vyber::Cara(k), &c, crate::lang::tr_tab(n));
                     if r.clicked() {
                         klik = Some(Vyber::Cara(k));
                     }
@@ -565,19 +565,19 @@ impl EditorProfilu {
                 obdelniky.push((i, r.rect));
             }
             if pocet == 0 {
-                ui.label(RichText::new(tr("   přetáhněte sem pás")).color(TLUMENA).size(11.0));
+                ui.label(RichText::new(tr("   přetáhněte sem pás", "   drag a band here")).color(TLUMENA).size(11.0));
             }
         }
-        skupina(ui, tr("Pod profilem"), None);
+        skupina(ui, tr("Pod profilem", "Below the profile"), None);
         let leg = self.ano(stav, "legenda");
-        let (r, o) = radek(ui, self.vyber == Vyber::Legenda, "L", tr("Legenda"), "", !leg, Some(leg));
+        let (r, o) = radek(ui, self.vyber == Vyber::Legenda, "L", tr("Legenda", "Legend"), "", !leg, Some(leg));
         if o {
             self.nastav(stav, "legenda", if leg { "0" } else { "1" });
         } else if r.clicked() {
             klik = Some(Vyber::Legenda);
         }
         ui.add_space(8.0);
-        if ui.add_sized([ui.available_width() - 16.0, 30.0], egui::Button::new(RichText::new(tr("+ Přidat pás")).color(AKCENT))).clicked() {
+        if ui.add_sized([ui.available_width() - 16.0, 30.0], egui::Button::new(RichText::new(tr("+ Přidat pás", "+ Add band")).color(AKCENT))).clicked() {
             self.galerie = true;
         }
         // přetahování pásů
@@ -660,7 +660,7 @@ impl EditorProfilu {
 
     fn seznam_pisem(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
         ui.add_space(4.0);
-        ui.label(RichText::new(tr("Každá role písma se ve výkrese stane textovým stylem TER_PP_… s písmem TrueType. Změna platí pro všechny pásy, které roli používají.")).color(TLUMENA).size(11.5));
+        ui.label(RichText::new(tr("Každá role písma se ve výkrese stane textovým stylem TER_PP_… s písmem TrueType. Změna platí pro všechny pásy, které roli používají.", "Each text role becomes a TER_PP_… text style with a TrueType font in the drawing. A change applies to all bands that use the role.")).color(TLUMENA).size(11.5));
         ui.add_space(6.0);
         for (k, n) in ROLE {
             let p = self.pismo(stav, k);
@@ -670,7 +670,7 @@ impl EditorProfilu {
                 "zahlavi" => "Kóta dna potrubí",
                 "hodnota" => "385,62  0,165 00",
                 "usek" => "DN300 – PVC – 83,00",
-                "graf" => "Š3  S.R. 383,00",
+                "graf" => "Š3  S.R. 383,00", // i18n:ne
                 _ => "M 1:500 / 1:50",
             };
             let r = egui::Frame::new()
@@ -682,7 +682,7 @@ impl EditorProfilu {
                     ui.set_width(ui.available_width());
                     ui.label(RichText::new(ukazka).font(FontId::new(17.0, rodina(&p.font, p.tucne))).color(TEXT).italics_if(p.kurziva));
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(tr(n)).color(TLUMENA).size(11.0));
+                        ui.label(RichText::new(crate::lang::tr_tab(n)).color(TLUMENA).size(11.0));
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.label(RichText::new(format!("{} · {} mm", p.font, cz(p.vyska, 1))).color(TLUMENA).size(11.0));
                         });
@@ -699,8 +699,8 @@ impl EditorProfilu {
 
     fn seznam_car(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
         ui.add_space(6.0);
-        ui.label(RichText::new(tr("Tloušťky čar")).strong());
-        ui.label(RichText::new(tr("Tři tloušťky pro celý profil; čáry je jen odkazují.")).color(TLUMENA).size(11.5));
+        ui.label(RichText::new(tr("Tloušťky čar", "Line weights")).strong());
+        ui.label(RichText::new(tr("Tři tloušťky pro celý profil; čáry je jen odkazují.", "Three weights for the whole profile; lines only refer to them.")).color(TLUMENA).size(11.5));
         for (k, n) in TLOUSTKY {
             let klic = format!("tl.{k}");
             let mut v: f64 = self.hodnota(stav, &klic).replace(',', ".").parse().unwrap_or(0.25);
@@ -712,27 +712,27 @@ impl EditorProfilu {
                 };
                 let (r, _) = ui.allocate_exact_size(Vec2::new(26.0, 14.0), Sense::hover());
                 ui.painter().line_segment([r.left_center(), r.right_center()], Stroke::new(sila, TEXT));
-                ui.add_sized([90.0, 18.0], egui::Label::new(tr(n)));
+                ui.add_sized([90.0, 18.0], egui::Label::new(crate::lang::tr_tab(n)));
                 if ui.add(egui::DragValue::new(&mut v).range(0.0..=2.11).speed(0.01).max_decimals(2).suffix(" mm")).changed() {
                     self.nastav(stav, &klic, &format!("{v}"));
                 }
             });
         }
         ui.add_space(10.0);
-        ui.label(RichText::new(tr("Čáry")).strong());
+        ui.label(RichText::new(tr("Čáry", "Lines")).strong());
         for (k, n) in CARY {
             let c = self.cara(stav, k);
-            if radek_cary(ui, self.vyber == Vyber::Cara(k), &c, tr(n)).clicked() {
+            if radek_cary(ui, self.vyber == Vyber::Cara(k), &c, crate::lang::tr_tab(n)).clicked() {
                 self.vyber = Vyber::Cara(k);
             }
         }
         ui.add_space(10.0);
-        ui.label(RichText::new(tr("Barva textů")).strong());
+        ui.label(RichText::new(tr("Barva textů", "Text colour")).strong());
         let mut b = vzhled::barva(&self.hodnota(stav, "c.text"));
         if vyber_barvy(ui, "ep_text", &mut b) {
             self.nastav(stav, "c.text", &b.map(vzhled::hex).unwrap_or_default());
         }
-        ui.label(RichText::new(tr("„Podle hladiny“ = bílá na obrazovce, černá při tisku.")).color(TLUMENA).size(11.0));
+        ui.label(RichText::new(tr("„Podle hladiny“ = bílá na obrazovce, černá při tisku.", "“By layer” = white on screen, black when printed.")).color(TLUMENA).size(11.0));
     }
 
     // ── náhled ──────────────────────────────────────────────────────────
@@ -744,15 +744,15 @@ impl EditorProfilu {
         {
             let mut lui = ui.new_child(egui::UiBuilder::new().max_rect(lista.shrink2(Vec2::new(10.0, 4.0))).layout(egui::Layout::left_to_right(egui::Align::Center)));
             let mut papir = self.papir;
-            segment(&mut lui, &[("ocs", tr("Pozadí OCS")), ("papir", tr("Papír"))], if papir { "papir" } else { "ocs" }, |v| papir = v == "papir");
+            segment(&mut lui, &[("ocs", tr("Pozadí OCS", "OCS background")), ("papir", tr("Papír", "Paper"))], if papir { "papir" } else { "ocs" }, |v| papir = v == "papir");
             self.papir = papir;
             lui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button(tr("Na šířku")).clicked() {
+                if ui.button(tr("Na šířku", "Fit width")).clicked() {
                     self.zoom = 1.0;
                     self.posun = Vec2::ZERO;
                 }
                 ui.label(RichText::new(format!("{} %", (self.zoom * 100.0).round())).color(if self.papir { Color32::from_gray(60) } else { TLUMENA }));
-                ui.label(RichText::new(tr("klik = výběr · táhni modrý úchyt = výška pásu · kolečko = lupa · pravé tlačítko = posun")).color(if self.papir { Color32::from_gray(80) } else { TLUMENA }).size(11.5));
+                ui.label(RichText::new(tr("klik = výběr · táhni modrý úchyt = výška pásu · kolečko = lupa · pravé tlačítko = posun", "click = select · drag the blue handle = band height · wheel = zoom · right button = pan")).color(if self.papir { Color32::from_gray(80) } else { TLUMENA }).size(11.5));
             });
         }
         let oblast = Rect::from_min_max(Pos2::new(rect.left(), lista.bottom()), rect.max);
@@ -921,12 +921,12 @@ impl EditorProfilu {
                 Vyber::Graf => self.insp_grafu(ui, stav),
                 Vyber::Nadpis => self.insp_nadpisu(ui, stav),
                 Vyber::Legenda => {
-                    hlava(ui, tr("Legenda"), tr("Legenda čar"));
+                    hlava(ui, tr("Legenda", "Legend"), tr("Legenda čar", "Line legend"));
                     let mut b = self.ano(stav, "legenda");
-                    if ui.checkbox(&mut b, tr("Zobrazit legendu pod profilem")).changed() {
+                    if ui.checkbox(&mut b, tr("Zobrazit legendu pod profilem", "Show the legend below the profile")).changed() {
                         self.nastav(stav, "legenda", if b { "1" } else { "0" });
                     }
-                    poznamka(ui, tr("Legenda vypíše čáry grafu (terén, niveleta, další povrchy) v jejich barvě."));
+                    poznamka(ui, tr("Legenda vypíše čáry grafu (terén, niveleta, další povrchy) v jejich barvě.", "The legend lists the graph lines (terrain, vertical alignment, other surfaces) in their colours."));
                     self.odkaz_pisma(ui, stav, "legenda");
                 }
                 Vyber::Pismo(k) => self.insp_pisma(ui, stav, k),
@@ -934,7 +934,7 @@ impl EditorProfilu {
             }
             if self.rezim == Rezim::Pohled {
                 ui.add_space(10.0);
-                poznamka(ui, tr("Upravujete jen tento pohled: změny nastavení jsou výjimky ze stylu, ostatní pohledy zůstanou beze změny."));
+                poznamka(ui, tr("Upravujete jen tento pohled: změny nastavení jsou výjimky ze stylu, ostatní pohledy zůstanou beze změny.", "You are editing this view only: changes are exceptions to the style, other views stay unchanged."));
             }
         });
     }
@@ -945,20 +945,20 @@ impl EditorProfilu {
             Err(_) => stav.povrchy.iter().map(|z| (z.id.clone(), z.jmeno.clone())).collect(),
         };
         let Some(pred) = self.d.pasy.get(i).cloned() else {
-            ui.label(RichText::new(tr("Vyberte část profilu v náhledu nebo vlevo ve struktuře.")).color(TLUMENA));
+            ui.label(RichText::new(tr("Vyberte část profilu v náhledu nebo vlevo ve struktuře.", "Select a part of the profile in the preview or in the structure on the left.")).color(TLUMENA));
             return;
         };
         let mut p = pred.clone();
-        ui.label(RichText::new(format!("{} · {}", tr("Pás"), tr(p.druh.nazev())).to_uppercase()).color(TLUMENA).size(11.0));
+        ui.label(RichText::new(format!("{} · {}", tr("Pás", "Band"), crate::lang::tr_tab(p.druh.nazev())).to_uppercase()).color(TLUMENA).size(11.0));
         let mut nazev = nazev_pasu(&p);
         if ui.add(egui::TextEdit::singleline(&mut nazev).font(FontId::proportional(15.0)).desired_width(f32::INFINITY)).changed() {
             p.nazev = nazev;
         }
-        sekce(ui, tr("Obsah"));
-        pole(ui, tr("Typ"), |ui| {
-            egui::ComboBox::from_id_salt(("ep_druh", i)).selected_text(tr(p.druh.nazev())).width(ui.available_width()).show_ui(ui, |ui| {
+        sekce(ui, tr("Obsah", "Content"));
+        pole(ui, tr("Typ", "Type"), |ui| {
+            egui::ComboBox::from_id_salt(("ep_druh", i)).selected_text(crate::lang::tr_tab(p.druh.nazev())).width(ui.available_width()).show_ui(ui, |ui| {
                 for d in DruhPasu::VSE {
-                    if ui.selectable_label(p.druh == d, tr(d.nazev())).clicked() && p.druh != d {
+                    if ui.selectable_label(p.druh == d, crate::lang::tr_tab(d.nazev())).clicked() && p.druh != d {
                         let n = Pas::novy(d);
                         p.druh = d;
                         p.zdroj = n.zdroj;
@@ -968,41 +968,41 @@ impl EditorProfilu {
             });
         });
         if matches!(p.druh, DruhPasu::Kota | DruhPasu::Rozdil) {
-            pole(ui, if p.druh == DruhPasu::Rozdil { tr("Výška A") } else { tr("Čte z") }, |ui| vyber_zdroje(ui, ("ep_z1", i), &mut p.zdroj, &povrchy));
+            pole(ui, if p.druh == DruhPasu::Rozdil { tr("Výška A", "Elevation A") } else { tr("Čte z", "Reads from") }, |ui| vyber_zdroje(ui, ("ep_z1", i), &mut p.zdroj, &povrchy));
         }
         if p.druh == DruhPasu::Rozdil {
-            pole(ui, tr("minus B"), |ui| vyber_zdroje(ui, ("ep_z2", i), &mut p.zdroj2, &povrchy));
+            pole(ui, tr("minus B", "minus B"), |ui| vyber_zdroje(ui, ("ep_z2", i), &mut p.zdroj2, &povrchy));
         }
         if p.druh.hodnotovy() || p.druh == DruhPasu::Vzdalenosti {
-            ui.label(RichText::new(tr("Kde psát hodnoty")).color(TLUMENA).size(12.0));
+            ui.label(RichText::new(tr("Kde psát hodnoty", "Where to write values")).color(TLUMENA).size(12.0));
             ui.horizontal_wrapped(|ui| {
-                ui.checkbox(&mut p.lomy, tr("lomové body"));
-                ui.checkbox(&mut p.body_trasy, tr("hlavní body trasy"));
+                ui.checkbox(&mut p.lomy, tr("lomové body", "break points"));
+                ui.checkbox(&mut p.body_trasy, tr("hlavní body trasy", "main alignment points"));
             });
-            pole(ui, tr("Po intervalu"), |ui| {
-                ui.add(egui::DragValue::new(&mut p.krok).range(0.0..=1000.0).speed(1.0).suffix(" m")).on_hover_text(tr("0 = bez pravidelného kroku"));
+            pole(ui, tr("Po intervalu", "By interval"), |ui| {
+                ui.add(egui::DragValue::new(&mut p.krok).range(0.0..=1000.0).speed(1.0).suffix(" m")).on_hover_text(tr("0 = bez pravidelného kroku", "0 = no regular interval"));
             });
         }
         if p.druh.hodnotovy() || p.druh == DruhPasu::Sklony {
-            pole(ui, tr("Des. místa"), |ui| {
+            pole(ui, tr("Des. místa", "Decimals"), |ui| {
                 let mut v = p.desetin.to_string();
                 segment(ui, &[("0", "0"), ("1", "0,0"), ("2", "0,00"), ("3", "0,000")], &v.clone(), |x| v = x.to_string());
                 p.desetin = v.parse().unwrap_or(p.desetin);
             });
         }
         if p.druh == DruhPasu::Text {
-            pole(ui, tr("Text"), |ui| {
+            pole(ui, tr("Text", "Text"), |ui| {
                 ui.add(egui::TextEdit::singleline(&mut p.text).desired_width(f32::INFINITY));
             });
         }
         if p.druh == DruhPasu::Useky {
-            ui.label(RichText::new(tr("Úseky (od – do, text)")).color(TLUMENA).size(12.0));
+            ui.label(RichText::new(tr("Úseky (od – do, text)", "Sections (from – to, text)")).color(TLUMENA).size(12.0));
             let mut smazat = None;
             for (j, u) in p.useky.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
                     ui.add(egui::DragValue::new(&mut u.od).speed(1.0).max_decimals(2));
                     ui.label("–");
-                    ui.add(egui::DragValue::new(&mut u.do_).speed(1.0).max_decimals(2).custom_formatter(|v, _| if v >= 1e8 { tr("konec").to_string() } else { cz(v, 2) }));
+                    ui.add(egui::DragValue::new(&mut u.do_).speed(1.0).max_decimals(2).custom_formatter(|v, _| if v >= 1e8 { tr("konec", "end").to_string() } else { cz(v, 2) }));
                     ui.add(egui::TextEdit::singleline(&mut u.text).desired_width(110.0));
                     if ui.small_button("×").clicked() {
                         smazat = Some(j);
@@ -1012,48 +1012,48 @@ impl EditorProfilu {
             if let Some(j) = smazat {
                 p.useky.remove(j);
             }
-            if ui.small_button(tr("+ úsek")).clicked() {
+            if ui.small_button(tr("+ úsek", "+ segment")).clicked() {
                 let od = p.useky.last().map_or(0.0, |u| if u.do_ >= 1e8 { u.od } else { u.do_ });
                 p.useky.push(Usek { od, do_: 1e9, text: String::new() });
             }
         }
-        sekce(ui, tr("Vzhled"));
-        pole(ui, tr("Poloha"), |ui| {
+        sekce(ui, tr("Vzhled", "Appearance"));
+        pole(ui, tr("Poloha", "Position"), |ui| {
             let mut v = if p.poloha == Poloha::Nad { "nad" } else { "pod" };
-            segment(ui, &[("nad", tr("Nad grafem")), ("pod", tr("Pod grafem"))], v, |x| v = x);
+            segment(ui, &[("nad", tr("Nad grafem", "Above the graph")), ("pod", tr("Pod grafem", "Below the graph"))], v, |x| v = x);
             p.poloha = if v == "nad" { Poloha::Nad } else { Poloha::Pod };
         });
-        pole(ui, tr("Výška"), |ui| {
+        pole(ui, tr("Výška", "Elevation"), |ui| {
             ui.add(egui::Slider::new(&mut p.vyska, 3.0..=40.0).step_by(0.5).suffix(" mm"));
         });
-        pole(ui, tr("Písmo"), |ui| {
+        pole(ui, tr("Písmo", "Font"), |ui| {
             let akt = p.role_pisma().to_string();
-            let popis = ROLE.iter().find(|r| r.0 == akt).map_or(akt.clone(), |r| tr(r.1).to_string());
+            let popis = ROLE.iter().find(|r| r.0 == akt).map_or(akt.clone(), |r| crate::lang::tr_tab(r.1).to_string());
             egui::ComboBox::from_id_salt(("ep_pismo", i)).selected_text(popis).width(ui.available_width()).show_ui(ui, |ui| {
                 for (k, n) in ROLE.iter().filter(|r| matches!(r.0, "hodnota" | "usek" | "graf")) {
                     let pis = self.pismo(stav, k);
-                    if ui.selectable_label(akt == *k, format!("{} ({} {})", tr(n), pis.font, cz(pis.vyska, 1))).clicked() {
+                    if ui.selectable_label(akt == *k, format!("{} ({} {})", crate::lang::tr_tab(n), pis.font, cz(pis.vyska, 1))).clicked() {
                         p.pismo = k.to_string();
                     }
                 }
             });
         });
         if p.druh.textovy() {
-            pole(ui, tr("Zarovnání"), |ui| {
+            pole(ui, tr("Zarovnání", "Alignment"), |ui| {
                 let mut v = if p.na_stred { "stred" } else { "vlevo" };
-                segment(ui, &[("vlevo", tr("Vlevo")), ("stred", tr("Na střed"))], v, |x| v = x);
+                segment(ui, &[("vlevo", tr("Vlevo", "Left")), ("stred", tr("Na střed", "Centre"))], v, |x| v = x);
                 p.na_stred = v == "stred";
             });
         }
-        ui.checkbox(&mut p.podbarvit, tr("Podbarvit pás"));
-        ui.checkbox(&mut p.skryty, tr("Skrýt pás (zůstane ve stylu)"));
+        ui.checkbox(&mut p.podbarvit, tr("Podbarvit pás", "Shade the band"));
+        ui.checkbox(&mut p.skryty, tr("Skrýt pás (zůstane ve stylu)", "Hide band (stays in the style)"));
         ui.add_space(10.0);
         let mut dupl = false;
         let mut odebrat = false;
         ui.horizontal(|ui| {
             let w = (ui.available_width() - 8.0) / 2.0;
-            dupl = ui.add_sized([w, 28.0], egui::Button::new(tr("Duplikovat"))).clicked();
-            odebrat = ui.add_sized([w, 28.0], egui::Button::new(RichText::new(tr("Odebrat pás")).color(Color32::from_rgb(255, 138, 128)))).clicked();
+            dupl = ui.add_sized([w, 28.0], egui::Button::new(tr("Duplikovat", "Duplicate"))).clicked();
+            odebrat = ui.add_sized([w, 28.0], egui::Button::new(RichText::new(tr("Odebrat pás", "Remove band")).color(Color32::from_rgb(255, 138, 128)))).clicked();
         });
         if p != pred {
             self.d.pasy[i] = p;
@@ -1061,7 +1061,7 @@ impl EditorProfilu {
         }
         if dupl {
             let mut n = self.d.pasy[i].clone();
-            n.nazev = trf!("{} (kopie)", nazev_pasu(&n));
+            n.nazev = trf!("{} (kopie)", "{} (copy)", nazev_pasu(&n));
             self.d.pasy.insert(i + 1, n);
             self.vyber = Vyber::Pas(i + 1);
             self.pasy_zmeneny();
@@ -1072,9 +1072,9 @@ impl EditorProfilu {
     }
 
     fn insp_grafu(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        hlava(ui, tr("Graf"), tr("Graf, mřížka a stupnice"));
-        sekce(ui, tr("Měřítko"));
-        pole(ui, tr("Délky 1:"), |ui| {
+        hlava(ui, tr("Graf", "Graph"), tr("Graf, mřížka a stupnice", "Graph, grid and scale"));
+        sekce(ui, tr("Měřítko", "Scale"));
+        pole(ui, tr("Délky 1:", "Lengths 1:"), |ui| {
             let akt = format!("{}", self.d.meritko);
             let mut v = None;
             segment(ui, &[("250", "250"), ("500", "500"), ("1000", "1000"), ("2000", "2000")], &akt, |x| v = Some(x));
@@ -1083,51 +1083,51 @@ impl EditorProfilu {
             }
         });
         pole(ui, "", |ui| {
-            ui.add(egui::DragValue::new(&mut self.d.meritko).range(10.0..=100000.0).speed(10.0).max_decimals(0).prefix(tr("vlastní 1:")));
+            ui.add(egui::DragValue::new(&mut self.d.meritko).range(10.0..=100000.0).speed(10.0).max_decimals(0).prefix(tr("vlastní 1:", "custom 1:")));
         });
-        pole(ui, tr("Převýšení"), |ui| {
+        pole(ui, tr("Převýšení", "Exaggeration"), |ui| {
             ui.add(egui::Slider::new(&mut self.d.prevyseni, 1.0..=50.0).step_by(0.5).suffix(" ×"));
         });
-        poznamka(ui, &trf!("Výšky vycházejí v měřítku 1:{}.", cz(self.d.meritko / self.d.prevyseni.max(0.1), 0)));
+        poznamka(ui, &trf!("Výšky vycházejí v měřítku 1:{}.", "Heights are at scale 1:{}.", cz(self.d.meritko / self.d.prevyseni.max(0.1), 0)));
         if self.rezim == Rezim::Styl {
-            poznamka(ui, tr("U stylu je měřítko výchozí pro nové pohledy; náhled ho použije."));
+            poznamka(ui, tr("U stylu je měřítko výchozí pro nové pohledy; náhled ho použije.", "In a style the scale is the default for new views; the preview uses it."));
         }
-        sekce(ui, tr("Mřížka a stupnice"));
-        self.zaskrt(ui, stav, "mrizka", tr("Mřížka"));
-        pole(ui, tr("Výšk. stupnice"), |ui| {
+        sekce(ui, tr("Mřížka a stupnice", "Grid and scale"));
+        self.zaskrt(ui, stav, "mrizka", tr("Mřížka", "Grid"));
+        pole(ui, tr("Výšk. stupnice", "Elevation scale"), |ui| {
             let akt = self.hodnota(stav, "stupnice");
             let mut v = None;
-            segment(ui, &[("skryt", tr("Skrýt")), ("vlevo", tr("Vlevo")), ("obe", tr("Obě"))], &akt, |x| v = Some(x));
+            segment(ui, &[("skryt", tr("Skrýt", "Hide")), ("vlevo", tr("Vlevo", "Left")), ("obe", tr("Obě", "Both"))], &akt, |x| v = Some(x));
             if let Some(x) = v {
                 self.nastav(stav, "stupnice", x);
             }
         });
-        self.zaskrt(ui, stav, "ram", tr("Rámeček grafu"));
-        self.zaskrt(ui, stav, "svislice", tr("Svislice z lomových bodů do grafu"));
-        self.zaskrt(ui, stav, "popis_oblouku", tr("Popis zakružovacích oblouků nivelety (R · L · K)"));
-        pole(ui, tr("Pod terénem"), |ui| {
+        self.zaskrt(ui, stav, "ram", tr("Rámeček grafu", "Graph frame"));
+        self.zaskrt(ui, stav, "svislice", tr("Svislice z lomových bodů do grafu", "Verticals from break points into the graph"));
+        self.zaskrt(ui, stav, "popis_oblouku", tr("Popis zakružovacích oblouků nivelety (R · L · K)", "Vertical curve labels (R · L · K)"));
+        pole(ui, tr("Pod terénem", "Below the terrain"), |ui| {
             let akt = self.hodnota(stav, "vypln_terenu");
             let mut v = None;
-            segment(ui, &[("zadna", tr("Nic")), ("plna", tr("Tónování"))], &akt, |x| v = Some(x));
+            segment(ui, &[("zadna", tr("Nic", "Nothing")), ("plna", tr("Tónování", "Tint"))], &akt, |x| v = Some(x));
             if let Some(x) = v {
                 self.nastav(stav, "vypln_terenu", x);
             }
         });
-        sekce(ui, tr("Pásy"));
-        pole(ui, tr("Čáry pásů"), |ui| {
+        sekce(ui, tr("Pásy", "Bands"));
+        pole(ui, tr("Čáry pásů", "Band lines"), |ui| {
             let akt = self.hodnota(stav, "cary_pasu");
             let mut v = None;
-            segment(ui, &[("svislice", tr("Jen svislice")), ("ramecek", tr("Rámeček")), ("vykres", tr("Výkresové"))], &akt, |x| v = Some(x));
+            segment(ui, &[("svislice", tr("Jen svislice", "Verticals only")), ("ramecek", tr("Rámeček", "Frame")), ("vykres", tr("Výkresové", "Drawing style"))], &akt, |x| v = Some(x));
             if let Some(x) = v {
                 self.nastav(stav, "cary_pasu", x);
             }
         });
-        self.zaskrt(ui, stav, "svislice_pasu", tr("Svislice v pásech s hodnotami"));
-        self.zaskrt(ui, stav, "podbarvit_zahlavi", tr("Podbarvit sloupec záhlaví"));
-        self.cislo(ui, stav, "sirka_zahlavi", tr("Šířka záhlaví"), 10.0..=150.0, " mm");
-        self.cislo(ui, stav, "hustota", tr("Výška pásů ×"), 0.5..=2.0, "");
-        sekce(ui, tr("Formáty"));
-        pole(ui, tr("Staničení"), |ui| {
+        self.zaskrt(ui, stav, "svislice_pasu", tr("Svislice v pásech s hodnotami", "Verticals in value bands"));
+        self.zaskrt(ui, stav, "podbarvit_zahlavi", tr("Podbarvit sloupec záhlaví", "Shade the header column"));
+        self.cislo(ui, stav, "sirka_zahlavi", tr("Šířka záhlaví", "Header width"), 10.0..=150.0, " mm");
+        self.cislo(ui, stav, "hustota", tr("Výška pásů ×", "Band height ×"), 0.5..=2.0, "");
+        sekce(ui, tr("Formáty", "Formats"));
+        pole(ui, tr("Staničení", "Station"), |ui| {
             let akt = self.hodnota(stav, "staniceni");
             let mut v = None;
             segment(ui, &[("km", "0,040 00"), ("plus", "0+040.00"), ("m", "40.00")], &akt, |x| v = Some(x));
@@ -1135,7 +1135,7 @@ impl EditorProfilu {
                 self.nastav(stav, "staniceni", x);
             }
         });
-        pole(ui, tr("Sklon"), |ui| {
+        pole(ui, tr("Sklon", "Grade"), |ui| {
             let akt = self.hodnota(stav, "sklon");
             let mut v = None;
             segment(ui, &[("promile", "‰"), ("procento", "%")], &akt, |x| v = Some(x));
@@ -1146,14 +1146,14 @@ impl EditorProfilu {
     }
 
     fn insp_nadpisu(&mut self, ui: &mut egui::Ui, stav: &StavSpravce) {
-        hlava(ui, tr("Nadpis"), tr("Nadpis a měřítko"));
-        sekce(ui, tr("Text"));
+        hlava(ui, tr("Nadpis", "Title"), tr("Nadpis a měřítko", "Title and scale"));
+        sekce(ui, tr("Text", "Text"));
         let mut t = self.hodnota(stav, "nadpis");
         if ui.add(egui::TextEdit::singleline(&mut t).desired_width(f32::INFINITY)).changed() {
             self.nastav(stav, "nadpis", &t);
         }
-        poznamka(ui, tr("Zástupné texty: {trasa}, {povrch}, {meritko}. Prázdný nadpis se nekreslí."));
-        self.zaskrt(ui, stav, "stitek", tr("Měřítko ve štítku"));
+        poznamka(ui, tr("Zástupné texty: {trasa}, {povrch}, {meritko}. Prázdný nadpis se nekreslí.", "Placeholders: {trasa} (alignment), {povrch} (surface), {meritko} (scale). An empty title is not drawn."));
+        self.zaskrt(ui, stav, "stitek", tr("Měřítko ve štítku", "Scale in the label"));
         self.odkaz_pisma(ui, stav, "nadpis");
         self.odkaz_pisma(ui, stav, "legenda");
     }
@@ -1161,7 +1161,7 @@ impl EditorProfilu {
     fn odkaz_pisma(&mut self, ui: &mut egui::Ui, stav: &StavSpravce, role: &'static str) {
         let p = self.pismo(stav, role);
         let n = ROLE.iter().find(|r| r.0 == role).map_or(role, |r| r.1);
-        if ui.add_sized([ui.available_width(), 26.0], egui::Button::new(format!("{}: {} · {} mm  ›", tr(n), p.font, cz(p.vyska, 1)))).clicked() {
+        if ui.add_sized([ui.available_width(), 26.0], egui::Button::new(format!("{}: {} · {} mm  ›", crate::lang::tr_tab(n), p.font, cz(p.vyska, 1)))).clicked() {
             self.vyber = Vyber::Pismo(role);
             self.karta = Karta::Pisma;
         }
@@ -1171,9 +1171,9 @@ impl EditorProfilu {
         let pred = self.pismo(stav, k);
         let mut p = pred.clone();
         let n = ROLE.iter().find(|r| r.0 == k).map_or(k, |r| r.1);
-        hlava(ui, tr("Styl písma"), tr(n));
+        hlava(ui, tr("Styl písma", "Font style"), crate::lang::tr_tab(n));
         ui.label(RichText::new(p.styl_textu()).color(TLUMENA).size(11.0));
-        sekce(ui, tr("Písmo"));
+        sekce(ui, tr("Písmo", "Font"));
         egui::Grid::new("ep_fonty").num_columns(2).spacing([6.0, 6.0]).show(ui, |ui| {
             for (j, (f, _, _)) in FONTY.iter().enumerate() {
                 let on = p.font.eq_ignore_ascii_case(f);
@@ -1181,7 +1181,7 @@ impl EditorProfilu {
                 let txt = RichText::new(format!("Ab 0,123\n{}{}", f, if ma { "" } else { " ⚠" })).font(FontId::new(14.0, rodina(f, false)));
                 let b = egui::Button::new(txt).min_size(Vec2::new(128.0, 44.0)).fill(if on { Color32::from_rgba_unmultiplied(61, 139, 255, 40) } else { PANEL2 }).stroke(Stroke::new(1.0, if on { AKCENT } else { CARA_UI }));
                 let r = ui.add(b);
-                let r = if ma { r } else { r.on_hover_text(tr("Písmo není v tomto počítači nainstalované – OCS použije náhradní.")) };
+                let r = if ma { r } else { r.on_hover_text(tr("Písmo není v tomto počítači nainstalované – OCS použije náhradní.", "The font is not installed on this computer – OCS will use a substitute.")) };
                 if r.clicked() {
                     p.font = f.to_string();
                 }
@@ -1190,8 +1190,8 @@ impl EditorProfilu {
                 }
             }
         });
-        sekce(ui, tr("Velikost a tvar"));
-        pole(ui, tr("Výška"), |ui| {
+        sekce(ui, tr("Velikost a tvar", "Size and shape"));
+        pole(ui, tr("Výška", "Elevation"), |ui| {
             let akt = format!("{}", p.vyska);
             let mut v = None;
             segment(ui, &[("1.8", "1,8"), ("2", "2"), ("2.5", "2,5"), ("3.5", "3,5"), ("5", "5")], &akt, |x| v = Some(x));
@@ -1200,16 +1200,16 @@ impl EditorProfilu {
             }
         });
         pole(ui, "", |ui| {
-            ui.add(egui::DragValue::new(&mut p.vyska).range(0.5..=20.0).speed(0.05).max_decimals(2).suffix(tr(" mm vlastní")));
+            ui.add(egui::DragValue::new(&mut p.vyska).range(0.5..=20.0).speed(0.05).max_decimals(2).suffix(tr(" mm vlastní", " mm custom")));
         });
-        pole(ui, tr("Šířka"), |ui| {
+        pole(ui, tr("Šířka", "Width"), |ui| {
             ui.add(egui::Slider::new(&mut p.sirka, 0.6..=1.3).step_by(0.05));
         });
-        pole(ui, tr("Řez"), |ui| {
-            ui.checkbox(&mut p.tucne, RichText::new(tr("Tučné")).strong());
-            ui.checkbox(&mut p.kurziva, RichText::new(tr("Kurzíva")).italics());
+        pole(ui, tr("Řez", "Section"), |ui| {
+            ui.checkbox(&mut p.tucne, RichText::new(tr("Tučné", "Bold")).strong());
+            ui.checkbox(&mut p.kurziva, RichText::new(tr("Kurzíva", "Italic")).italics());
         });
-        pole(ui, tr("Barva"), |ui| {
+        pole(ui, tr("Barva", "Colour"), |ui| {
             vyber_barvy(ui, "ep_barva_pisma", &mut p.barva);
         });
         // ukázka
@@ -1217,9 +1217,9 @@ impl EditorProfilu {
         egui::Frame::new().fill(if self.papir { Color32::WHITE } else { LIST_TMAVE }).corner_radius(8.0).inner_margin(12.0).show(ui, |ui| {
             ui.set_width(ui.available_width());
             let b = p.barva.map(|b| Color32::from_rgb(b[0], b[1], b[2])).unwrap_or(if self.papir { Color32::BLACK } else { TEXT });
-            ui.label(RichText::new("Kóta dna 385,62").font(FontId::new((p.vyska as f32 * 6.0).clamp(10.0, 34.0), rodina(&p.font, p.tucne))).color(b).italics_if(p.kurziva));
+            ui.label(RichText::new("Kóta dna 385,62").font(FontId::new((p.vyska as f32 * 6.0).clamp(10.0, 34.0), rodina(&p.font, p.tucne))).color(b).italics_if(p.kurziva)); // i18n:ne
         });
-        poznamka(ui, &trf!("Výška je na papíře – v modelu se násobí měřítkem (1:{} = {} m). Řada pro výkresy: 1,8 · 2,5 · 3,5 · 5 · 7 mm.", cz(self.d.meritko, 0), cz(p.vyska * self.d.meritko / 1000.0, 2)));
+        poznamka(ui, &trf!("Výška je na papíře – v modelu se násobí měřítkem (1:{} = {} m). Řada pro výkresy: 1,8 · 2,5 · 3,5 · 5 · 7 mm.", "Height is on paper – in the model it is multiplied by the scale (1:{} = {} m). Drawing series: 1.8 · 2.5 · 3.5 · 5 · 7 mm.", cz(self.d.meritko, 0), cz(p.vyska * self.d.meritko / 1000.0, 2)));
         if p != pred {
             self.nastav(stav, &format!("p.{k}"), &p.zapis());
         }
@@ -1229,26 +1229,26 @@ impl EditorProfilu {
         let pred = self.cara(stav, k);
         let mut c = pred.clone();
         let n = CARY.iter().find(|x| x.0 == k).map_or(k, |x| x.1);
-        hlava(ui, tr("Čára"), tr(n));
-        sekce(ui, tr("Čára"));
-        pole(ui, tr("Barva"), |ui| {
+        hlava(ui, tr("Čára", "Line"), crate::lang::tr_tab(n));
+        sekce(ui, tr("Čára", "Line"));
+        pole(ui, tr("Barva", "Colour"), |ui| {
             vyber_barvy(ui, "ep_barva_cary", &mut c.barva);
         });
-        pole(ui, tr("Tloušťka"), |ui| {
+        pole(ui, tr("Tloušťka", "Weight"), |ui| {
             let akt = c.tloustka.clone();
             let mut v = None;
-            segment(ui, &TLOUSTKY.iter().map(|t| (t.0, tr(t.1))).collect::<Vec<_>>(), &akt, |x| v = Some(x));
+            segment(ui, &TLOUSTKY.iter().map(|t| (t.0, crate::lang::tr_tab(t.1))).collect::<Vec<_>>(), &akt, |x| v = Some(x));
             if let Some(x) = v {
                 c.tloustka = x.to_string();
             }
         });
         let tl = self.hodnota(stav, &format!("tl.{}", c.tloustka));
-        poznamka(ui, &trf!("{} mm – tloušťky změníte v kartě Čáry a barvy.", tl));
+        poznamka(ui, &trf!("{} mm – tloušťky změníte v kartě Čáry a barvy.", "{} mm – change the weights on the Lines and colours tab.", tl));
         if k == "teren" {
-            pole(ui, tr("Pod terénem"), |ui| {
+            pole(ui, tr("Pod terénem", "Below the terrain"), |ui| {
                 let akt = self.hodnota(stav, "vypln_terenu");
                 let mut v = None;
-                segment(ui, &[("zadna", tr("Nic")), ("plna", tr("Tónování"))], &akt, |x| v = Some(x));
+                segment(ui, &[("zadna", tr("Nic", "Nothing")), ("plna", tr("Tónování", "Tint"))], &akt, |x| v = Some(x));
                 if let Some(x) = v {
                     self.nastav(stav, "vypln_terenu", x);
                 }
@@ -1279,15 +1279,15 @@ impl EditorProfilu {
 
     fn galerie_pasu(&mut self, ctx: &egui::Context) {
         let mut zavrit = false;
-        egui::Window::new(tr("Nový pás"))
+        egui::Window::new(tr("Nový pás", "New band"))
             .collapsible(false)
             .resizable(false)
             .anchor(Align2::LEFT_BOTTOM, Vec2::new(280.0, -60.0))
             .show(ctx, |ui| {
-                ui.label(RichText::new(tr("Vyberte, co má pás ukazovat")).color(TLUMENA));
+                ui.label(RichText::new(tr("Vyberte, co má pás ukazovat", "Choose what the band shows")).color(TLUMENA));
                 egui::Grid::new("ep_galerie").num_columns(2).spacing([6.0, 6.0]).show(ui, |ui| {
                     for (j, d) in DruhPasu::VSE.iter().enumerate() {
-                        let txt = format!("{}  {}\n{}", zkratka(*d), tr(d.nazev()), tr(popis_druhu(*d)));
+                        let txt = format!("{}  {}\n{}", zkratka(*d), crate::lang::tr_tab(d.nazev()), crate::lang::tr_tab(popis_druhu(*d)));
                         if ui.add(egui::Button::new(txt).min_size(Vec2::new(200.0, 42.0))).clicked() {
                             let mut p = Pas::novy(*d);
                             let i = match self.vyber {
@@ -1308,7 +1308,7 @@ impl EditorProfilu {
                         }
                     }
                 });
-                if ui.button(tr("Zavřít")).clicked() {
+                if ui.button(tr("Zavřít", "Close")).clicked() {
                     zavrit = true;
                 }
             });
@@ -1318,20 +1318,20 @@ impl EditorProfilu {
     }
 
     fn dialog_zavreni(&mut self, ctx: &egui::Context) {
-        egui::Window::new(tr("Neuložené změny")).collapsible(false).resizable(false).anchor(Align2::CENTER_CENTER, Vec2::ZERO).show(ctx, |ui| {
-            ui.label(tr("Vzhled profilu má neuložené změny."));
+        egui::Window::new(tr("Neuložené změny", "Unsaved changes")).collapsible(false).resizable(false).anchor(Align2::CENTER_CENTER, Vec2::ZERO).show(ctx, |ui| {
+            ui.label(tr("Vzhled profilu má neuložené změny.", "The profile appearance has unsaved changes."));
             ui.add_space(8.0);
             ui.horizontal(|ui| {
-                if ui.button(RichText::new(tr("Uložit")).strong()).clicked() {
+                if ui.button(RichText::new(tr("Uložit", "Save")).strong()).clicked() {
                     self.uloz();
                     self.otevreno = false;
                     self.dotaz_zavrit = false;
                 }
-                if ui.button(tr("Zahodit")).clicked() {
+                if ui.button(tr("Zahodit", "Discard")).clicked() {
                     self.otevreno = false;
                     self.dotaz_zavrit = false;
                 }
-                if ui.button(tr("Zpět do editoru")).clicked() {
+                if ui.button(tr("Zpět do editoru", "Back to the editor")).clicked() {
                     self.dotaz_zavrit = false;
                 }
             });
@@ -1779,7 +1779,7 @@ fn vyber_barvy(ui: &mut egui::Ui, id: &str, b: &mut Option<[u8; 3]>) -> bool {
             if b.is_none() {
                 ui.painter().rect_stroke(r, 5.0, Stroke::new(2.0, Color32::WHITE), egui::StrokeKind::Outside);
             }
-            if o.on_hover_text(tr("podle hladiny")).clicked() && b.is_some() {
+            if o.on_hover_text(tr("podle hladiny", "ByLayer")).clicked() && b.is_some() {
                 *b = None;
                 zmena = true;
             }
@@ -1795,7 +1795,7 @@ fn vyber_barvy(ui: &mut egui::Ui, id: &str, b: &mut Option<[u8; 3]>) -> bool {
                 }
             }
             let mut v = b.unwrap_or([200, 200, 200]);
-            if ui.color_edit_button_srgb(&mut v).on_hover_text(tr("vlastní barva")).changed() {
+            if ui.color_edit_button_srgb(&mut v).on_hover_text(tr("vlastní barva", "custom colour")).changed() {
                 *b = Some(v);
                 zmena = true;
             }
@@ -1807,10 +1807,10 @@ fn vyber_barvy(ui: &mut egui::Ui, id: &str, b: &mut Option<[u8; 3]>) -> bool {
 
 fn nazev_zdroje(z: &Zdroj, povrchy: &[(String, String)]) -> String {
     match z {
-        Zdroj::Teren => tr("Povrch pohledu").to_string(),
-        Zdroj::Niveleta => tr("Niveleta").to_string(),
-        Zdroj::Upraveny => tr("Upravený terén").to_string(),
-        Zdroj::Potrubi => tr("Potrubí (zatím bez dat)").to_string(),
+        Zdroj::Teren => tr("Povrch pohledu", "View surface").to_string(),
+        Zdroj::Niveleta => tr("Niveleta", "Profile grade line").to_string(),
+        Zdroj::Upraveny => tr("Upravený terén", "Modified ground").to_string(),
+        Zdroj::Potrubi => tr("Potrubí (zatím bez dat)", "Pipe (no data yet)").to_string(),
         Zdroj::Povrch(id) => povrchy.iter().find(|p| p.0 == *id).map_or_else(|| id.clone(), |p| p.1.clone()),
     }
 }
@@ -1829,7 +1829,7 @@ fn vyber_zdroje(ui: &mut egui::Ui, salt: (&str, usize), z: &mut Zdroj, povrchy: 
 }
 
 fn nazev_pasu(p: &Pas) -> String {
-    if p.nazev.trim().is_empty() { tr(p.druh.nazev()).to_string() } else { p.nazev.clone() }
+    if p.nazev.trim().is_empty() { crate::lang::tr_tab(p.druh.nazev()).to_string() } else { p.nazev.clone() }
 }
 
 fn zkratka(d: DruhPasu) -> &'static str {
@@ -1866,7 +1866,7 @@ fn popis_druhu(d: DruhPasu) -> &'static str {
 pub fn ukazkove_podklady() -> Podklady {
     use trasy::geometrie::{geometrie, Vrchol};
     use trasy::niveleta::{Niveleta, VrcholNivelety};
-    let g = geometrie(&[Vrchol::new(0.0, 0.0, 0.0), Vrchol::new(160.0, 30.0, 150.0), Vrchol::new(330.0, 10.0, 0.0)], 0.0).expect("ukázková trasa");
+    let g = geometrie(&[Vrchol::new(0.0, 0.0, 0.0), Vrchol::new(160.0, 30.0, 150.0), Vrchol::new(330.0, 10.0, 0.0)], 0.0).expect("ukázková trasa"); // i18n:ne
     let l = g.konec();
     let teren = |s: f64| 388.1 + 1.3 * (s / 38.0).sin() + 0.55 * (s / 13.0).cos() + 0.0045 * s - 0.9 * (-((s - 165.0) / 22.0).powi(2)).exp();
     let mut u = Vec::new();
@@ -1889,7 +1889,7 @@ pub fn ukazkove_podklady() -> Podklady {
         g,
         useky: vec![u],
         dalsi: vec![("NAVRH".into(), vec![jiny])],
-        povrchy: vec![("TEREN".into(), "Stávající terén".into()), ("NAVRH".into(), "Zaměření 2019".into())],
+        povrchy: vec![("TEREN".into(), "Stávající terén".into()), ("NAVRH".into(), "Zaměření 2019".into())], // i18n:ne
         niveleta: Some(niveleta),
         upraveny: Some("NAVRH".into()),
         od: 0.0,

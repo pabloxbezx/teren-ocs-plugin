@@ -43,16 +43,16 @@ fn data() -> StavSpravce {
     for b in &body {
         let (id, puvod) = match b.bod.popis.as_str() {
             "STR" => (styly_bodu.iter().find(|s| s.je_vestaveny() && s.jmeno.contains("listnat")).map(|s| s.id.clone()), styly::Puvod::Kod("STR".into())),
-            "KER" => (styly_bodu.iter().find(|s| s.jmeno.contains("Keř")).map(|s| s.id.clone()), styly::Puvod::Kod("KER".into())),
+            "KER" => (styly_bodu.iter().find(|s| s.jmeno.contains("Keř")).map(|s| s.id.clone()), styly::Puvod::Kod("KER".into())), // i18n:ne
             _ => (None, styly::Puvod::Skupina("zam".into())),
         };
         styl_bodu.insert(b.handle, (id.unwrap_or_else(|| styly::STANDARD.into()), puvod));
     }
-    let zam = SkupinaBodu { id: "zam".into(), jmeno: "Zaměření".into(), kody: vec!["TER".into(), "HR".into(), "OB".into()], ..Default::default() };
+    let zam = SkupinaBodu { id: "zam".into(), jmeno: "Zaměření".into(), kody: vec!["TER".into(), "HR".into(), "OB".into()], ..Default::default() }; // i18n:ne
     let str_ = SkupinaBodu { id: "str".into(), jmeno: "Stromy".into(), kody: vec!["STR".into(), "KER".into()], ..Default::default() };
     let skupiny = vec![
         PrehledSkupiny { skupina: SkupinaBodu::vsechny(), pocet: 240, povrchy: vec![] },
-        PrehledSkupiny { skupina: zam, pocet: 168, povrchy: vec!["Stávající terén".into(), "Návrh – parkoviště".into()] },
+        PrehledSkupiny { skupina: zam, pocet: 168, povrchy: vec!["Stávající terén".into(), "Návrh – parkoviště".into()] }, // i18n:ne
         PrehledSkupiny { skupina: str_, pocet: 41, povrchy: vec![] },
     ];
     let polozka = |h: u64, druh: DruhPolozky, n: usize, d: f64| Polozka {
@@ -65,11 +65,11 @@ fn data() -> StavSpravce {
         zapnuto: true,
         hrany: false,
     };
-    let sk = |zap| vec![SkupinaPovrchu { id: "zam".into(), jmeno: "Zaměření".into(), zapnuto: zap, pocet: 168, chybi: false }];
+    let sk = |zap| vec![SkupinaPovrchu { id: "zam".into(), jmeno: "Zaměření".into(), zapnuto: zap, pocet: 168, chybi: false }]; // i18n:ne
     let povrchy = vec![
         PrehledPovrchu {
             id: "st".into(),
-            jmeno: "Stávající terén".into(),
+            jmeno: "Stávající terén".into(), // i18n:ne
             aktivni: true,
             zastaraly: false,
             auto: true,
@@ -88,7 +88,7 @@ fn data() -> StavSpravce {
         },
         PrehledPovrchu {
             id: "np".into(),
-            jmeno: "Návrh – parkoviště".into(),
+            jmeno: "Návrh – parkoviště".into(), // i18n:ne
             aktivni: false,
             zastaraly: true,
             auto: false,
@@ -113,9 +113,9 @@ fn data() -> StavSpravce {
                 .map(|&(i, dz)| PodezrelyBod { handle: body[i].handle, cislo: body[i].bod.cislo.clone(), x: body[i].bod.x, y: body[i].bod.y, z: body[i].bod.z, dz })
                 .collect(),
         ),
-        zprava: "Terén: povrch Stávající terén přepočítán (2 840 trojúhelníků)".into(),
-        vykres: "C:\\Zakázky\\ukazka_parcela.dwg".into(),
-        slozka: "C:\\Zakázky".into(),
+        zprava: "Terén: povrch Stávající terén přepočítán (2 840 trojúhelníků)".into(), // i18n:ne
+        vykres: "C:\\Zakázky\\ukazka_parcela.dwg".into(), // i18n:ne
+        slozka: "C:\\Zakázky".into(), // i18n:ne
         pripojeno: true,
         dalsi_cislo: 1241,
         zdroje: vec!["zamereni_2026-10.txt".into(), "doplneni.csv".into()],
@@ -148,7 +148,7 @@ fn data() -> StavSpravce {
             pohledy: vec![crate::tra::prospektor::PrehledPohledu {
                 id: "P1".into(),
                 insert: Handle::new(0x5001),
-                povrch: "Stávající terén".into(),
+                povrch: "Stávající terén".into(), // i18n:ne
                 rozsah: Some((0.0, 330.2)),
                 meritko: 500.0,
                 prevyseni: 10.0,

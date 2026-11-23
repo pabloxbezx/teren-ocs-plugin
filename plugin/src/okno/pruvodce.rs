@@ -1,6 +1,6 @@
 //! Průvodce novým povrchem (Základ → Body → Hranice a spojnice → Zobrazení).
 
-use teren::preklad::tr;
+use crate::lang::tr;
 use teren::trf;
 use std::collections::HashSet;
 
@@ -34,10 +34,10 @@ impl Pruvodce {
             .iter()
             .find(|g| g.skupina.jmeno.eq_ignore_ascii_case("Zaměření"))
             .map_or(VSECHNY.to_string(), |g| g.skupina.id.clone());
-        let mut jmeno = tr("Stávající terén").to_string();
+        let mut jmeno = tr("Stávající terén", "Existing ground").to_string();
         let mut n = 2;
         while stav.povrchy.iter().any(|p| p.jmeno.eq_ignore_ascii_case(&jmeno)) {
-            jmeno = trf!("Stávající terén {}", n);
+            jmeno = trf!("Stávající terén {}", "Existing ground {}", n);
             n += 1;
         }
         Self {
@@ -58,7 +58,7 @@ impl Okno {
         let Some(p) = self.pruvodce.as_mut() else { return };
         let mut otevreno = true;
         let mut hotovo = false;
-        egui::Window::new(tr("Nový povrch"))
+        egui::Window::new(tr("Nový povrch", "New surface"))
             .open(&mut otevreno)
             .pivot(egui::Align2::CENTER_CENTER)
             .default_pos(ctx.content_rect().center())
@@ -75,7 +75,7 @@ impl Okno {
                         } else {
                             ((i + 1).to_string(), SEDA)
                         };
-                        let t = RichText::new(format!("{znak} {}", tr(k))).color(barva);
+                        let t = RichText::new(format!("{znak} {}", crate::lang::tr_tab(k))).color(barva);
                         if ui.selectable_label(i == p.krok, if i == p.krok { t.strong() } else { t }).clicked() {
                             p.krok = i;
                         }
@@ -117,23 +117,23 @@ impl Okno {
                         ui.set_min_height(260.0);
                         match p.krok {
                             0 => {
-                                ui.label(tr("Jméno povrchu"));
+                                ui.label(tr("Jméno povrchu", "Surface name"));
                                 ui.add(egui::TextEdit::singleline(&mut p.jmeno).desired_width(280.0));
                                 ui.add_space(8.0);
-                                ui.checkbox(&mut p.auto, tr("Přepočítat sám, když se změní body, spojnice nebo hranice"));
+                                ui.checkbox(&mut p.auto, tr("Přepočítat sám, když se změní body, spojnice nebo hranice", "Recalculate automatically when points, breaklines or boundaries change"));
                                 ui.add_space(8.0);
                                 ui.label(
                                     RichText::new(
                                         tr("Povrch vznikne ze skupin bodů (další krok). Spojnice, hranice a ruční úpravy \
-                                         přidáte po vytvoření – průvodce ukáže jak."),
+                                         přidáte po vytvoření – průvodce ukáže jak.", "The surface is made from point groups (next step). Breaklines, boundaries and manual edits are added after creation – the wizard shows how."),
                                     )
                                     .color(SEDA),
                                 );
                             }
                             1 => {
                                 ui.horizontal(|ui| {
-                                    ui.label(RichText::new(tr("Ze kterých skupin bodů")).strong());
-                                    napoveda::otaznik(ui, tr("Skupina bodů"));
+                                    ui.label(RichText::new(tr("Ze kterých skupin bodů", "From which point groups")).strong());
+                                    napoveda::otaznik(ui, tr("Skupina bodů", "Point group"));
                                 });
                                 for g in &stav.skupiny {
                                     let mut ano = p.skupiny.contains(&g.skupina.id);
@@ -150,11 +150,11 @@ impl Okno {
                                 }
                                 ui.add_space(6.0);
                                 egui::Grid::new("pruv_body").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
-                                    ui.label(tr("Vyloučit kódy"));
-                                    ui.add(egui::TextEdit::singleline(&mut p.kody).hint_text(tr("např. STR")).desired_width(140.0));
+                                    ui.label(tr("Vyloučit kódy", "Exclude codes"));
+                                    ui.add(egui::TextEdit::singleline(&mut p.kody).hint_text(tr("např. STR", "e.g. STR")).desired_width(140.0));
                                     ui.end_row();
-                                    ui.label(tr("Max. délka hrany"));
-                                    let t = |h: Option<f64>| h.map_or(tr("bez omezení").to_string(), |h| format!("{} m", h));
+                                    ui.label(tr("Max. délka hrany", "Max. edge length"));
+                                    let t = |h: Option<f64>| h.map_or(tr("bez omezení", "no limit").to_string(), |h| format!("{} m", h));
                                     egui::ComboBox::from_id_salt("pruv_hrana").selected_text(t(p.max_hrana)).show_ui(ui, |ui| {
                                         for h in HRANY {
                                             ui.selectable_value(&mut p.max_hrana, h, t(h));
@@ -163,7 +163,7 @@ impl Okno {
                                     ui.end_row();
                                 });
                                 ui.label(
-                                    RichText::new(tr("Max. délka hrany zabrání dlouhým trojúhelníkům přes místa bez bodů (okraje, zátoky)."))
+                                    RichText::new(tr("Max. délka hrany zabrání dlouhým trojúhelníkům přes místa bez bodů (okraje, zátoky).", "The max. edge length prevents long triangles across areas without points (edges, bays)."))
                                         .small()
                                         .color(SEDA),
                                 );
@@ -172,29 +172,29 @@ impl Okno {
                                 if str_bodu > 0 && !kody.iter().any(|k| k == "STR") {
                                     ui.add_space(4.0);
                                     ui.label(
-                                        RichText::new(trf!("Kód STR (stromy) do terénu obvykle nepatří – ve výkrese je {} takových bodů. Doplňte ho do Vyloučit kódy.", str_bodu))
+                                        RichText::new(trf!("Kód STR (stromy) do terénu obvykle nepatří – ve výkrese je {} takových bodů. Doplňte ho do Vyloučit kódy.", "Code STR (trees) usually does not belong in the terrain – the drawing has {} such points. Add it to Excluded codes.", str_bodu))
                                         .color(ORANZOVA),
                                     );
                                 }
                             }
                             2 => {
                                 ui.horizontal(|ui| {
-                                    ui.label(RichText::new(tr("Spojnice (lomové hrany)")).strong());
-                                    napoveda::otaznik(ui, tr("Spojnice (lomová hrana)"));
+                                    ui.label(RichText::new(tr("Spojnice (lomové hrany)", "Breaklines")).strong());
+                                    napoveda::otaznik(ui, tr("Spojnice (lomová hrana)", "Breakline"));
                                 });
-                                ui.label(tr("Po vytvoření je přidáte na záložce Terén: Spojnice přes body (klikáním na body zaměření) nebo Přidat spojnici (vybrané 3D křivky)."));
+                                ui.label(tr("Po vytvoření je přidáte na záložce Terén: Spojnice přes body (klikáním na body zaměření) nebo Přidat spojnici (vybrané 3D křivky).", "After creation add them on the Terén tab: Breakline through points (clicking survey points) or Add breakline (selected 3D polylines)."));
                                 ui.add_space(8.0);
                                 ui.horizontal(|ui| {
-                                    ui.label(RichText::new(tr("Hranice a díry")).strong());
-                                    napoveda::otaznik(ui, tr("Hranice / díra"));
+                                    ui.label(RichText::new(tr("Hranice a díry", "Boundaries and holes")).strong());
+                                    napoveda::otaznik(ui, tr("Hranice / díra", "Boundary / hole"));
                                 });
-                                ui.label(tr("Bez hranice povrch sahá k nejvzdálenějším bodům. Ořízněte ho uzavřenou křivkou: vyberte ji a klikněte Hranice (Díra vynechá vnitřek)."));
+                                ui.label(tr("Bez hranice povrch sahá k nejvzdálenějším bodům. Ořízněte ho uzavřenou křivkou: vyberte ji a klikněte Hranice (Díra vynechá vnitřek).", "Without a boundary the surface reaches the outermost points. Clip it with a closed polyline: select it and click Boundary (Hole leaves out the inside)."));
                                 ui.add_space(8.0);
-                                ui.label(RichText::new(tr("Obojí najdete i v Prospektoru ve stromu pod povrchem.")).color(SEDA));
+                                ui.label(RichText::new(tr("Obojí najdete i v Prospektoru ve stromu pod povrchem.", "Both are also in the Prospector tree under the surface.")).color(SEDA));
                             }
                             _ => {
                                 egui::Grid::new("pruv_zobr").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
-                                    ui.label(tr("Styl povrchu"));
+                                    ui.label(tr("Styl povrchu", "Surface style"));
                                     let jm = stav
                                         .styly_povrchu
                                         .iter()
@@ -208,10 +208,10 @@ impl Okno {
                                     ui.end_row();
                                     let krok_stylu =
                                         stav.styly_povrchu.iter().find(|s| s.id.eq_ignore_ascii_case(&p.styl)).and_then(|s| s.interval);
-                                    ui.label(tr("Vrstevnice po"));
+                                    ui.label(tr("Vrstevnice po", "Contour interval"));
                                     match krok_stylu {
                                         Some((i, h)) => {
-                                            ui.label(trf!("{} (podle stylu)", interval_text(i, h)));
+                                            ui.label(trf!("{} (podle stylu)", "{} (by style)", interval_text(i, h)));
                                         }
                                         None => {
                                             egui::ComboBox::from_id_salt("pruv_int")
@@ -227,41 +227,41 @@ impl Okno {
                                     ui.end_row();
                                 });
                                 ui.add_space(6.0);
-                                ui.label(RichText::new(tr("Styl i krok jde kdykoli změnit pravým tlačítkem na povrch v Prospektoru.")).color(SEDA));
+                                ui.label(RichText::new(tr("Styl i krok jde kdykoli změnit pravým tlačítkem na povrch v Prospektoru.", "The style and interval can be changed any time by right-clicking the surface in the Prospector.")).color(SEDA));
                             }
                         }
                     });
                     ui.add_space(14.0);
                     ui.vertical(|ui| {
-                        ui.label(RichText::new(tr("NÁHLED")).small().strong().color(SEDA));
+                        ui.label(RichText::new(tr("NÁHLED", "PREVIEW")).small().strong().color(SEDA));
                         ui.label(RichText::new(format!("{bodu}")).size(26.0).strong());
-                        ui.label(tr("bodů"));
+                        ui.label(tr("bodů", "points"));
                         if bodu >= 3 {
-                            ui.label(RichText::new(trf!("asi {} trojúhelníků", 2 * bodu - 5)).color(SEDA));
+                            ui.label(RichText::new(trf!("asi {} trojúhelníků", "about {} triangles", 2 * bodu - 5)).color(SEDA));
                             ui.label(RichText::new(format!("{} – {} m n. m.", cislo(z0), cislo(z1))).color(SEDA));
                         } else {
-                            ui.label(RichText::new(tr("potřeba aspoň 3 body")).color(ORANZOVA));
+                            ui.label(RichText::new(tr("potřeba aspoň 3 body", "at least 3 points needed")).color(ORANZOVA));
                         }
                         for (k, n) in &vynechano {
-                            ui.label(RichText::new(trf!("vynecháno {} × {}", n, k)).small().color(SEDA));
+                            ui.label(RichText::new(trf!("vynecháno {} × {}", "left out {} × {}", n, k)).small().color(SEDA));
                         }
                     });
                 });
 
                 ui.separator();
                 ui.horizontal(|ui| {
-                    if ui.add_enabled(p.krok > 0, egui::Button::new(tr("Zpět"))).clicked() {
+                    if ui.add_enabled(p.krok > 0, egui::Button::new(tr("Zpět", "Back"))).clicked() {
                         p.krok -= 1;
                     }
-                    if p.krok + 1 < KROKY.len() && ui.button(tr("Další")).clicked() {
+                    if p.krok + 1 < KROKY.len() && ui.button(tr("Další", "Next")).clicked() {
                         p.krok += 1;
                     }
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let lze = bodu >= 3 && !p.jmeno.trim().is_empty();
-                        let tl = egui::Button::new(RichText::new(tr("Vytvořit povrch")).color(Color32::WHITE)).fill(Color32::from_rgb(44, 95, 143));
+                        let tl = egui::Button::new(RichText::new(tr("Vytvořit povrch", "Create surface")).color(Color32::WHITE)).fill(Color32::from_rgb(44, 95, 143));
                         if ui
                             .add_enabled(lze, tl)
-                            .on_disabled_hover_text(tr("zadejte jméno a vyberte skupiny s aspoň 3 body"))
+                            .on_disabled_hover_text(tr("zadejte jméno a vyberte skupiny s aspoň 3 body", "enter a name and choose groups with at least 3 points"))
                             .clicked()
                         {
                             spravce::posli(Akce::NovyPovrch(NovyPovrch {
