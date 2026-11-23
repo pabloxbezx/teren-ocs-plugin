@@ -1,3 +1,8 @@
+> [!NOTE]
+> **Development paused.** Open CAD Studio now includes a built-in **Civil** tab with its own tools for points, surfaces, alignments and profiles. I'll release one more update of Terén for Open CAD Studio 2026.47, so it keeps working for current users. After that, development is paused while I watch how the built-in Civil tools develop over the next few weeks. Then I'll decide whether Terén continues.
+>
+> Until then, Terén is still fully usable, especially for point import, the 3D terrain viewer and profiles. Bug reports are welcome in [Issues](https://github.com/pabloxbezx/teren-ocs-plugin/issues).
+
 # Terén
 
 **Survey points, terrain surfaces and contours for [Open CAD Studio](https://github.com/HakanSeven12/OpenCADStudio) – free and open source.**
