@@ -49,13 +49,20 @@ static MANIFEST: PluginManifest = PluginManifest {
     name: "Terén",
     version: env!("CARGO_PKG_VERSION"),
     description: "Survey points, TIN surfaces, breaklines, boundaries, contours, 3D viewer, LandXML export (Czech / English)",
-    // API 21: od API 22 posílá Open CAD Studio místo seznamu vybraných objektů
-    // jen souhrn (SelectionChangedDigest) – Terén zatím čte seznam.
-    api_version: ApiVersion { major: 21 },
+    // API 26: výběr chodí jako souhrn (SelectionChangedDigest, od 22), Ctrl+Z
+    // uvnitř příkazu (on_undo_step, od 24). Od 27 by místo DocumentChangedRegions
+    // chodila delta – zatím ne.
+    api_version: ApiVersion { major: 26 },
     ribbon_order: 60,
     xdata_apps: &[povrchy::APP_BOD, povrchy::APP_POVRCH, tra::objekt::APP, tra::pohled::APP, tra::objekt::APP_TRIDA],
     command_prefixes: &["TER_", "TRA_"],
 };
+
+/// Nový výběr ve výkrese: Prospektor (správce) a úchopy tras.
+fn vyber_zmenen(tab: u64, handles: Vec<Handle>) {
+    tra::uchopy::vyber_zmenen(tab, handles.clone());
+    spravce::vyber_zmenen(tab, handles);
+}
 
 const MERITKA: [u32; 6] = [100, 200, 250, 500, 1000, 2000];
 
@@ -951,7 +958,10 @@ impl BuiltinPlugin for TerenPlugin {
                 spravce::zmena_vykresu(tab_id)
             }
             HostNotification::CommandStateChanged { tab_id, command } => spravce::stav_prikazu(tab_id, command.is_some()),
-            HostNotification::SelectionChangedV4 { tab_id, handles } => spravce::vyber_zmenen(tab_id, handles),
+            HostNotification::SelectionChangedDigest { tab_id, revision, .. } => {
+                spravce::vyber_digest(tab_id, revision, vyber_zmenen)
+            }
+            HostNotification::SelectionChangedV4 { tab_id, handles } => vyber_zmenen(tab_id, handles),
             HostNotification::DocumentOpened { tab_id } => spravce::dokument_otevren(tab_id),
             HostNotification::PanelAction { panel_id, control_id, action, value } if panel_id == panel::ID => {
                 panel::akce(&control_id, &action, value)

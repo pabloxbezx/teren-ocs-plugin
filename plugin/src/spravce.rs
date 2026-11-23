@@ -506,6 +506,44 @@ fn kanal(tab: u64) -> Option<PresKanal> {
     k.get(&tab).or_else(|| k.values().next()).map(|a| PresKanal(Box::new(SdilenyKanal(a.clone()))))
 }
 
+static VYBER_REVIZE: Mutex<Option<(u64, u64)>> = Mutex::new(None);
+static VYBER_BEZI: AtomicBool = AtomicBool::new(false);
+static VYBER_ZNOVU: AtomicBool = AtomicBool::new(false);
+
+/// Výběr se změnil (od API 22 přichází jen souhrn `SelectionChangedDigest`):
+/// seznam vybraných objektů se vyžádá ve vlastním vlákně (host musí nejdřív
+/// dokončit doručovanou zprávu) a předá se Prospektoru i úchopům tras.
+pub fn vyber_digest(tab: u64, revize: u64, f: fn(u64, Vec<Handle>)) {
+    {
+        let mut r = zamek(&VYBER_REVIZE);
+        if *r == Some((tab, revize)) {
+            return;
+        }
+        *r = Some((tab, revize));
+    }
+    VYBER_ZNOVU.store(true, Ordering::SeqCst);
+    if VYBER_BEZI.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    std::thread::spawn(move || {
+        while VYBER_ZNOVU.swap(false, Ordering::SeqCst) {
+            std::thread::sleep(Duration::from_millis(30));
+            let Some(k) = kanal(tab) else { break };
+            match k.0.request(PluginRequest::GetSelection) {
+                Ok(PluginResponse::Selection(h)) => f(tab, h),
+                Ok(_) | Err(_) => {}
+            }
+        }
+        VYBER_BEZI.store(false, Ordering::SeqCst);
+        // změna mezi koncem smyčky a uvolněním příznaku
+        if VYBER_ZNOVU.load(Ordering::SeqCst) && !VYBER_BEZI.load(Ordering::SeqCst) {
+            if let Some((t, r)) = zamek(&VYBER_REVIZE).take() {
+                vyber_digest(t, r, f);
+            }
+        }
+    });
+}
+
 /// Zaregistruje quad panel přes kanál výkresu (z vlastního vlákna, aby host
 /// nejdřív dokončil právě doručovanou zprávu).
 pub fn registruj_quad_pres_kanal(panel: ocs_plugin_api::dialog::QuadPanelDef) {

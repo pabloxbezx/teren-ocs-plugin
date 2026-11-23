@@ -1990,7 +1990,6 @@ pub fn on_notification(n: &HostNotification) {
             uchopy::zmena_vykresu(tab_id)
         }
         HostNotification::DocumentOpened { tab_id } => uchopy::vykres_otevren(tab_id),
-        HostNotification::SelectionChangedV4 { tab_id, handles } => uchopy::vyber_zmenen(tab_id, handles),
         HostNotification::PanelAction { panel_id, control_id, action, value } if panel_id == editor::ID => {
             editor::akce(&control_id, &action, value)
         }

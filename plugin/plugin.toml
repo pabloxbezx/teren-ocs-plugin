@@ -6,7 +6,7 @@ description = "Survey points, TIN surfaces, breaklines, boundaries, contours, 3D
 license = "GPL-3.0-only"
 
 [opencad]
-api_version = 21
+api_version = 26
 ribbon_order = 60
 command_prefixes = ["TER_", "TRA_"]
 xdata_apps = ["TEREN_BOD", "TEREN_POVRCH", "TRASY_TRASA", "TRASY_POHLED", "TRASY_TRIDA"]
