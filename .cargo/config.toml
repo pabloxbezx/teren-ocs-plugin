@@ -1,0 +1,4 @@
+# Testy běží česky bez ohledu na nastavení Terénu na tomto počítači
+# (nastaví se jen pro procesy spuštěné cargem, ne pro plugin v Open CAD Studiu).
+[env]
+TEREN_JAZYK = "cs"

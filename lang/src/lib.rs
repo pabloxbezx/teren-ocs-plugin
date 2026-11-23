@@ -27,7 +27,9 @@ include!(concat!(env!("OUT_DIR"), "/vestavene.rs"));
 pub fn jazyk() -> &'static str {
     static J: OnceLock<String> = OnceLock::new();
     J.get_or_init(|| {
-        let volba = volba_jazyka();
+        // TEREN_JAZYK přebije volbu (testy přes .cargo/config.toml – nezávisí
+        // na nastavení uživatele)
+        let volba = std::env::var("TEREN_JAZYK").ok().filter(|v| !v.trim().is_empty()).unwrap_or_else(volba_jazyka);
         let pozadovany = if volba == "auto" || volba.is_empty() {
             jazyk_ocs().filter(|j| j != "system").unwrap_or_else(systemovy_jazyk)
         } else {

@@ -935,7 +935,7 @@ impl Okno {
         ui.horizontal(|ui| {
             ui.label(tr("Zkratky bodů", "Point abbreviations"));
             let mut z = hodnota_trasy(s, "zkratky");
-            if ui.add(egui::TextEdit::singleline(&mut z).desired_width(180.0)).on_hover_text(tr("ZÚ,KÚ,TK,KT,V,TP,PK,KP,PT oddělené čárkou", "ZÚ,KÚ,TK,KT,V,TP,PK,KP,PT separated by commas")).changed() { // i18n:ne // i18n:ne
+            if ui.add(egui::TextEdit::singleline(&mut z).desired_width(180.0)).on_hover_text(tr("ZÚ,KÚ,TK,KT,V,TP,PK,KP,PT oddělené čárkou", "Labels in the drawing, separated by commas: ZÚ (BOA), KÚ (EOA), TK (TC), KT (CT), V (PI), TP (TS), PK (SC), KP (CS), PT (ST)")).changed() { // i18n:ne
                 nastav_trasy(s, "zkratky", z);
             }
         });

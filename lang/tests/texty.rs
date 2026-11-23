@@ -12,9 +12,8 @@ use std::path::{Path, PathBuf};
 const CZ: &str = "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ";
 
 fn ceske(s: &str) -> bool {
-    // název pluginu se nepřekládá; zkratky hlavních bodů trasy ZÚ/KÚ zůstávají
-    // i v angličtině (zatím nerozhodnuto)
-    s.replace("Terén", "").replace("TERÉN", "").replace("ZÚ", "").replace("KÚ", "").chars().any(|c| CZ.contains(c))
+    // název pluginu se nepřekládá
+    s.replace("Terén", "").replace("TERÉN", "").chars().any(|c| CZ.contains(c))
 }
 
 #[derive(Debug, Clone, PartialEq)]
