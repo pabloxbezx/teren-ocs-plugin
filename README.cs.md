@@ -6,6 +6,23 @@ ve výkrese, upravitelné a vždy jedním krokem Zpět.
 
 *English: [README.md](README.md)*
 
+> [!IMPORTANT]
+> ### 🌐 Jak přepnout jazyk (novinka 1.4.1)
+> 1. Otevřete **Prospektor** (karta Terén › **Prospektor**).
+> 2. V levém panelu v části **Nástroje** klikněte na **Nastavení**.
+> 3. V poli **Jazyk / Language** vyberte:
+>    - **Automaticky** – podle jazyka Open CAD Studia, jinak podle systému
+>    - **Čeština**
+>    - **English**
+> 4. **Spusťte Open CAD Studio znovu** – teprve pak se změna projeví.
+>
+> **Vlastní jazyk:** vytvořte soubor
+> `%APPDATA%\OpenCADStudio\teren_preklady\<kód>.txt` (např. `de.txt`)
+> s řádky `anglický text = překlad`, např.
+> `Import points = Punkte importieren` (když anglický text sám obsahuje
+> ` = `, oddělte obě části tabulátorem). Pak kód jazyka vyberte
+> v Nastavení. Co nepřeložíte, zůstane anglicky.
+
 ![Povrch stávajícího terénu s vrstevnicemi a body zaměření v Open CAD Studiu](manual/img/povrch2.png)
 
 ## Proč Terén

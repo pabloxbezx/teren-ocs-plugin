@@ -13,6 +13,23 @@
 
 *Česky: [README.cs.md](README.cs.md)*
 
+> [!IMPORTANT]
+> ### 🌐 How to switch the language (new in 1.4.1)
+> 1. Open the **Prospector** (Terén tab › **Prospector**).
+> 2. In the left panel, under **Tools**, click **Settings**.
+> 3. Under **Language**, choose:
+>    - **Automatic** – follows the Open CAD Studio language, then the system language
+>    - **Čeština**
+>    - **English**
+> 4. **Restart Open CAD Studio** to apply the change.
+>
+> **Adding your own language:** create the file
+> `%APPDATA%\OpenCADStudio\teren_preklady\<code>.txt` (e.g. `de.txt`) with
+> lines `English text = translation`, for example
+> `Import points = Punkte importieren` (if the English text itself contains
+> ` = `, separate the two parts with a TAB instead). Then select the language
+> code in Settings. Any line you don't translate stays in English.
+
 Import a survey and get a TIN surface with labelled contours in a minute.
 Edit points and triangles right in the drawing – everything stays in the
 DWG, and every action is a single Undo step. Interface in English or Czech.
