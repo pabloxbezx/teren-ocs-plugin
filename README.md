@@ -3,7 +3,7 @@
 **Survey points, terrain surfaces and contours for [Open CAD Studio](https://github.com/HakanSeven12/OpenCADStudio) – free and open source.**
 
 [![Latest release](https://img.shields.io/github/v/release/pabloxbezx/teren-ocs-plugin?label=release)](https://github.com/pabloxbezx/teren-ocs-plugin/releases/latest)
-[![Open CAD Studio 2026.46](https://img.shields.io/badge/Open%20CAD%20Studio-2026.46-2b6cb0)](https://github.com/HakanSeven12/OpenCADStudio/releases)
+[![Open CAD Studio 2026.47](https://img.shields.io/badge/Open%20CAD%20Studio-2026.47-2b6cb0)](https://github.com/HakanSeven12/OpenCADStudio/releases)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue)](https://www.gnu.org/licenses/gpl-3.0.html)
 
 *Česky: [README.cs.md](README.cs.md)*
@@ -18,6 +18,22 @@ DWG, and every action is a single Undo step. Interface in English or Czech.
 <td><img src="docs/img/viewer-3d.png" width="400" height="270" alt="3D viewer – surface coloured by elevation"></td>
 </tr>
 </table>
+
+## What's new in 1.4.0
+
+- **Open CAD Studio 2026.47.** Built for the current release; older Terén
+  releases do not load in it.
+- **Ctrl+Z inside a command** removes the last picked point – in breaklines
+  through points, points for a new surface, point picking, drawing an
+  alignment or a design profile and adding profile vertices. After the
+  command ends, Ctrl+Z undoes the drawing as before.
+- **Native Open CAD Studio points** (Civil tab) are read: the points import
+  *From the drawing* lists them with number, X, Y, Z and description and
+  converts them to Terén points for a Terén surface. The new *OCS surface
+  from OCS points* tool creates a native Open CAD Studio surface from them
+  (CREATESURFACE). Terén does not create or edit native points yet.
+- Selection changes use Open CAD Studio's new notification (faster with
+  large selections); alignment grips and the Prospector react as before.
 
 ## What's new in 1.3.1
 
@@ -171,7 +187,7 @@ of surfaces to LandXML 1.2 or DXF and of points to text files.
 
 ## Try it in 2 minutes
 
-1. In Open CAD Studio 2026.46 open the **Plugin Manager**, find *Terén* and
+1. In Open CAD Studio 2026.47 open the **Plugin Manager**, find *Terén* and
    click Install. After a restart the **Terén** tab appears.
 2. Open the sample drawing
    [teren-sample.dwg](https://github.com/pabloxbezx/teren-ocs-plugin/raw/main/ukazka/teren-sample.dwg)
@@ -201,6 +217,7 @@ Manager offers the right one.
 
 | Open CAD Studio | Terén |
 |---|---|
+| 2026.47 | 1.4.0 |
 | 2026.46 | 1.1.0 – 1.3.1 |
 | 2026.45 | 1.0.2 – 1.0.9 |
 | 2026.44 | 1.0.0 – 1.0.1 |

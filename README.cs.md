@@ -61,6 +61,7 @@ kontroluje, že obě strany používají stejný formát dat výkresu):
 
 | Open CAD Studio | Terén |
 |---|---|
+| 2026.47 | 1.4.0 |
 | 2026.46 | 1.1.0 – 1.3.1 |
 | 2026.45 | 1.0.2 – 1.0.9 |
 | 2026.44 | 1.0.0 – 1.0.1 |
@@ -89,6 +90,22 @@ angličtina), projeví se po novém spuštění.
   nejvíc pomůže krátký popis a malý vymyšlený soubor zaměření.
 
 # Co je nového
+
+## Verze 1.4.0
+
+- **Pro Open CAD Studio 2026.47.** Starší Terén se v něm nenačte; Terén
+  1.4.0 zase nepoběží ve starších verzích Open CAD Studia.
+- **Ctrl+Z uvnitř příkazu** vrátí poslední zadaný bod – u spojnice přes
+  body, bodů pro nový povrch, výběru bodů, kreslení trasy a nivelety
+  a přidávání vrcholů nivelety. Po skončení příkazu Ctrl+Z vrací výkres
+  jako dřív.
+- **Nativní body Open CAD Studia** (karta Civil) Terén čte: import bodů
+  *Z výkresu* je ukáže s číslem, X, Y, Z a popisem a převede na body
+  Terénu, ze kterých uděláte povrch Terénu. Nový nástroj *Povrch OCS
+  z bodů OCS* z nich vytvoří nativní povrch Open CAD Studia (CREATESURFACE).
+  Nativní body Terén zatím nezakládá ani neupravuje.
+- Výběr ve výkrese se předává novým způsobem Open CAD Studia (rychlejší
+  u velkých výběrů); úchopy trasy a Prospektor reagují stejně jako dřív.
 
 ## Verze 1.3.1
 
